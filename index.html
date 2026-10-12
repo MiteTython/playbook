@@ -220,6 +220,38 @@ summary{font-weight:600;font-size:14px}
 .btn.wide{width:100%;flex:none;margin-bottom:6px}
 details.base{background:transparent;border:0;padding:0;margin:0}
 details.base > summary{padding:10px 2px;color:var(--fg2);font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+/* 0.9.1: Polaroids, the card's art, the words, tendencies */
+.pgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:4px 0 8px}
+@media (min-width:560px){.pgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.pfeed{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(150px,44%);gap:10px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:2px 16px 8px}
+.pfeed::-webkit-scrollbar{display:none}
+.pol{display:flex;flex-direction:column;gap:2px;padding:7px 7px 9px;border:0;border-radius:5px;background:#F3F0E8;color:#1A1D21;text-align:left;box-shadow:0 3px 10px rgba(0,0,0,.28);font-family:var(--font);min-width:0;box-sizing:border-box}
+.pol.on{outline:3px solid var(--accent);outline-offset:1px}
+.pol:active{transform:scale(.98)}
+.pol-art{display:block;aspect-ratio:1/1;width:100%;overflow:hidden;border-radius:2px;background:#1E3A29;margin-bottom:5px}
+.pol-art svg,.pol-big svg,.card-art svg{width:100%;height:100%;display:block}
+.pol b{font-size:13.5px;line-height:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.pol small{font-size:11.5px;color:#5A6168;line-height:15px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pol-big{aspect-ratio:1/1;width:min(100%,360px);align-self:center;background:#F3F0E8;padding:8px 8px 8px;border-radius:5px;box-sizing:border-box;box-shadow:0 3px 10px rgba(0,0,0,.28)}
+.card-mid{display:grid;grid-template-columns:42% minmax(0,1fr);gap:10px;align-items:start}
+.card-art{aspect-ratio:1/1;border-radius:5px;overflow:hidden;background:#F3F0E8;padding:4px;box-sizing:border-box}
+.card-lines{display:flex;flex-direction:column;gap:6px;min-width:0}
+.card-lines .cline{grid-template-columns:minmax(0,1fr);gap:0;min-height:0;padding:6px 10px}
+.card-lines .cline small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cline:disabled{opacity:.45}
+.gl{display:flex;flex-direction:column;gap:10px}
+.gl-h{display:flex;flex-direction:column;gap:2px}.gl-h b{font-size:18px}.gl-h span{font-family:var(--mono);font-size:12.5px;color:var(--fg2)}
+.gl-p{margin:0;line-height:20px}
+.gl-parts{display:flex;flex-direction:column;gap:4px;background:var(--raise);border-radius:12px;padding:10px 12px}
+.gl-parts div{display:grid;grid-template-columns:96px minmax(0,1fr);gap:8px;font-size:13.5px}.gl-parts i{font-style:normal;color:var(--fg2);font-weight:700}
+.gl-w{display:flex;flex-direction:column}
+.gl-r{display:flex;flex-direction:column;gap:2px;padding:9px 0;border-bottom:1px solid var(--line)}
+.gl-r b{font-size:15px}.gl-r span{font-size:13.5px;line-height:18px;color:var(--fg)}.gl-r small{font-size:12.5px;color:var(--accent);font-weight:600}
+h4.tt{margin:12px 0 4px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg2)}
+table.tend{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+table.tend th{text-align:right;color:var(--fg2);font-weight:700;padding:3px 4px;border-bottom:1px solid var(--line)}
+table.tend td{text-align:right;padding:5px 4px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:normal}
 #filmBtn{position:absolute;left:10px;top:10px;height:34px;padding:0 14px;border-radius:17px;border:1px solid rgba(255,255,255,.25);
   background:rgba(20,26,30,.75);color:#F2F4F3;font-size:13px;font-weight:700}
 </style>
@@ -251,7 +283,7 @@ details.base > summary{padding:10px 2px;color:var(--fg2);font-size:13px;font-wei
 <script>
 (() => {
 'use strict';
-const VERSION = '0.9.0';
+const VERSION = '0.9.1';
 const KEYS = {store:'pb.store', diag:'pb.diag', dumps:'pb.dumps', base:'pb.baseline', bad:'pb.store.bad'};
 const LETTER_COLOR = {X:'#FF5A4E', Y:'#FFD23F', Z:'#B78CFF', H:'#4DA3FF', F:'#3DDC84'};
 const PERS = ['11','12','10','13','21','22','20','23','01','02','00','31','30'];
@@ -927,6 +959,8 @@ function loadDefInto(w, d){
   w.def.shellBuilt = true;
   w.droles = {}; w.dsel = null;
   (d.roles || []).forEach(r => { w.droles[r.key] = {job:r.job, on:r.on || null}; });
+  w.defCall = null;
+  if (w === W && d.call) restoreCall(d);
 }
 
 /* ================= field geometry (world units are yards) =================
@@ -1159,10 +1193,10 @@ function defObject(){
     cat:(isLine(b) && b.hand === 'down') ? 'DL' : 'LB'}));
   const dbs = W.def.deep.map(o => ({slot:o.slot, label:L[o.id], kind:'deep'}))
     .concat(W.def.rest.map(o => ({slot:o.slot, label:L[o.id], kind:'rest'})));
-  const cov = readCoverage();
+  const cov = covNow();
   const roles = Object.keys(W.droles || {}).length ? defList().filter(d => jobOf(d.key)).map(d => ({key:d.key, job:jobOf(d.key).job, on:jobOf(d.key).on || null})) : null;
   return {box, dbs, shell:W.def.shell, summary:frontSummary(W.def.box, W.def.shell) + (cov ? ` · ${cov.name} · ${cov.pressure}` : ''), roles,
-    cov:cov ? {name:cov.name, code:cov.code, pressure:cov.pressure, rcode:cov.rcode, areas:Object.entries(cov.areas).map(([key, a]) => ({key, area:a.area}))} : null};
+    cov:cov ? {name:cov.name, code:cov.code, pressure:cov.pressure, rcode:cov.rcode, areas:Object.entries(cov.areas).map(([key, a]) => ({key, area:a.area}))} : null, call:cov && cov.call ? cov.call : null};
 }
 
 /* ================= play designer: men, paths, names =================
@@ -2432,7 +2466,8 @@ function zoneRect(info, d){
   return {cx:0, cy:10.5, w:8, h:6.5};
 }
 function jobsArt(){
-  const R = rad(), under = [], over = [], D = defList(), T = coverTargets(), cov = readCoverage(), B = bx();
+  rolesFollow();
+  const R = rad(), under = [], over = [], D = defList(), T = coverTargets(), cov = covNow(), B = bx();
   const halo = ' stroke="#0B1510" stroke-width="3" stroke-linejoin="round" paint-order="stroke"';
   if (cov) D.forEach(d => {
     const info = cov.areas[d.key];
@@ -2475,7 +2510,7 @@ function jobRow(design){
   }).join('')}</div>`;
 }
 function jobsMsg(){
-  const D = defList(), cov = readCoverage(), sel = W.dsel ? D.find(d => d.key === W.dsel) : null, j = sel ? jobOf(sel.key) : null;
+  const D = defList(), cov = covNow(), sel = W.dsel ? D.find(d => d.key === W.dsel) : null, j = sel ? jobOf(sel.key) : null;
   if (D.length !== 11) return `The defense has ${D.length} men. Set all 11 first.`;
   if (sel){
     if (j && j.job === 'Man' && !j.on) return `<b>${esc(sel.label)}</b> · Man. Tap the receiver he covers.`;
@@ -2491,7 +2526,7 @@ function panelJobs(design){
   const any = Object.keys(W.droles || {}).length;
   const mid = sel
     ? `<div class="row">${seg('djob', DJOBS.map(x => [x, x]), j ? j.job : '')}<button class="btn small slim" data-act="dselNone">Done</button></div>`
-    : `<div class="row"><button class="btn small" data-act="dfill" data-v="zone">All zone</button><button class="btn small" data-act="dfill" data-v="man">Man under</button><button class="btn small danger" data-act="dfill" data-v="clear" ${any ? '' : 'disabled'}>Clear</button></div>`;
+    : `<div class="row"><button class="btn small def" data-act="callSheet">Calls</button><button class="btn small" data-act="dfill" data-v="zone">All zone</button><button class="btn small" data-act="dfill" data-v="man">Man under</button><button class="btn small danger" data-act="dfill" data-v="clear" ${any ? '' : 'disabled'}>Clear</button></div>`;
   const foot = design
     ? `<div class="row"><button class="pick" data-act="dfront" aria-label="Change the defense">vs ${esc(W.defName)}</button><button class="btn pri" data-act="saveDesignAsk" style="flex:0 0 auto">Save play</button></div>`
     : `<div class="row"><button class="btn slim" data-act="toRestJ">Back</button>${W.chain ? '<button class="btn slim" data-act="skipDef">Skip</button>' : ''}<button class="btn def" data-act="saveDef">Save defense</button></div>`;
@@ -2505,7 +2540,13 @@ function jobsDown(p){
   if (tH && td < dd){
     if (!W.dsel){ toast('Tap a defender first, then the man he covers.'); }
     else { W.droles = W.droles || {}; W.droles[W.dsel] = {job:'Man', on:tH.key}; W.dirty = true; diag('jobs.man', `${W.dsel} on ${tH.tag} (${tH.key})`); }
-  } else if (dH) W.dsel = W.dsel === dH.key ? null : dH.key;
+  } else if (dH){
+    /* pick him, and drag him to a new spot: his job goes with him */
+    W.dsel = W.dsel === dH.key ? null : dH.key;
+    const b = W.def.box.find(o => o.id === dH.id);
+    drag = b ? {kind:'box', id:b.id, line0:isLine(b)} : {kind:'rest', id:dH.id};
+    return;
+  }
   else W.dsel = null;
   drag = {kind:'rs', id:null};
 }
@@ -2675,7 +2716,7 @@ function refresh(){
   renderTop();
   if (VIEW === 'home') renderHome();
   else if (VIEW === 'diag') renderDiag();
-  else { renderPanel(); if (measure()){ clampCam(); render(); } filmBtnSync(); }
+  else { if (W && W.def) rolesFollow(); renderPanel(); if (measure()){ clampCam(); render(); } filmBtnSync(); }
 }
 function renderTop(){
   const L = $('#topL'), icon = $('#topLIcon');
@@ -2694,7 +2735,7 @@ function renderTop(){
     else if (W.mode === 'dtemplate'){ title = W.editFront ? 'Edit defense front' : 'New defense front'; sub = `${W.step === 'box' ? 'The box' : 'Shell and backs'} · strong ${W.strength === 'R' ? 'right' : 'left'}`; }
     else if (W.step === 'box'){ title = 'Defense · the box'; sub = play ? `Play ${play.n} · ${play.name}` : ''; }
     else if (W.step === 'rest'){ title = 'Defense · shell and backs'; sub = play ? `Play ${play.n} · ${play.name}` : ''; }
-    else if (W.step === 'djobs'){ const c = readCoverage(); title = 'Defense · jobs'; sub = c ? `${c.name} · ${c.pressure}` : (play ? `Play ${play.n} · ${play.name}` : ''); }
+    else if (W.step === 'djobs'){ const c = covNow(); title = 'Defense · jobs'; sub = c ? `${c.name} · ${c.pressure}` : (play ? `Play ${play.n} · ${play.name}` : ''); }
     else if (W.step === 'view'){ title = play ? `Play ${play.n}` : 'Play'; sub = play ? `${play.name} · strong ${play.strength === 'R' ? 'right' : 'left'} · ${ball}` : ''; }
   }
   $('#topTitle').textContent = title;
@@ -2753,7 +2794,7 @@ function panelOff(){
     <div class="scrollx">${queue}</div>
     <div class="status ${cls}" role="status">${esc(msg)}</div>
     <div class="row">
-      <button class="btn slim" data-act="saved">Saved</button>
+      <button class="btn slim" data-act="saved">Sets</button>
       <button class="btn slim" data-act="flip" aria-label="Flip the set left to right">Flip</button>
       <button class="btn" data-act="back" ${W.cur === 0 ? 'disabled' : ''}>Back</button>
       <button class="btn pri" data-act="next" ${nextOff ? 'disabled' : ''}>${nextLabel}</button>
@@ -2816,7 +2857,7 @@ function panelBox(){
     <div class="status ${frontLine ? 'code-line' : ''}">${frontLine ? esc(frontLine) : 'Pick Hand down, Hand up or LB. Then tap each man’s technique. Top row is left of the ball, bottom row is right. Tap again to remove.'}</div>
     ${selRow}
     <div class="row">
-      <button class="btn slim" data-act="savedFronts">Saved</button>
+      <button class="btn slim" data-act="savedFronts">Fronts</button>
       <button class="btn slim" data-act="dtype">Type</button>
       ${W.chain ? '<button class="btn slim" data-act="skipDef">Skip</button>' : ''}
       <button class="btn def" data-act="toRest">Next: shell</button>
@@ -2991,7 +3032,7 @@ const sitWord = q => q && q.down ? `${ORD[q.down] || q.down} & ${q.dist == null 
 const yardToSpot = y => { y = Math.round(+y); if (!(y > 0 && y < 100)) return -35; return y === 50 ? 50 : (y > 50 ? -(100 - y) : y); };
 function startQueued(q){
   W = newWork('log');
-  W.qkey = q.key; W.qsit = q.sit || null; W.qdesc = q.desc || ''; W.qpers = persOf(q.pers);
+  W.qkey = q.key; W.qsit = q.sit || null; W.qdesc = q.desc || ''; W.qpers = persOf(q.pers); W.qres = q.res && typeof q.res === 'object' ? q.res : null;
   if (q.pers && PERS.includes(String(q.pers))){ W.pers = String(q.pers); W.tokens = buildTokens(W.pers, false, []); }
   const qb = {U:'under', S:'gun', P:'pistol', under:'under', gun:'gun', pistol:'pistol'}[q.qb];
   if (qb) W.qb = qb;
@@ -3066,6 +3107,7 @@ function saveOff(after){
   }
   const play = {id:'p' + Date.now().toString(36), n:++S.seq, t:new Date().toISOString(), formationId:f.id, name, fcode,
     strength:strengthOf(off.tokens), hash:W.hash, spot:W.spot, off, def:null, fmt:4, key:W.qkey || null, sit:W.qsit || null};
+  if (W.qres){ const st = play.strength, loc = W.qres.loc; play.res = Object.assign({}, W.qres, {dir:loc === 'left' || loc === 'right' ? (((loc === 'right') === (st === 'R')) ? 'strong' : 'weak') : loc === 'middle' ? 'middle' : null}); }
   S.plays.push(play);
   if (!saveStore('save.play')){ S.plays.pop(); S.seq--; return; }
   pushBaseline('play', play);
@@ -3260,6 +3302,438 @@ function saveDesign(name){
   refresh();
 }
 
+/* ================= PBA · shared by Playbook and chalk =================
+   Play art (square, Polaroid-style), coverage calls built on any front, the front's ID, and the glossary that
+   says what every naming word means. Pure: no page, no storage. Yards: x across from the ball (right +),
+   Y from the line of scrimmage (toward the defense +). The ball sits in the middle of the field. */
+const PBA = (() => {
+  'use strict';
+  const FW = 160 / 3, HASH = 70.75 / 3, HX = FW / 2 - HASH;
+  const BALL_COL = {I:6, T:9, S:12}, SIDE_COL = {N:8, W:4};
+  const QB_DEPTH = {under:1, pistol:4, gun:5};
+  const DROW = {p:1, o:6, d:12};
+  const RCOLS = ['I','T','S','N','W'];
+  const DB_KEYS = ['L','R'].flatMap(s => RCOLS.flatMap(c => ['p','o','d'].map(r => `${s}:${c}:${r}`))).concat(['M:M:o','M:M:d']);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const f1 = v => (Math.round(v * 10) / 10).toString();
+  const mirror = k => { const p = String(k).split(':'); p[0] = p[0] === 'L' ? 'R' : p[0] === 'R' ? 'L' : p[0]; return p.join(':'); };
+  const TECH = [['0',0],['1',0.5],['2i',1.5],['2',2],['3',2.5],['4i',3.5],['4',4],['5',4.5],['7',5.5],['6',6],['9',6.5]];
+  const techOf = x => { const a = Math.abs(x); const t = TECH.find(([,v]) => Math.abs(v - a) < 0.01); return t ? t[0] : String(a); };
+
+  /* ---- geometry: the same slots both apps use ---- */
+  function offXY(key, qb){
+    const [side, col, row] = String(key).split(':'), sg = side === 'R' ? 1 : -1;
+    if (col in BALL_COL) return {x:sg * BALL_COL[col], r:+row};
+    if (col in SIDE_COL) return {x:(side === 'R' ? FW - SIDE_COL[col] : SIDE_COL[col]) - FW / 2, r:+row};
+    if (col === 'FB') return {x:side === 'M' ? 0 : sg * 2, r:qb === 'gun' ? 5 : 4};
+    if (col === 'TB') return {x:0, r:7};
+    if (col === 'HB') return {x:sg * 4, r:1};
+    return null;
+  }
+  function dbXY(key){
+    const [side, col, row] = String(key).split(':'), d = DROW[row], sg = side === 'R' ? 1 : -1;
+    if (d == null) return null;
+    if (col === 'M') return {x:0, d};
+    if (col in BALL_COL) return {x:sg * BALL_COL[col], d};
+    if (col in SIDE_COL) return {x:(side === 'R' ? FW - SIDE_COL[col] : SIDE_COL[col]) - FW / 2, d};
+    return null;
+  }
+  const offY = r => -r - 0.6, defY = d => d - 0.4;
+
+  /* ---- who is who on a front: corners, safeties, the rest ---- */
+  function people(front){
+    const D = [];
+    (front.box || []).forEach((b,i) => D.push({k:'b' + i, kind:'box', x:+b.x, Y:defY(b.d), d:b.d, lvl:b.d === 1 ? 'dl' : 'lb', hand:b.d === 1 ? (b.hand || 'down') : null}));
+    (front.dbs || []).forEach((o,i) => { const q = dbXY(o.slot); if (q) D.push({k:'d' + i, kind:'db', slot:o.slot, x:q.x, Y:defY(q.d), d:q.d, lvl:'db'}); });
+    return D;
+  }
+  function targets(off){
+    if (!off || !Array.isArray(off.tokens)) return [];
+    return off.tokens.filter(t => t && t.slot && t.type !== 'L').map(t => { const q = offXY(t.slot, off.qb); return q ? {key:t.slot, x:q.x, Y:offY(q.r), type:t.type} : null; }).filter(Boolean);
+  }
+  function roster(front, strong){
+    const sg = strong === 'L' ? -1 : 1, D = people(front), dbs = D.filter(d => d.lvl === 'db');
+    const corner = s => dbs.filter(d => Math.sign(d.x) === s && Math.abs(d.x) >= 8).sort((a,b) => Math.abs(b.x) - Math.abs(a.x))[0] || null;
+    const cS = corner(sg), cW = corner(-sg);
+    const others = dbs.filter(d => d !== cS && d !== cW);
+    const saf = others.slice().sort((a,b) => b.d - a.d || Math.abs(a.x) - Math.abs(b.x)).slice(0, 2).filter(d => d.d >= 6);
+    const FS = saf.slice().sort((a,b) => b.d - a.d || a.x * sg - b.x * sg)[0] || null;
+    const SS = saf.find(d => d !== FS) || null;
+    const nick = others.filter(d => !saf.includes(d));
+    const downs = D.filter(d => d.lvl === 'dl' && d.hand !== 'up');
+    const ups = D.filter(d => d.lvl === 'dl' && d.hand === 'up').sort((a,b) => a.x * sg - b.x * sg);
+    const lbs = D.filter(d => d.lvl === 'lb').sort((a,b) => a.x * sg - b.x * sg);
+    const mike = lbs.length ? lbs.slice().sort((a,b) => Math.abs(a.x) - Math.abs(b.x))[0] : null;
+    return {sg, D, dbs, cS, cW, FS, SS, nick, downs, ups, lbs, mike};
+  }
+
+  /* ---- coverage calls: every one works on any front with enough bodies; the front's own logic picks who ---- */
+  const COVS = [
+    {id:'c0',  name:'Cover 0',        code:'C0',  shell:0, need:{},                note:'All-out man. Nobody deep. Six or more come.'},
+    {id:'c1',  name:'Cover 1',        code:'C1',  shell:1, need:{saf:1},           note:'Man free: one post safety, man under, five rush.'},
+    {id:'c1h', name:'Cover 1 Hole',   code:'C1H', shell:1, need:{saf:1},           note:'Man free with a rat: a backer sits in the hole, four rush.'},
+    {id:'c1r', name:'Cover 1 Robber', code:'C1R', shell:1, need:{saf:2},           note:'Man free. The strong safety robs the hole; a backer takes the tight end.'},
+    {id:'c2',  name:'Cover 2',        code:'C2',  shell:2, need:{saf:2},           note:'Two deep halves. Hard corners squat the flats. Five under.'},
+    {id:'c2t', name:'Tampa 2',        code:'C2T', shell:2, need:{saf:2, lb:1},     note:'Cover 2 with the Mike running the deep middle hole.'},
+    {id:'c2m', name:'2 Man',          code:'C2M', shell:2, need:{saf:2},           note:'Halves over man. Everyone under trails with inside leverage.'},
+    {id:'c3',  name:'Cover 3 Sky',    code:'C3',  shell:1, need:{saf:1, cb:2},     note:'Corners and the free safety split the deep thirds. The strong safety rolls down to the curl-flat.'},
+    {id:'c3c', name:'Cover 3 Cloud',  code:'C3C', shell:1, need:{saf:2, cb:2},     note:'The strong corner squats the flat; the strong safety bails to his deep third.'},
+    {id:'c3b', name:'Cover 3 Buzz',   code:'C3B', shell:1, need:{saf:2, cb:2},     note:'The strong safety buzzes to the hook-curl; the Sam widens to the flat.'},
+    {id:'c4',  name:'Cover 4',        code:'C4',  shell:2, need:{saf:2, cb:2},     note:'Quarters: four deep, three under. Safeties read #2 and fit the run.'},
+    {id:'c4p', name:'Cover 4 Palms',  code:'C4P', shell:2, need:{saf:2, cb:2},     note:'Quarters look. Corners clue #2: vertical, stay in quarters; out, squat him and it is Cover 2.'},
+    {id:'c6',  name:'Cover 6',        code:'C6',  shell:2, need:{saf:2, cb:2},     note:'Split field: quarters to the strength, cloud (a half and a squat corner) away.'},
+    {id:'fz',  name:'Fire Zone',      code:'FZ',  shell:1, need:{saf:1, cb:2, lb:1}, note:'Five-man zone pressure: a backer blitzes. Three under, three deep.'}
+  ];
+  const UN = {1:['Middle hook'], 2:['Hook','Hook'], 3:['Curl-flat','Middle hook','Curl-flat'], 4:['Curl-flat','Hook','Hook','Curl-flat'],
+    5:['Flat','Curl-hook','Middle hook','Curl-hook','Flat'], 6:['Flat','Curl','Hook','Hook','Curl','Flat']};
+  function fits(front, cid){
+    const C = COVS.find(c => c.id === cid); if (!C) return false;
+    const R = roster(front, 'R'), n = C.need;
+    const saf = (R.FS ? 1 : 0) + (R.SS ? 1 : 0), cb = (R.cS ? 1 : 0) + (R.cW ? 1 : 0);
+    return (!n.saf || saf >= n.saf) && (!n.cb || cb >= n.cb) && (!n.lb || R.lbs.length >= n.lb);
+  }
+  /* front + offense (strength side known) → who rushes, who covers whom, every zone, and where the backs line up */
+  function covPlan(front, off, strong, cid){
+    const C = COVS.find(c => c.id === cid); if (!C || !fits(front, cid)) return null;
+    const R = roster(front, strong), {sg, D, cS, cW, FS, SS, nick, downs, ups, lbs, mike} = R, T = targets(off);
+    const roles = {}, areas = {}, want = {};
+    const SL = sg > 0 ? 'R' : 'L', WL = sg > 0 ? 'L' : 'R';
+    const rush = d => { if (d) roles[d.k] = {job:'Rush', on:null}; };
+    const nR = () => Object.values(roles).filter(r => r.job === 'Rush').length;
+    downs.forEach(rush);
+    ups.forEach(d => { if (nR() < 4) rush(d); });
+    const colOf = d => { const c = String(d.slot).split(':')[1]; return c === 'M' ? 'N' : c; };
+    const sideL = d => (Math.sign(d.x) || -sg) > 0 ? 'R' : 'L';
+    const put = (d, key) => { if (d && d.lvl === 'db') want[d.k] = key; };
+    const corners = (rowS, rowW) => { if (cS) put(cS, `${sideL(cS)}:${colOf(cS)}:${rowS}`); if (cW) put(cW, `${sideL(cW)}:${colOf(cW)}:${rowW || rowS}`); };
+    const free = () => D.filter(d => !roles[d.k]);
+    const sideW = x => (x * sg > 0.01) ? 'strong' : (x * sg < -0.01) ? 'weak' : '';
+    const zone = (d, info) => { roles[d.k] = {job:'Zone', on:null}; areas[d.k] = info; };
+    const deepZ = (list, labels) => {
+      const L = list.filter(Boolean).slice().sort((a,b) => xAt(a) - xAt(b)), n = L.length;
+      L.forEach((d,i) => {
+        let a = labels && labels[d.k] ? labels[d.k] : n === 1 ? 'Deep middle' : n === 2 ? 'Deep half' : n === 3 ? (i === 1 ? 'Deep middle third' : 'Deep third') : 'Deep quarter';
+        if (!/middle/i.test(a)) a += ' ' + sideW(xAt(d));
+        zone(d, {area:a.trim(), deep:true, i, n});
+      });
+    };
+    const underZ = (list, table) => {
+      const L = list.filter(d => d && !roles[d.k]).sort((a,b) => xAt(a) - xAt(b)), n = L.length;
+      const names = table || UN[n] || L.map(() => 'Hook');
+      L.forEach((d,i) => { const k = names[i] || 'Hook'; zone(d, {area:(k + (/Middle|Hole|Robber/.test(k) ? '' : ' ' + sideW(xAt(d)))).trim(), deep:false, kind:k, i, n}); });
+    };
+    /* where each back ends up, so zones and lines are drawn from his new spot */
+    const xAt = d => { const k = want[d.k]; if (!k) return d.x; const q = dbXY(k); return q ? q.x : d.x; };
+    const manUp = (cands, leftover) => {
+      const pairs = [];
+      cands.forEach(d => T.forEach(t => {
+        let c = Math.abs(xAt(d) - t.x) + 0.3 * Math.abs(d.Y - t.Y);
+        if (Math.sign(xAt(d)) !== Math.sign(t.x) && Math.abs(t.x) > 3) c += 6;
+        if (d.lvl !== 'db' && t.type === 'W' && Math.abs(t.x) > 9) c += 6;
+        if ((d === cS || d === cW) && t.Y < -2.5) c += 8;
+        pairs.push({d, t, c});
+      }));
+      pairs.sort((a,b) => a.c - b.c);
+      const uD = new Set(), uT = new Set();
+      pairs.forEach(p => { if (uD.has(p.d.k) || uT.has(p.t.key)) return; uD.add(p.d.k); uT.add(p.t.key); roles[p.d.k] = {job:'Man', on:p.t.key}; });
+      const rest = cands.filter(d => !uD.has(d.k));
+      if (!T.length) cands.forEach(d => { if (!roles[d.k]) roles[d.k] = {job:'Man', on:null}; });
+      else if (leftover) leftover(rest);
+    };
+    switch (cid){
+      case 'c0':
+        corners('p'); if (FS) put(FS, 'M:M:o'); if (SS) put(SS, `${SL}:T:o`);
+        manUp(free(), rest => rest.forEach(rush)); break;
+      case 'c1':
+        corners('p'); if (FS) put(FS, 'M:M:d'); if (SS) put(SS, `${SL}:T:o`);
+        deepZ([FS]); manUp(free(), rest => rest.forEach(rush)); break;
+      case 'c1h':
+        corners('p'); if (FS) put(FS, 'M:M:d'); if (SS) put(SS, `${SL}:T:o`);
+        deepZ([FS]);
+        manUp(free(), rest => { const h = rest.slice().sort((a,b) => (b.lvl === 'lb') - (a.lvl === 'lb') || Math.abs(a.x) - Math.abs(b.x))[0]; if (h) zone(h, {area:'Hole', deep:false, kind:'Hole', i:0, n:1}); rest.filter(d => d !== h).forEach(rush); });
+        break;
+      case 'c1r':
+        corners('p'); if (FS) put(FS, 'M:M:d'); if (SS) put(SS, `${SL}:T:o`);
+        deepZ([FS]); if (SS) zone(SS, {area:'Robber', deep:false, kind:'Robber', i:0, n:1});
+        manUp(free(), rest => rest.forEach(rush)); break;
+      case 'c2': case 'c2t':
+        corners('p'); if (FS) put(FS, `${WL}:S:d`); if (SS) put(SS, `${SL}:S:d`);
+        deepZ([FS, SS]);
+        if (cid === 'c2t' && mike && !roles[mike.k]) zone(mike, {area:'Deep middle (Tampa)', deep:true, i:1, n:3});
+        underZ(free()); break;
+      case 'c2m':
+        corners('p'); if (FS) put(FS, `${WL}:S:d`); if (SS) put(SS, `${SL}:S:d`);
+        deepZ([FS, SS]);
+        manUp(free(), rest => underZ(rest)); break;
+      case 'c3': case 'c3b':
+        corners('o'); if (FS) put(FS, 'M:M:d'); if (SS) put(SS, cid === 'c3b' ? `${SL}:T:o` : `${SL}:S:o`);
+        deepZ([cW, FS, cS]); underZ(free()); break;
+      case 'c3c':
+        corners('p', 'o'); if (FS) put(FS, 'M:M:d'); if (SS) put(SS, `${SL}:S:d`);
+        deepZ([cW, FS, SS]); underZ(free()); break;
+      case 'c4': case 'c4p':
+        corners('o'); if (FS) put(FS, `${WL}:T:d`); if (SS) put(SS, `${SL}:T:d`);
+        deepZ([cW, FS, SS, cS]); underZ(free()); break;
+      case 'c6': {
+        corners('o', 'p'); if (FS) put(FS, `${WL}:S:d`); if (SS) put(SS, `${SL}:T:d`);
+        const lab = {}; if (FS) lab[FS.k] = 'Deep half'; if (SS) lab[SS.k] = 'Deep quarter'; if (cS) lab[cS.k] = 'Deep quarter';
+        deepZ([FS, SS, cS], lab); underZ(free()); break;
+      }
+      case 'fz': {
+        corners('o'); if (FS) put(FS, 'M:M:d'); if (SS) put(SS, `${SL}:S:o`);
+        const b = mike || lbs[0] || nick[0]; rush(b);
+        deepZ([cW, FS, cS]);
+        const u = free(); underZ(u, u.length === 3 ? ['Seam-flat','Middle hook','Seam-flat'] : null); break;
+      }
+    }
+    free().forEach(d => zone(d, {area:'Hook', deep:false, kind:'Hook', i:0, n:1}));
+    const n = nR(), blitz = D.filter(d => roles[d.k] && roles[d.k].job === 'Rush' && d.lvl !== 'dl').length;
+    const pressure = n <= 3 ? `${n}-man rush` : n === 4 ? (blitz ? 'Sim pressure' : '4-man rush') : `${n}-man pressure`;
+    return {id:C.id, name:C.name, code:C.code, shell:C.shell, note:C.note, roles, areas, want, people:D, targets:T, rush:n, pressure, rcode:n <= 3 ? n + 'R' : n === 4 ? (blitz ? '4S' : '4R') : n + 'P', strong:sg > 0 ? 'R' : 'L'};
+  }
+  /* the backs on the slots the call wants; anyone bumped takes the nearest open slot */
+  function nearestFree(want, taken){
+    const q = dbXY(want) || {x:0, d:6};
+    return DB_KEYS.filter(k => !taken.has(k)).map(k => { const p = dbXY(k); return {k, c:Math.hypot(p.x - q.x, (p.d - q.d) * 0.8)}; }).sort((a,b) => a.c - b.c)[0].k;
+  }
+  function placeDbs(front, plan){
+    const out = (front.dbs || []).map(o => Object.assign({}, o)), taken = new Set();
+    const order = out.map((o,i) => i).sort((a,b) => (plan.want['d' + a] ? 1 : 0) - (plan.want['d' + b] ? 1 : 0));
+    order.forEach(i => { const w = plan.want['d' + i] || out[i].slot; const k = taken.has(w) ? nearestFree(w, taken) : w; out[i].slot = k; taken.add(k); });
+    /* the shell counts the safeties playing deep; deep corners stay "rest" the way the editor keeps them */
+    out.forEach((o,i) => { const a = plan.areas['d' + i]; o.kind = a && a.deep && /:(I|T|S|M):d$/.test(o.slot) ? 'deep' : 'rest'; });
+    let deep = out.filter(o => o.kind === 'deep');
+    if (deep.length > 2){ deep.slice(2).forEach(o => { o.kind = 'rest'; }); deep = deep.slice(0, 2); }
+    return {dbs:out, shell:deep.length};
+  }
+  /* a whole defense object (box, dbs, shell, cov) for a front + call, strength right */
+  function callDef(front, off, cid){
+    const plan = covPlan(front, off, 'R', cid); if (!plan) return null;
+    const P = placeDbs(front, plan);
+    return {box:front.box.map(b => Object.assign({}, b)), dbs:P.dbs, shell:P.shell, cov:{name:plan.name, code:plan.code, pressure:plan.pressure, rcode:plan.rcode}, call:plan.id, plan};
+  }
+
+  /* ---- what the line sees: the center's front call, and the 49ers front number ---- */
+  function frontId(front, strong){
+    const sg = strong === 'L' ? -1 : 1, box = front.box || [], L1 = box.filter(b => b.d === 1);
+    const at = (lo, hi, s) => L1.some(b => { const v = b.x * s; return v >= lo - 0.01 && v <= hi + 0.01; });
+    const C = L1.some(b => Math.abs(b.x) <= 0.51), GS = at(1.5, 2.5, sg), GW = at(1.5, 2.5, -sg);
+    const downs = L1.filter(b => b.hand !== 'up').length;
+    let id = C && GS && GW ? 'Jam' : C && GS ? 'Over' : C && GW ? 'Under' : C ? 'Odd' : GS && GW ? 'Even' : GS ? 'Over (weak guard uncovered)' : GW ? 'Under (strong guard uncovered)' : 'Wide';
+    const te = box.some(b => b.d === 1 && b.x * sg >= 5.4 && b.x * sg <= 6.1) || (front.dbs || []).some(o => o.slot && /^[LR]:I:p$/.test(o.slot) && (o.slot[0] === 'R') === (sg > 0));
+    if (id === 'Jam' && te) id = 'Bear';
+    const samOn = L1.some(b => b.hand === 'up' && b.x * sg >= 4.5), willOn = L1.some(b => b.hand === 'up' && b.x * sg <= -4.5);
+    const first = {Under:2, Even:4, Over:5}[id.split(' ')[0]] || (id === 'Odd' ? 3 : null);
+    const second = samOn && willOn ? 3 : samOn ? 5 : willOn ? 7 : 9;
+    const nDB = (front.dbs || []).length, pkg = nDB >= 7 ? 'Quarter' : nDB === 6 ? 'Dime' : nDB === 5 ? 'Nickel' : nDB <= 3 ? 'Heavy' : 'Base';
+    return {id, num:first && downs >= 3 ? `${first}${second}` : null, samOn, willOn, downs, pkg};
+  }
+
+  /* ---- art: square, field green, the line of scrimmage blue ---- */
+  const COL = {W:'#F2F4F3', T:'#FFD23F', B:'#4DA3FF', L:'#9AA5AE', DL:'#FF8A3D', LB:'#C4CCD3', DB:'#8FA3B5', deep:'77,163,255', under:'255,226,122'};
+  function frame(yTop, body, label){
+    const S = 53.4, y0 = -yTop, lines = [];
+    for (let Y = Math.ceil((yTop - S) / 5) * 5; Y <= yTop; Y += 5){ if (Y === 0) continue; lines.push(`M-26.7 ${f1(-Y)}H26.7`); }
+    const ticks = []; for (let Y = Math.ceil(yTop - S); Y <= yTop; Y++){ ticks.push(`M${f1(-HX - 0.5)} ${-Y}h1M${f1(HX - 0.5)} ${-Y}h1M-25.7 ${-Y}h0.8M24.9 ${-Y}h0.8`); }
+    return `<svg viewBox="-26.7 ${f1(y0)} ${S} ${S}" xmlns="http://www.w3.org/2000/svg" role="img"${label ? ` aria-label="${esc(label)}"` : ' aria-hidden="true"'} preserveAspectRatio="xMidYMid slice">
+      <rect x="-26.7" y="${f1(y0)}" width="${S}" height="${S}" fill="#1E3A29"/>
+      <path d="${lines.join('')}" stroke="rgba(255,255,255,.13)" stroke-width="0.25"/>
+      <path d="${ticks.join('')}" stroke="rgba(255,255,255,.22)" stroke-width="0.2"/>
+      <path d="M-26.7 0H26.7" stroke="#3D8BFF" stroke-width="0.35"/>${body}</svg>`;
+  }
+  function offBody(off, opts){
+    if (!off || !Array.isArray(off.tokens)) return '';
+    const ghost = opts && opts.ghost, op = ghost ? ' opacity="0.42"' : '', out = [];
+    [-4,-2,0,2,4].forEach(x => out.push(`<rect x="${f1(x - 0.65)}" y="${f1(-offY(0) - 0.65)}" width="1.3" height="1.3" rx="0.25" fill="${COL.L}"${op}/>`));
+    out.push(`<circle cx="0" cy="${f1(-offY(QB_DEPTH[off.qb] || 1))}" r="0.8" fill="#EEF1F3"${op}/>`);
+    off.tokens.forEach(t => {
+      if (!t || !t.slot) return; const q = offXY(t.slot, off.qb); if (!q) return;
+      const y = -offY(q.r);
+      if (t.type === 'L') out.push(`<rect x="${f1(q.x - 0.65)}" y="${f1(y - 0.65)}" width="1.3" height="1.3" rx="0.25" fill="${COL.L}"${op}/>`);
+      else out.push(`<circle cx="${f1(q.x)}" cy="${f1(y)}" r="1.05" fill="${COL[t.type] || COL.W}" stroke="#0B1510" stroke-width="0.25"${op}/>`);
+    });
+    return out.join('');
+  }
+  function tri(x, Y, fill, hollow){
+    const y = -Y, s = 1.15;
+    return `<path d="M${f1(x - s)} ${f1(y - s * 0.8)}L${f1(x + s)} ${f1(y - s * 0.8)}L${f1(x)} ${f1(y + s * 0.9)}Z" fill="${hollow ? 'none' : fill}" stroke="${hollow ? fill : '#0B1510'}" stroke-width="${hollow ? 0.45 : 0.25}"/>`;
+  }
+  function defBody(def){
+    if (!def) return '';
+    const out = [];
+    (def.box || []).forEach(b => { const dl = b.d === 1; out.push(tri(+b.x, defY(b.d), dl ? COL.DL : COL.LB, dl && b.hand === 'up')); });
+    (def.dbs || []).forEach(o => { const q = dbXY(o.slot); if (q) out.push(tri(q.x, defY(q.d), COL.DB)); });
+    return out.join('');
+  }
+  function zoneRect(info, x, sg){
+    const Lx = -FW / 2, Rx = FW / 2, s = Math.sign(x) || -sg;
+    if (info.deep){ const n = Math.max(1, info.n), w = FW / n; return {cx:Lx + w * (info.i + 0.5), cy:19, w:w - 1.6, h:12}; }
+    const k = info.kind || '';
+    if (k === 'Flat') return {cx:s < 0 ? Lx + 6.5 : Rx - 6.5, cy:3.6, w:11, h:6};
+    if (k === 'Curl-flat' || k === 'Seam-flat') return {cx:s < 0 ? Lx + 11 : Rx - 11, cy:6.5, w:12, h:9};
+    if (k === 'Curl' || k === 'Curl-hook') return {cx:s < 0 ? Lx + 15.5 : Rx - 15.5, cy:9, w:8.5, h:7};
+    if (k === 'Hook') return {cx:s * 4.5, cy:8.5, w:7.5, h:7};
+    return {cx:0, cy:10.5, w:8, h:6.5};
+  }
+  function planBody(plan, dbsAfter){
+    const sg = plan.strong === 'L' ? -1 : 1, under = [], over = [];
+    const pos = {};
+    plan.people.forEach(d => { let x = d.x, Y = d.Y; if (d.lvl === 'db' && dbsAfter){ const i = +d.k.slice(1), q = dbsAfter[i] && dbXY(dbsAfter[i].slot); if (q){ x = q.x; Y = defY(q.d); } } pos[d.k] = {x, Y, d}; });
+    Object.entries(plan.areas).forEach(([k, info]) => {
+      const p = pos[k]; if (!p) return;
+      const z = zoneRect(info, p.x, sg), col = info.deep ? COL.deep : COL.under;
+      under.push(`<rect x="${f1(z.cx - z.w / 2)}" y="${f1(-(z.cy + z.h / 2))}" width="${f1(z.w)}" height="${f1(z.h)}" rx="${f1(Math.min(z.w, z.h) / 3)}" fill="rgba(${col},0.17)" stroke="rgba(${col},0.75)" stroke-width="0.3" stroke-dasharray="1.2 0.9"/>`);
+      under.push(`<path d="M${f1(p.x)} ${f1(-p.Y)}L${f1(z.cx)} ${f1(-z.cy)}" stroke="rgba(${col},0.6)" stroke-width="0.3" stroke-dasharray="0.4 0.8"/>`);
+    });
+    Object.entries(plan.roles).forEach(([k, r]) => {
+      const p = pos[k]; if (!p) return;
+      if (r.job === 'Rush'){ const tx = p.x * 0.55, ty = 1.8, col = p.d.lvl === 'dl' ? COL.DL : '#FF5A4E'; over.push(`<path d="M${f1(p.x)} ${f1(-p.Y)}L${f1(tx)} ${f1(ty)}" stroke="${col}" stroke-width="${p.d.lvl === 'dl' ? 0.4 : 0.55}" stroke-linecap="round"/>`); }
+      else if (r.job === 'Man' && r.on){ const t = plan.targets.find(q => q.key === r.on); if (t) over.push(`<path d="M${f1(p.x)} ${f1(-p.Y)}L${f1(t.x)} ${f1(-t.Y)}" stroke="#FFFFFF" stroke-opacity="0.8" stroke-width="0.3" stroke-dasharray="0.5 0.9" stroke-linecap="round"/>`); }
+    });
+    return {under:under.join(''), over:over.join('')};
+  }
+  function setArt(off, label){ return frame(24, offBody(off), label); }
+  function frontArt(front, opts){
+    const o = opts || {};
+    if (o.cid){
+      const plan = covPlan(front, o.off || null, o.strong || 'R', o.cid);
+      if (plan){ const P = placeDbs(front, plan), B = planBody(plan, P.dbs); return frame(31, B.under + offBody(o.off, {ghost:!o.solid}) + defBody({box:front.box, dbs:P.dbs}) + B.over, o.label); }
+    }
+    return frame(28, offBody(o.off, {ghost:!o.solid}) + defBody(front), o.label);
+  }
+  /* a drawn play: each man's motion, then his assignment, from where he stands */
+  function designArt(dz, label){
+    if (!dz || !dz.off) return frame(28, '', label);
+    const off = dz.off, paths = [];
+    const OLX = {OL0:-4, OL1:-2, OL2:0, OL3:2, OL4:4};
+    const start = who => {
+      if (who in OLX) return {x:OLX[who], Y:offY(0)};
+      if (who === 'QB') return {x:0, Y:offY(QB_DEPTH[off.qb] || 1)};
+      const q = offXY(who, off.qb); return q ? {x:q.x, Y:offY(q.r)} : null;
+    };
+    const line = (pts, s0, color, dash, w) => `<path d="M${pts.map(p => `${f1(s0.x + p.x)} ${f1(-(s0.Y + p.y))}`).join('L')}" fill="none" stroke="${color}" stroke-width="${w || 0.45}" stroke-linecap="round" stroke-linejoin="round"${dash ? ` stroke-dasharray="${dash}"` : ''}/>`;
+    (dz.arts || dz.routes || []).forEach(a => {
+      const s = start(a.who || a.slot); if (!s) return;
+      let s1 = s;
+      if (Array.isArray(a.mo) && a.mo.length > 1){ paths.push(line(a.mo, s, '#B78CFF', '0.8 0.6', 0.35)); const e = a.mo[a.mo.length - 1]; s1 = {x:s.x + e.x, Y:s.Y + e.y}; }
+      if (Array.isArray(a.pts) && a.pts.length > 1){
+        const k = a.kind || 'route', col = k === 'block' ? '#FF8A3D' : k === 'carry' ? '#3DDC84' : k === 'fake' ? '#C4CCD3' : '#FFFFFF';
+        paths.push(line(a.pts, s1, col, k === 'fake' ? '0.7 0.7' : null, k === 'block' ? 0.4 : 0.5));
+        if (k === 'route'){ const p = a.pts[a.pts.length - 1], q = a.pts[a.pts.length - 2], ang = Math.atan2(-(p.y - q.y), p.x - q.x), x = s1.x + p.x, y = -(s1.Y + p.y), h = 1;
+          paths.push(`<path d="M${f1(x)} ${f1(y)}L${f1(x - h * Math.cos(ang - 0.5))} ${f1(y - h * Math.sin(ang - 0.5))}M${f1(x)} ${f1(y)}L${f1(x - h * Math.cos(ang + 0.5))} ${f1(y - h * Math.sin(ang + 0.5))}" stroke="${col}" stroke-width="0.45" stroke-linecap="round"/>`); }
+      }
+    });
+    return frame(28, (dz.def ? defBody(dz.def) : '') + paths.join('') + offBody(off), label);
+  }
+  function playArt(p, label){ return frame(28, (p && p.def ? defBody(p.def) : '') + offBody(p && p.off), label); }
+
+  /* ---- the glossary: what each naming style describes, the words, and their opposites ---- */
+  const GLOSS = {
+    pro: {title:'Pro names', eg:'Gun Trey Rt',
+      what:'A pro name is the shorthand coaches say out loud. Three pieces, in order: how the QB and backs line up, how the receivers are spread, and which side the strength is to.',
+      parts:[['Backfield','Gun, Pistol, I, Strong I, Weak I, Pro, Ace, Empty'],['Receivers','Doubles, Trips, Trey, Twins, Bunch, Stack, Quads, Spread, Wing, Tank'],['Direction','Rt / Lt — the strength: the side with more receivers, or the tight end when it is even']],
+      words:[
+        ['Gun','QB about 5 yards deep (shotgun).','Under center'],
+        ['Pistol','QB about 4 yards deep with the back directly behind him.','Gun (back beside the QB)'],
+        ['Ace / Singleback','One back behind an under-center QB.','I / Pro (two backs)'],
+        ['I','Fullback and tailback stacked straight behind the QB.','Split backs (Pro)'],
+        ['Strong I / Weak I','Offset I: the fullback cheats toward the tight end (strong) or away from him (weak).','Each other'],
+        ['Pro / Split','Two backs side by side behind the QB.','I (stacked)'],
+        ['Empty','No back: five receivers spread out.','Full house (three backs)'],
+        ['Doubles (2x2)','Two receivers to each side.','Trips (3x1)'],
+        ['Trips (3x1)','Three detached receivers to one side, one alone backside.','Doubles'],
+        ['Trey','3x1 where one of the three is the tight end on the line.','Trips (all three detached)'],
+        ['Twins','Two wide receivers to one side, the tight end alone to the other.','Pro (tight end and flanker on the same side)'],
+        ['Bunch','Three receivers in a tight triangle, a yard or two apart.','Spread'],
+        ['Stack','One receiver lined up directly behind another.','Spread'],
+        ['Quads','Four receivers to one side.','Empty balanced (3x2)'],
+        ['Wing','A tight end or H-back a yard off the ball just outside the end man.','Inline (on the line)'],
+        ['Tank','A tight end inline with a second one at wing outside him.','Ace (one tight end each side)'],
+        ['Rt / Lt','The side the strength is to.','Each other'],
+        ['11, 12, 21…','Personnel: first digit backs, second tight ends; the rest are wide receivers. 11 = 1 back, 1 TE, 3 WR.','—']]},
+    desc: {title:'Descriptive names', eg:'Shotgun · 11 personnel · trey right · back beside the QB · TE inline right',
+      what:'A descriptive name spells out what you see, one fact per piece, so nobody has to know a team\'s code words. In order: QB depth, personnel, receiver distribution and side, backfield, tight end.',
+      parts:[['QB depth','Under center, Pistol, Shotgun'],['Personnel','backs and tight ends, e.g. 11'],['Receivers','balanced, twins, trey, trips, bunch, stack, quads + side'],['Backfield','I backfield, offset I strong/weak, split backs, back beside the QB, no back'],['Tight end','inline, wing, flexed, off — and his side']],
+      words:[
+        ['Under center','QB’s hands under the center.','Shotgun / Pistol'],
+        ['Inline','Tight end on the line, attached to the tackle.','Flexed / detached (split out)'],
+        ['On the ball','On the line of scrimmage.','Off the ball (a yard back)'],
+        ['Beside the QB','In the gun, the back next to the QB.','Behind the QB (pistol, I)'],
+        ['Strong / weak','Toward / away from the strength.','Each other'],
+        ['Balanced','Same count each side.','Unbalanced (more men, or the linemen, to one side)'],
+        ['Right / left','The side of the strength, from the offense’s view.','Each other']]},
+    niners: {title:'49ers words (2014 book)', eg:'Green Rt Slot ‘Z’ Rt',
+      what:'The 49ers call order: shift, formation word, direction, variation tags, motion, play number, play words, snap count. Their Rt/Lt is the side of the tight end (Y) — not the side with more receivers. In Heavy calls it is the tackle-over side and Y goes the other way.',
+      parts:[['Backfield color','Green, Strong, Weak, Red, Change, Blue, Black, Brown, Tan'],['Formation word','D words (2x2, F weak), F words (2x2, F strong), T words (3x1), Bunch, Crunch'],['Direction','Rt / Lt = the Y side'],['Tags','Slot, Close, Tite, Nasty, Cozy, Stack, Off, Loose, Lex, Club, Open'],['Run number','series digit + hole digit; even right, odd left']],
+      words:[
+        ['Green','I backs: F behind the QB, H at tailback.','Red (split backs)'],
+        ['Strong / Weak','Offset I with F to the Y side / away from it.','Each other'],
+        ['Red / Change','Split backs with F strong / F weak.','Each other'],
+        ['Dot / Deuce / Double','2x2 with F weak: attached / at the tackle’s hip / in the slot.','T words (3x1)'],
+        ['Tank / Tin / Trips / Taz','3x1 strong: F at wing / F at the hip, Y loose / F in the slot / Z in the slot, F outside.','D words'],
+        ['Bunch / Crunch','Triangle / three-man staircase off the tackle.','Spread'],
+        ['Slot','Z moves to the weak slot.','—'],
+        ['Close / Tite / Nasty','Z / X / both in a 4-yard split.','Normal (+2 outside the numbers), Big (+4), Max (+6)'],
+        ['Cozy','A receiver attached to the tackle like a tight end.','—'],
+        ['Off / Loose / Lex','Y a yard off the ball / 2 yards from the tackle / 4 yards from it.','Attached'],
+        ['Heavy','Tackle over to the call side; Y goes opposite.','Balanced line'],
+        ['Regular / Tiger / Zebra / Trey','Personnel 21 / 12 / 11 / 13.','—'],
+        ['Kodiak / Beast / Jumbo','An extra lineman in for a tight end (H = one extra lineman).','—'],
+        ['Even holes','Runs to the right: 2 guard, 4 tackle, 6 tight end, 8 outside.','Odd holes (left)'],
+        ['9x / 3x / 6x / 1x','Tailback from home / back offset in the gun crossing / fullback / QB runs.','—'],
+        ['Zone / Boss / Power / Wrap','Wide zone / wide zone with the F on the force / gap power / guard-and-F counter weak.','—']]},
+    defense: {title:'Defense words', eg:'4-3 Over · Cover 3 Sky',
+      what:'A defense call names the front (who is on the line and where), then the coverage (who has deep, who has what underneath), then any pressure. Numbers count the shell of deep safeties: 1-high (middle of the field closed) or 2-high (middle open).',
+      parts:[['Front','Over, Under, Odd, Even, Jam, Bear, Okie, Tite'],['Techniques','0 nose on the center, 1 center shade, 2i/2/3 on the guard, 4i/4/5 on the tackle, 7/6/9 on the tight end'],['Coverage','Cover 0–6 with tags: Sky, Cloud, Robber, Lurk, Buzz, Tampa, Palms, Invert'],['Pressure','4-man rush, Sim pressure (4 rush with a backer blitzing), Fire zone (5), Cover 0 (6+)']],
+      words:[
+        ['Over / Under','The defensive line shifted toward / away from the strength (the 3-technique is strong / weak).','Each other'],
+        ['Odd / Even','A nose on the center / the center uncovered, both guards covered.','Each other'],
+        ['Jam / Bear','Center and both guards covered / Jam plus an eighth man over the tight end.','Spread / light box'],
+        ['Wide 9','The end lined up outside the tight end.','Tight 5 / 4i'],
+        ['Mike / Will / Sam','Middle backer / weak-side backer / strong-side backer.','—'],
+        ['1-high / 2-high','One deep safety in the middle (MOFC) / two deep, middle open (MOFO).','Each other'],
+        ['Sky / Cloud','The safety / the corner has the flat and the force.','Each other'],
+        ['Robber / Lurk','The strong / free safety drops into the hole underneath.','Each other'],
+        ['Buzz','A safety drops to the hook-curl and a backer widens to the flat.','Sky'],
+        ['Tampa','Cover 2 with the Mike running the deep middle.','Cover 2'],
+        ['Palms (2-read)','Quarters look; the corner squats if #2 goes to the flat.','Cover 4'],
+        ['Press / Cloud / Off','Corner within 0–3 yards / 4–7 / 7+ — press is man or Cover 2; off is a deep zone.','—'],
+        ['Inside / Outside leverage','Corner lined up on the receiver’s inside / outside shoulder: help is outside / inside.','Head-up (disguise)'],
+        ['Man eyes / Zone eyes','Corner looking at the receiver / at the QB or backfield.','Each other'],
+        ['Box / Spill','Run fit from outside-in, funnel it back to help / from inside-out, push it outside to help.','Each other'],
+        ['Hammer / Splatter','Defender takes outside / inside control of the blocker.','Each other'],
+        ['Field / Boundary','The wide side of the field / the short side (from the hash).','Each other'],
+        ['Flat / Hook-curl / Hole / Seam','Underneath zones: 0–8 yards outside / about 12 yards over the slot / the middle at 10–15 / the vertical lane inside the numbers.','Deep thirds, halves, quarters'],
+        ['Force','The player who turns the run back inside.','Fill / spill player']]}
+  };
+  function glossHTML(key){
+    const g = GLOSS[key]; if (!g) return '';
+    return `<div class="gl"><div class="gl-h"><b>${esc(g.title)}</b><span>${esc(g.eg)}</span></div><p class="gl-p">${esc(g.what)}</p>
+      <div class="gl-parts">${g.parts.map(([a,b]) => `<div><i>${esc(a)}</i><span>${esc(b)}</span></div>`).join('')}</div>
+      <div class="gl-w">${g.words.map(([w,m,o]) => `<div class="gl-r"><b>${esc(w)}</b><span>${esc(m)}</span>${o && o !== '—' ? `<small>opposite: ${esc(o)}</small>` : ''}</div>`).join('')}</div></div>`;
+  }
+  /* ---- 49ers formation words for base sets that have a clean one (Rt/Lt = the Y side) ---- */
+  const NINERS = {'base-o-i-rt':'Green Rt', 'base-o-i-twins-rt':'Green Lt Slot', 'base-o-strong-i-rt':'Strong Rt', 'base-o-weak-i-rt':'Weak Rt', 'base-o-pro-rt':'Red Rt',
+    'base-o-ace':'Dot Rt', 'base-o-ace-trey-rt':'Trips Rt', 'base-o-ace-doubles':'Double Rt', 'base-o-gun-doubles':'G Double Rt', 'base-o-gun-trey-rt':'G Trips Rt', 'base-o-gun-bunch-rt':'G Bunch Rt'};
+
+  /* ---- the situation buckets a game plan sheet reports by ---- */
+  function ddBucket(down, dist){
+    if (!down) return null;
+    const d = dist == null ? null : +dist, O = ['', '1st', '2nd', '3rd', '4th'][down] || down + 'th';
+    if (down === 1) return d != null && d > 10 ? '1st & long (10+)' : '1st & 10';
+    if (d == null) return O + ' down';
+    if (down === 4) return d >= 4 ? '4th & long (4+)' : d === 3 ? '4th & medium (3)' : '4th & short (1–2)';
+    return d >= 7 ? `${O} & long (7+)` : d >= 3 ? `${O} & medium (3–6)` : `${O} & short (1–2)`;
+  }
+  /* yl100 = yards to the goal the offense is going in */
+  function fieldZone(yl100){
+    if (yl100 == null || !isFinite(yl100)) return null;
+    const y = +yl100;
+    return y >= 90 ? 'Backed up (G to −10)' : y >= 80 ? 'Coming out (−10 to −20)' : y > 20 ? 'Free wheel (−20 to +20)' : y > 10 ? 'Going in (+20 to +10)' : 'Goal line (+10 to G)';
+  }
+  return {FW, offXY, dbXY, DB_KEYS, mirror, techOf, COVS, fits, covPlan, placeDbs, callDef, frontId, roster, setArt, frontArt, designArt, playArt, GLOSS, glossHTML, NINERS, ddBucket, fieldZone};
+})();
+
 /* ================= 0.9.0: the base book, what the iPad decided, the frames, chalk's frame, the inbox =================
    None of this touches the editor. It decides what opens it, and files what the iPad already decided.
    Tags (ipad.json tags[]) with a set become logged plays here on their own. Adds (ipad.json adds[]) go in the book.
@@ -3276,14 +3750,16 @@ const fmGet = id => (id && (S.formations.find(o => o.id === id) || BASE.formatio
 const frGet = id => (id && (S.fronts.find(o => o.id === id) || BASE.fronts.find(o => o.id === id))) || null;
 const fmName = f => f.base && NAMING === 'desc' && f.desc ? f.desc : f.name;
 const frName = f => f.base && NAMING === 'desc' && f.summary ? f.summary : f.name;
-/* the name a base set is filed under. Your book keeps one set per code for both sides, so the side goes: "Gun Trey Rt" files
-   as "Gun Trey", and the description says strong and weak. With other personnel the description takes it, and the TE words go. */
-function fmFiled(f, pers){
+/* the name a base set is filed under: its pro name (Rt/Lt follows the play's strength), or the description with this
+   play's personnel (the TE words go when it changed) and its sides turned when the strength is left */
+function fmFiled(f, pers, strength){
   if (!f.base) return f.name;
-  if (NAMING !== 'desc' || !f.desc) return String(f.name).replace(/ (Rt|Lt)$/, '');
+  const L = strength === 'L';
+  if (NAMING !== 'desc' || !f.desc){ const n = String(f.name); return L ? n.replace(/ Rt$/, ' Lt') : n; }
   let parts = f.desc.split(' · ');
   if (pers && pers !== f.pers) parts = parts.filter(x => !/\bTE/.test(x)).map(x => /\d\d personnel/.test(x) ? `${pers} personnel` : x);
-  return parts.join(' · ').replace(/\bright\b/g, 'strong').replace(/\bleft\b/g, 'weak');
+  const t = parts.join(' · ');
+  return L ? t.replace(/\b(right|left)\b/g, w => w === 'right' ? 'left' : 'right') : t;
 }
 const mirrorOff = off => Object.assign({}, off, {tokens:off.tokens.map(t => ({type:t.type, slot:mirrorKey(t.slot)}))});
 /* any set with any personnel: same slots, the men typed again the way a pasted code is */
@@ -3414,7 +3890,7 @@ function tagOffense(t){
   if (!f || !Array.isArray(f.tokens)) return null;
   const off = offFromSet(f, persOf(t.pers));
   /* a set saved with a logged play in chalk's frame carries that play's own strength, hash and spot */
-  return {off:play && play.strength === 'L' ? mirrorOff({pers:off.pers, xol:off.xol, qb:off.qb, tokens:strongRight(off.tokens)}) : off, name:(f.base ? fmFiled(f, off.pers) : (f.name || t.fname)) || formationCodeOf(off), play, oriented:!!play};
+  return {off:play && play.strength === 'L' ? mirrorOff({pers:off.pers, xol:off.xol, qb:off.qb, tokens:strongRight(off.tokens)}) : off, name:(f.base ? fmFiled(f, off.pers) : (f.name || t.fname)) || formationCodeOf(off), play, oriented:!!play, f};
 }
 function tagDefense(t){
   let d = t.dadd ? addObj(t.dadd) : null;
@@ -3423,10 +3899,32 @@ function tagDefense(t){
   if (!d || !Array.isArray(d.box) || !Array.isArray(d.dbs)) return null;
   return {d, name:t.dname || (d.base ? frName(d) : d.name) || d.summary};
 }
-function fileSet(off, name){
+/* a tagged defense: the front, and the coverage call on it when the iPad picked one */
+function tagDef(t, D, st, offR){
+  if (!D) return null;
+  let d = D.d;
+  if (t.cid){
+    const n = d.strength === 'L' ? frontNorm(d, 'L') : d;
+    const cd = PBA.callDef({box:n.box, dbs:n.dbs, shell:n.shell}, offR, t.cid);
+    if (cd) d = Object.assign({}, n, {box:cd.box, dbs:cd.dbs, shell:cd.shell, cov:cd.cov, roles:null, strength:'R'});
+  }
+  const def = frontDef(d, st, D.name);
+  if (t.cid && d.cov && d.cov.code) def.call = t.cid;
+  else if (!def.cov && t.cname) def.cov = {name:String(t.cname), code:t.ccode || null};
+  return def;
+}
+/* what happened on the snap, from the data chalk sends: run or pass, which way, how far */
+function tagRes(t, st){
+  const r = t.res && typeof t.res === 'object' ? t.res : null; if (!r) return null;
+  const loc = r.loc || null, dir = loc === 'left' || loc === 'right' ? (((loc === 'right') === (st === 'R')) ? 'strong' : 'weak') : loc === 'middle' ? 'middle' : null;
+  return Object.assign({}, r, {dir});
+}
+function fileSet(off, name, baseId){
   const code = formationCodeOf(off);
   const f = S.formations.find(x => x.code === code);
   if (f) return {f, isNew:false};
+  const b = baseId ? BASE.formations.find(x => x.id === baseId) : null;
+  if (b) return {f:b, isNew:false, base:true};
   return {f:upsertFormation(off, name, null), isNew:true};
 }
 /* one logged play, made the way saveOff makes it; the set goes in the book once per code and is never renamed here */
@@ -3435,9 +3933,9 @@ function makePlay(o){
   const errs = validateOffense(off);
   if (errs.length){ fail(o.stage, 'valid offense', errs.join('; '), off); return null; }
   if (o.def){ const de = validateDefense(o.def); if (de.length){ fail(o.stage, 'valid defense', de.join('; '), o.def); return null; } }
-  const fs = fileSet(off, o.name);
+  const fs = fileSet(off, o.name, o.baseId);
   const fcode = formationCodeOf(off);
-  const play = Object.assign({id:pbId('p'), n:++S.seq, t:isoNow(), formationId:fs.f.id, name:fs.f.name, fcode, strength:strengthOf(off.tokens),
+  const play = Object.assign({id:pbId('p'), n:++S.seq, t:isoNow(), formationId:fs.f.id, name:fs.base ? o.name : fs.f.name, fcode, strength:strengthOf(off.tokens),
     hash:/^[LMR]$/.test(o.hash || '') ? o.hash : 'M', spot:o.spot == null ? -35 : o.spot, off, def:o.def || null, fmt:4, key:o.key || null, sit:o.sit || null, src:o.src}, o.extra || {});
   S.plays.push(play);
   if (!saveStore(o.stage)){ S.plays.pop(); S.seq--; if (fs.isNew) S.formations.splice(S.formations.indexOf(fs.f), 1); return null; }
@@ -3477,11 +3975,13 @@ function adoptTags(){
     const off = O.oriented ? O.off : (t.strength === 'L' ? mirrorOff(O.off) : O.off);
     const st = strengthOf(off.tokens);
     const D = hasDef ? tagDefense(t) : null;
-    let def = D ? frontDef(D.d, st, D.name) : null;
+    let def = tagDef(t, D, st, {pers:off.pers, xol:off.xol, qb:off.qb, tokens:strongRight(off.tokens)});
+    const baseId = O.f && O.f.base && O.f.id ? O.f.id : null, bname = baseId ? fmFiled(O.f, off.pers, st) : O.name, res = tagRes(t, st);
     if (def && validateDefense(def).length){ diag('adopt.tag', `${t.key}: the tagged defense did not check, left off`); def = null; }
     if (p){
-      const fs = fileSet(off, O.name);
-      Object.assign(p, {off, fcode:formationCodeOf(off), strength:st, formationId:fs.f.id, name:fs.f.name, tagSig:sig, updated:isoNow()}, O.extra || {});
+      const fs = fileSet(off, bname, baseId);
+      Object.assign(p, {off, fcode:formationCodeOf(off), strength:st, formationId:fs.f.id, name:fs.base ? bname : fs.f.name, tagSig:sig, updated:isoNow()}, O.extra || {});
+      if (res) p.res = res;
       if (def) p.def = def;
       checkPlay(p);
       if (fs.isNew) dbPut('formations', fs.f, 'adopt.tag');
@@ -3491,7 +3991,7 @@ function adoptTags(){
     }
     const ps = O.play || {};
     const spot = ps.spot != null ? ps.spot : (t.sit && t.sit.yard != null ? yardToSpot(t.sit.yard) : null);
-    const np = makePlay({off, name:O.name, def, key:t.key, sit:t.sit || null, hash:ps.hash, spot, src:'ipad', stage:'adopt.tag', extra:Object.assign({tagSig:sig}, O.extra || {})});
+    const np = makePlay({off, name:bname, baseId, def, key:t.key, sit:t.sit || null, hash:ps.hash, spot, src:'ipad', stage:'adopt.tag', extra:Object.assign({tagSig:sig}, O.extra || {}, res ? {res} : {})});
     if (np){ n++; mark(t.key, sig); adoptNote('logged', `${np.name}${np.call ? ' · ' + np.call : ''}${def ? ' vs ' + (def.front || def.summary) : ''}`, t.key); diag('adopt.tag', `${t.key} → play ${np.n}: ${playCode(np)}`); }
   });
   if (JSON.stringify(done) !== was){ const ks = Object.keys(done); ks.slice(0, Math.max(0, ks.length - 3000)).forEach(k => delete done[k]); lsSetRaw('pb.tagDone', JSON.stringify(done)); }
@@ -3572,7 +4072,7 @@ function inboxItems(){
   });
   return out;
 }
-function cardOf(key){ let c = CARD.get(key); if (!c){ c = {setId:null, frontCode:undefined, strength:'R', hash:'M', chart:false}; CARD.set(key, c); } return c; }
+function cardOf(key){ let c = CARD.get(key); if (!c){ c = {setId:null, frontCode:undefined, covId:undefined, strength:'R', hash:'M', chart:false, ptype:null}; CARD.set(key, c); } return c; }
 /* sets ranked: what you logged most with this personnel and QB, then your book, then the NFL base */
 function setCands(q){
   const pers = persOf(q.pers), qb = qbOf(q.qb);
@@ -3618,7 +4118,14 @@ function cardView(q){
   if (c.frontCode === null) frontNote = 'none';
   else if (c.frontCode){ front = fc.list.find(x => x.code === c.frontCode) || null; frontNote = 'your pick'; }
   else { front = fc.list.find(x => x.src === 'ipad') || fc.list.find(x => x.n > 0) || null; frontNote = front ? (front.src === 'ipad' ? 'the iPad\'s pick' : `guess · ${front.n} of ${fc.total}`) : ''; }
-  return {c, set, setNote, front, frontNote, sc, fc};
+  if (c.ptype == null) c.ptype = (q.res && (q.res.ptype === 'run' || q.res.ptype === 'pass')) ? q.res.ptype : '';
+  let cov = null, covNote = '';
+  if (front && c.covId !== null){
+    if (c.covId){ cov = c.covId; covNote = 'your pick'; }
+    else { const t = tagOf(q.key); if (t && t.cid){ cov = t.cid; covNote = 'the iPad\'s pick'; } }
+    if (cov && !PBA.fits(front.d, cov)) cov = null;
+  }
+  return {c, set, setNote, front, frontNote, sc, fc, cov, covNote};
 }
 const clockWord = c => c == null ? '' : (typeof c === 'number' && isFinite(c) ? `${Math.floor(c / 60)}:${String(Math.floor(c % 60)).padStart(2, '0')}` : String(c));
 function inboxSplit(){
@@ -3633,29 +4140,6 @@ function todayStats(){
   const ts = S.plays.map(p => Date.parse(p.t)).filter(t => isFinite(t) && new Date(t).toDateString() === day).sort((a,b) => a - b);
   const gaps = []; for (let i = 1; i < ts.length; i++){ const g = (ts[i] - ts[i-1]) / 1000; if (g > 0 && g < 300) gaps.push(g); }
   return {n:ts.length, pace:gaps.length >= 3 ? Math.round(gaps.reduce((a,b) => a + b, 0) / gaps.length) : null};
-}
-function cardHTML(q){
-  const v = cardView(q), s = q.sit || {};
-  const pers = persOf(q.pers), qb = qbOf(q.qb);
-  const where = s.yard != null ? spotLabel(yardToSpot(s.yard)) : '';
-  const setName = v.set ? (v.set.f.base ? fmFiled(v.set.f, pers || v.set.f.pers) : v.set.f.name) : '';
-  const facts = [pers ? `${pers} personnel` : 'personnel ?', qb ? QB_LABEL[qb] : 'QB ?', q.shift != null ? 'shift marked' : '', q.snap != null ? 'snap marked' : ''].filter(Boolean).join(' · ');
-  return `<div class="card" id="card" data-key="${esc(q.key)}">
-    <div class="card-h"><b>${esc(sitWord(s))}${where ? ' · ' + esc(where) : ''}</b><span>${s.qtr ? 'Q' + esc(s.qtr) + ' ' : ''}${esc(clockWord(s.clock))}</span></div>
-    ${q.desc ? `<div class="card-d">${esc(q.desc)}</div>` : ''}
-    ${framesBlock(q.key, CARDV.shot)}
-    <div class="card-f">${esc(facts)}${q.fromTag ? ' · tagged on the iPad' : ''}</div>
-    <button class="cline ${v.set ? '' : 'none'}" data-act="cardSet"><span class="lbl">Set</span><b>${v.set ? esc(setName) : 'Tap to pick'}</b><small>${esc(v.setNote)}</small></button>
-    <button class="cline ${v.front ? '' : 'none'}" data-act="cardFront"><span class="lbl">Front</span><b>${v.front ? esc(v.front.name) : (v.c.chart ? 'Chart it next' : 'Tap to add')}</b><small>${esc(v.c.chart ? 'on the field' : (v.front ? v.frontNote : 'optional'))}</small></button>
-    <div class="row"><span class="lbl cl">Strong</span>${seg('cardStr', [['L','Left'],['R','Right']], v.c.strength)}</div>
-    <div class="row"><span class="lbl cl">Hash</span>${seg('cardHash', [['L','Left'],['M','Middle'],['R','Right']], v.c.hash)}</div>
-    <div class="row">
-      <button class="btn slim" data-act="cardPark">Park</button>
-      <button class="btn slim" data-act="cardEdit">Editor</button>
-      <button class="btn pri" data-act="cardOk" ${v.set ? '' : 'disabled'}>Confirm</button>
-    </div>
-    <div class="card-hint">Swipe right to confirm · left to park · tap a line to fix it</div>
-  </div>`;
 }
 function inboxHTML(){
   const {live, parked, top} = inboxSplit(), st = todayStats();
@@ -3764,57 +4248,210 @@ function swipeEnd(e){
 document.addEventListener('pointerup', swipeEnd);
 document.addEventListener('pointercancel', swipeEnd);
 
+
+/* ================= 0.9.1: coverage calls on any front, Polaroid picks, one book, the words explained =================
+   Pick a front, pick a call: every defender gets his job and his spot from the front's own logic (PBA.covPlan),
+   then drag anyone to match the film — his job goes with him. The call keeps its name until a job changes by hand. */
+const edFront = () => ({box:W.def.box.map(b => ({x:b.x, d:b.d, hand:b.d === 1 ? b.hand : null})),
+  dbs:W.def.deep.concat(W.def.rest).filter(o => o.slot).map(o => ({slot:o.slot, kind:W.def.deep.includes(o) ? 'deep' : 'rest'})), shell:W.def.shell});
+const edIds = () => ({box:W.def.box.map(b => b.id), dbs:W.def.deep.concat(W.def.rest).filter(o => o.slot).map(o => o.id)});
+const edOff = () => (W && W.tokens && W.tokens.some(t => t.slot)) ? {qb:W.qb, tokens:W.tokens.filter(t => t.slot).map(t => ({type:t.type, slot:t.slot}))} : null;
+const mirrorFront = f => ({box:f.box.map(b => Object.assign({}, b, {x:b.x === 0 ? 0 : -b.x})), dbs:f.dbs.map(o => Object.assign({}, o, {slot:mirrorKey(o.slot)})), shell:f.shell});
+const planIds = (plan, ids) => { const m = {}; plan.people.forEach(p => { const i = +p.k.slice(1); m[p.k] = p.kind === 'box' ? ids.box[i] : ids.dbs[i]; }); return m; };
+function applyCall(cid){
+  const front = edFront(), ids = edIds(), n = front.box.length + front.dbs.length;
+  if (n !== 11){ toast(`Place all 11 first. The defense has ${n}.`); return false; }
+  const plan = PBA.covPlan(front, edOff(), W.strength, cid);
+  if (!plan){ toast('That call needs more backs than this front has.'); return false; }
+  const P = PBA.placeDbs(front, plan);
+  const byId = new Map(W.def.deep.concat(W.def.rest).filter(o => o.slot).map(o => [o.id, o]));
+  const deep = [], rest = [];
+  ids.dbs.forEach((id, i) => { const o = byId.get(id); if (!o) return; o.slot = P.dbs[i].slot; (P.dbs[i].kind === 'deep' ? deep : rest).push(o); });
+  W.def.deep = deep; W.def.rest = rest; W.def.shell = P.shell; W.def.shellBuilt = true; W.def.cur = 0;
+  const M = planIds(plan, ids), rolesById = {}, areasById = {};
+  Object.entries(plan.roles).forEach(([k, r]) => { if (M[k]) rolesById[M[k]] = {job:r.job, on:r.on || null}; });
+  Object.entries(plan.areas).forEach(([k, a]) => { if (M[k]) areasById[M[k]] = a; });
+  W.defCall = {id:plan.id, name:plan.name, code:plan.code, rolesById, areasById};
+  W.droles = {}; W.roleKeys = {}; W.dsel = null; W.dirty = true;
+  defList().forEach(d => { if (rolesById[d.id]) W.droles[d.key] = Object.assign({}, rolesById[d.id]); W.roleKeys[d.id] = d.key; });
+  diag('call.apply', `${plan.name} · ${plan.pressure} · shell ${P.shell}`, {roles:Object.keys(rolesById).length});
+  return true;
+}
+/* a defender dragged to a new spot keeps his job (jobs key on the spot) */
+function rolesFollow(){
+  if (!W || !W.def || !W.droles) return;
+  const D = defList(), prev = W.roleKeys || {}, next = {}, keys = new Set(D.map(d => d.key));
+  D.forEach(d => {
+    next[d.id] = d.key;
+    const o = prev[d.id];
+    if (o && o !== d.key && W.droles[o] && !keys.has(o)){ W.droles[d.key] = W.droles[o]; delete W.droles[o]; if (W.dsel === o) W.dsel = d.key; }
+  });
+  W.roleKeys = next;
+}
+/* the coverage on the field: the call's own name and zones while every job is still the call's, else read from the jobs */
+function covNow(){
+  const base = readCoverage(); if (!base) return null;
+  const c = W && W.defCall; if (!c) return base;
+  const D = defList();
+  const ok = D.every(d => { const w = c.rolesById[d.id], j = jobOf(d.key); return w && j && w.job === j.job && (w.job !== 'Man' || (w.on || null) === (j.on || null)); });
+  if (!ok) return base;
+  const areas = {}; D.forEach(d => { const a = c.areasById[d.id]; if (a) areas[d.key] = a; });
+  return Object.assign({}, base, {name:c.name, code:c.code, areas, call:c.id});
+}
+function restoreCall(d){
+  if (!d || !d.call || !W || !W.def) return;
+  const front = edFront(), ids = edIds(), plan = PBA.covPlan(front, edOff(), W.strength, d.call);
+  if (!plan) return;
+  const M = planIds(plan, ids), rolesById = {}, areasById = {};
+  defList().forEach(x => { const j = jobOf(x.key); if (j) rolesById[x.id] = {job:j.job, on:j.on || null}; });
+  Object.entries(plan.areas).forEach(([k, a]) => { if (M[k]) areasById[M[k]] = a; });
+  W.defCall = {id:d.call, name:(d.cov && d.cov.name) || plan.name, code:(d.cov && d.cov.code) || plan.code, rolesById, areasById};
+  W.roleKeys = {}; defList().forEach(x => { W.roleKeys[x.id] = x.key; });
+}
+
+/* ---- Polaroids: a square of art, the name under it ---- */
+const pol = (act, id, art, title, sub, on, attrs) => `<button class="pol${on ? ' on' : ''}" data-act="${act}" data-id="${esc(id)}"${attrs || ''}><span class="pol-art">${art}</span><b>${esc(title)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</button>`;
+const allSets = () => S.formations.filter(f => !f._bad).slice().sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''))).concat(BASE.formations);
+const allFronts = () => S.fronts.filter(f => !f._bad).slice().sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''))).concat(BASE.fronts);
+function fmSub(f){ return f.base ? [PBA.NINERS[f.id] ? `49ers: ${PBA.NINERS[f.id]}` : '', `${persStr(f.pers, f.xol)} · ${QB_LABEL[f.qb] || f.qb}`, 'NFL base'].filter(Boolean).join(' · ') : `${persStr(f.pers, f.xol)} · ${QB_LABEL[f.qb] || f.qb} · your set`; }
+function frSub(f){ const id = PBA.frontId(f, 'R'); return [id.id + (id.num ? ` · 49ers ${id.num}` : ''), `${f.shell}-high`, id.pkg, f.base ? 'NFL base' : 'your front'].join(' · '); }
+const setPol = (act, f, on) => pol(act, f.id, PBA.setArt(f, fmName(f)), fmName(f), fmSub(f), on);
+const frontPol = (act, f, off, on, pre) => pol(act, (pre || '') + f.id, PBA.frontArt(f, {off, label:frName(f)}), frName(f), frSub(f), on);
+const setGrid = (act, cur) => `<div class="pgrid">${allSets().map(f => setPol(act, f, f.id === cur)).join('')}</div>`;
+const frontGrid = (act, off, cur, pre) => `<div class="pgrid">${allFronts().map(f => frontPol(act, f, off, f.id === cur, pre)).join('')}</div>`;
+
+/* ---- the words, explained: what a naming style describes, every word, its opposite ---- */
+function glossSheet(key){
+  const tabs = [['pro','Pro'],['desc','Descriptive'],['niners','49ers'],['defense','Defense']];
+  showSheet(`<div class="row">${seg('gloss', tabs, key)}</div>${PBA.glossHTML(key)}<button class="btn" data-act="closeSheet">Done</button>`);
+}
+
+/* ---- tendencies: the game-plan sheet's buckets, from what you logged ---- */
+function tendRows(plays, keyOf){
+  const g = new Map();
+  plays.forEach(p => { const k = keyOf(p); if (!k) return; let r = g.get(k); if (!r){ r = {k, n:0, t:0, run:0, pass:0, rs:0, rw:0, ps:0, pw:0}; g.set(k, r); } r.n++;
+    const t = p.res && p.res.ptype; if (t !== 'run' && t !== 'pass') return; r.t++; r[t]++;
+    const d = p.res.dir; if (d === 'strong') r[t === 'run' ? 'rs' : 'ps']++; else if (d === 'weak') r[t === 'run' ? 'rw' : 'pw']++; });
+  return [...g.values()];
+}
+function tendTable(title, rows, order){
+  if (!rows.length) return '';
+  const pc = (a, b) => b ? Math.round(100 * a / b) + '%' : '—';
+  const R = order ? rows.sort((a,b) => order.indexOf(a.k) - order.indexOf(b.k)) : rows.sort((a,b) => b.n - a.n).slice(0, 14);
+  return `<h4 class="tt">${esc(title)}</h4><table class="tend"><thead><tr><th></th><th>n</th><th>Run</th><th>Pass</th><th>Run S/W</th><th>Pass S/W</th></tr></thead><tbody>${R.map(r =>
+    `<tr><td>${esc(r.k)}</td><td>${r.n}</td><td>${pc(r.run, r.t)}</td><td>${pc(r.pass, r.t)}</td><td>${pc(r.rs, r.run)} / ${pc(r.rw, r.run)}</td><td>${pc(r.ps, r.pass)} / ${pc(r.pw, r.pass)}</td></tr>`).join('')}</tbody></table>`;
+}
+const DD_ORDER = ['1st & 10','1st & long (10+)','2nd & long (7+)','2nd & medium (3–6)','2nd & short (1–2)','3rd & long (7+)','3rd & medium (3–6)','3rd & short (1–2)','4th & long (4+)','4th & medium (3)','4th & short (1–2)'];
+const FZ_ORDER = ['Backed up (G to −10)','Coming out (−10 to −20)','Free wheel (−20 to +20)','Going in (+20 to +10)','Goal line (+10 to G)'];
+function tendSheet(team){
+  const teams = [...new Set(S.plays.map(p => p.sit && p.sit.pos).filter(Boolean))].sort();
+  const plays = S.plays.filter(p => !p._bad && (!team || (p.sit && p.sit.pos === team)));
+  const typed = plays.filter(p => p.res && (p.res.ptype === 'run' || p.res.ptype === 'pass')).length;
+  const covRows = tendRows(plays.filter(p => p.def), p => (p.def.cov && p.def.cov.name) || p.def.front || null);
+  showSheet(`<h3>Tendencies</h3><p>${plays.length} plays · ${typed} with run/pass known. S/W = to the strength / away from it. Buckets from the game-plan sheets.</p>
+    ${teams.length > 1 ? `<div class="scrollx">${['', ...teams].map(t => `<button class="chip ${t === (team || '') ? 'on' : ''}" data-act="tend" data-v="${esc(t)}">${t ? esc(t) : 'All'}</button>`).join('')}</div>` : ''}
+    ${tendTable('Down & distance', tendRows(plays, p => p.sit && PBA.ddBucket(p.sit.down, p.sit.dist)), DD_ORDER)}
+    ${tendTable('Field zone', tendRows(plays, p => p.sit && PBA.fieldZone(p.sit.yard)), FZ_ORDER)}
+    ${tendTable('Personnel', tendRows(plays, p => p.off && persStr(p.off.pers, p.off.xol)))}
+    ${tendTable('Formation', tendRows(plays, p => p.name))}
+    ${tendTable('Hash', tendRows(plays, p => p.hash ? p.hash + ' hash' : null))}
+    ${tendTable('Defense faced', covRows)}
+    ${plays.length ? '' : '<p>Nothing logged yet.</p>'}
+    <button class="btn" data-act="closeSheet">Done</button>`);
+}
+
+/* ---- the card: the iPad's play, our best read of it, drawn ---- */
+function cardFront(q, v){
+  if (!v.front) return null;
+  const d = v.front.d, f = {box:d.box, dbs:d.dbs, shell:d.shell};
+  return v.c.strength === 'L' ? mirrorFront(f) : f;
+}
+function cardOffRight(q, v){ return v.set ? offFromSet(v.set.f, persOf(q.pers)) : null; }
+function cardArt(q, v){
+  const offR = cardOffRight(q, v), L = v.c.strength === 'L';
+  const off = offR ? (L ? mirrorOff(offR) : offR) : null, front = cardFront(q, v);
+  const cid = front && v.cov && PBA.fits(v.front.d, v.cov) ? v.cov : null;
+  if (front) return PBA.frontArt(front, {off, strong:v.c.strength, cid, solid:true});
+  return PBA.setArt(off || {qb:qbOf(q.qb) || 'gun', tokens:[]});
+}
+function cardHTML(q){
+  const v = cardView(q), s = q.sit || {};
+  const pers = persOf(q.pers), qb = qbOf(q.qb);
+  const where = s.yard != null ? spotLabel(yardToSpot(s.yard)) : '';
+  const setName = v.set ? (v.set.f.base ? fmFiled(v.set.f, pers || v.set.f.pers, v.c.strength) : v.set.f.name) : '';
+  const cov = v.cov ? PBA.COVS.find(c => c.id === v.cov) : null;
+  const facts = [pers ? `${pers} personnel` : 'personnel ?', qb ? QB_LABEL[qb] : 'QB ?', s.down ? PBA.ddBucket(s.down, s.dist) : '', s.yard != null ? PBA.fieldZone(s.yard).replace(/ \(.*/, '') : '', q.fromTag ? 'tagged on the iPad' : ''].filter(Boolean).join(' · ');
+  return `<div class="card" id="card" data-key="${esc(q.key)}">
+    <div class="card-h"><b>${esc(sitWord(s))}${where ? ' · ' + esc(where) : ''}</b><span>${s.qtr ? 'Q' + esc(s.qtr) + ' ' : ''}${esc(clockWord(s.clock))}</span></div>
+    ${q.desc ? `<div class="card-d">${esc(q.desc)}</div>` : ''}
+    ${framesBlock(q.key, CARDV.shot)}
+    <div class="card-f">${esc(facts)}</div>
+    <div class="card-mid">
+      <div class="card-art">${cardArt(q, v)}</div>
+      <div class="card-lines">
+        <button class="cline ${v.set ? '' : 'none'}" data-act="cardSet"><span class="lbl">Set</span><b>${v.set ? esc(setName) : 'Tap to pick'}</b><small>${esc(v.setNote)}</small></button>
+        <button class="cline ${v.front ? '' : 'none'}" data-act="cardFront"><span class="lbl">Front</span><b>${v.front ? esc(v.front.name) : (v.c.chart ? 'Chart it next' : 'Tap to add')}</b><small>${esc(v.c.chart ? 'on the field' : (v.front ? v.frontNote : 'optional'))}</small></button>
+        <button class="cline ${cov ? '' : 'none'}" data-act="cardCov" ${v.front ? '' : 'disabled'}><span class="lbl">Coverage</span><b>${cov ? esc(cov.name) : 'Tap to add'}</b><small>${cov ? esc(v.covNote || 'your pick') : (v.front ? 'optional' : 'pick a front first')}</small></button>
+      </div>
+    </div>
+    <div class="row"><span class="lbl cl">Play</span>${seg('cardType', [['run','Run'],['pass','Pass'],['','—']], v.c.ptype || '')}</div>
+    <div class="row"><span class="lbl cl">Strong</span>${seg('cardStr', [['L','Left'],['R','Right']], v.c.strength)}</div>
+    <div class="row"><span class="lbl cl">Hash</span>${seg('cardHash', [['L','Left'],['M','Middle'],['R','Right']], v.c.hash)}</div>
+    <div class="row">
+      <button class="btn slim" data-act="cardPark">Park</button>
+      <button class="btn slim" data-act="cardEdit">Editor</button>
+      <button class="btn pri" data-act="cardOk" ${v.set ? '' : 'disabled'}>Confirm</button>
+    </div>
+    <div class="card-hint">Swipe right to confirm · left to park · tap a line to fix it</div>
+  </div>`;
+}
+
+/* ---- home: the inbox, then the book as feeds of Polaroids ---- */
+const HOMEV = {allPlays:false};
 function renderHome(){
   if (EMBED){ renderEmbedHome(); return; }
   const plays = S.plays.slice().sort((a,b) => b.n - a.n);
-  const fms = S.formations.slice().sort((a,b) => String(a.name || '').localeCompare(String(b.name || '')));
   const dzs = S.designs.slice().sort((a,b) => String(b.updated || b.created || '').localeCompare(String(a.updated || a.created || '')));
   const open = S.plays.filter(p => !p.def && !p._bad).length;
+  const sets = allSets(), fronts = allFronts();
   const tile = (act, color, t, sub) => `<button class="tile" data-act="${act}"><i style="background:${color}"></i><b>${t}</b><small>${sub}</small></button>`;
+  const shown = HOMEV.allPlays ? plays : plays.slice(0, 12);
   $('#home').innerHTML = `
     ${inboxHTML()}
     <div class="tiles">
       ${inboxSplit().top ? tile('logNew', '#4DA3FF', 'Log plays', 'Place the offense and name it. The next play starts on its own.') : ''}
-      ${tile('logDef', '#FF8A3D', 'Log defense', open ? `${open} play${open === 1 ? '' : 's'} with no defense yet, or a front on its own.` : 'A front on its own, or on a logged play.')}
-      ${tile('designNew', '#3DDC84', 'Draw a play', 'Routes, blocks, motion and run concepts against a base 4-3.')}
-      ${tile('tplNew', '#9AA5AE', 'New offense set', 'Place and name a formation.')}
+      ${tile('logDef', '#FF8A3D', 'Log defense', open ? `${open} play${open === 1 ? '' : 's'} with no defense yet. Pick a front, pick a call, drag to match.` : 'Pick a front, pick a call, drag to match the film.')}
+      ${tile('designNew', '#3DDC84', 'Draw a play', 'Routes, blocks, motion and run concepts on any set.')}
+      ${tile('tplNew', '#9AA5AE', 'New offense set', 'Start from any set — yours or the NFL base — and move people.')}
       ${tile('frontNew', '#FFE27A', 'New defense front', 'Key the box, set the shell.')}
-      ${tile('baseSheet', '#B78CFF', 'NFL base book', BASE.formations.length ? `${BASE.formations.length} sets · ${BASE.fronts.length} fronts to build from.` : (BASE.state === 'error' ? 'Not loaded. It loads with a connection.' : 'Loading…'))}
+      ${tile('tend', '#B78CFF', 'Tendencies', 'Run/pass and strong/weak by down & distance, field zone, personnel, set.')}
     </div>
     <section class="sec"><h2><span>Log</span><span>${plays.length}</span></h2>
-      <div class="list">${plays.length ? plays.map(p => `
-        <button class="li" data-act="openPlay" data-id="${p.id}">
-          <span class="li-n">${p.n}</span>
-          <span class="li-main"><span class="li-t">${esc(p.name)}${p.call ? ' · ' + esc(p.call) : ''}</span>
-          <span class="li-s ${p._bad ? 'bad' : ''}">${p._bad ? esc(p._bad) : `${esc(persStr(p.off && p.off.pers, p.off && p.off.xol))} · strong ${p.strength === 'R' ? 'R' : 'L'} · ${esc(p.hash)} hash · ${spotLabel(p.spot)} · ${p.def ? esc(p.def.summary) : 'no defense yet'}${p.src === 'ipad' ? ' · iPad' : ''}`}</span></span>
-        </button>`).join('') : '<div class="empty">No plays logged yet. Confirm a card, or tap Log plays, place the five skill players and name the set.</div>'}</div>
+      ${plays.length ? `<div class="pgrid">${shown.map(p => pol('openPlay', p.id, PBA.playArt(p, p.name), `${p.n}. ${p.name}${p.call ? ' · ' + p.call : ''}`,
+        p._bad ? p._bad : [p.sit && p.sit.down ? sitWord(p.sit) : '', persStr(p.off && p.off.pers, p.off && p.off.xol), p.def ? (p.def.cov ? p.def.cov.name : (p.def.front || 'front')) : 'no defense', p.res && p.res.ptype ? p.res.ptype : ''].filter(Boolean).join(' · '))).join('')}</div>
+        ${plays.length > 12 ? `<button class="btn small" data-act="allPlays">${HOMEV.allPlays ? 'Show the last 12' : `Show all ${plays.length}`}</button>` : ''}`
+        : '<div class="empty">No plays logged yet. Confirm a card, or tap Log plays, place the five skill players and name the set.</div>'}
     </section>
     <section class="sec"><h2><span>Drawn plays</span><span>${dzs.length}</span></h2>
-      <div class="list">${dzs.length ? dzs.map(d => `
-        <div class="li">
-          <button class="li-main" data-act="openDesign" data-id="${d.id}" style="border:0;background:transparent;color:inherit;text-align:left;padding:0;min-height:44px;justify-content:center">
-            <span class="li-t">${esc(d.name)}</span><span class="li-s ${d._bad ? 'bad' : ''}">${d._bad ? esc(d._bad) : esc(`${d.concept ? d.concept.name + ' · ' : ''}${d.setName || ''} vs ${d.defName || ''} · ${(d.arts || d.routes || []).filter(r => r.name && (r.kind === 'route' || r.kind === 'carry' || !r.kind)).map(r => `${r.tag || r.letter} ${r.name}`).join(', ') || 'no art'}`)}</span></button>
-          <button class="li-b" data-act="dzMenu" data-id="${d.id}" aria-label="More for ${esc(d.name)}">•••</button>
-        </div>`).join('') : '<div class="empty">No drawn plays yet. Tap Draw a play, pick a set, and drag routes onto it.</div>'}</div>
+      ${dzs.length ? `<div class="pfeed">${dzs.map(d => pol('dzMenu', d.id, PBA.designArt(d, d.name), d.name, d._bad ? d._bad : `${d.setName || ''} vs ${d.defName || ''}`)).join('')}</div>`
+        : '<div class="empty">No drawn plays yet. Tap Draw a play and pick a set.</div>'}
     </section>
-    <section class="sec"><h2><span>Defense fronts</span><span>${S.fronts.length}</span></h2>
-      <div class="list">${S.fronts.length ? S.fronts.slice().sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''))).map(f => `
-        <div class="li">
-          <span class="li-main"><span class="li-t">${esc(f.name)}</span><span class="li-s mono ${f._bad ? 'bad' : ''}">${f._bad ? esc(f._bad) : esc(f.code)}</span></span>
-          <button class="li-b" data-act="frMenu" data-id="${f.id}" aria-label="More for ${esc(f.name)}">•••</button>
-        </div>`).join('') : '<div class="empty">No fronts yet. Tap New defense front, or copy one from the NFL base book.</div>'}</div>
+    <section class="sec"><h2><span>Offense sets</span><span>${sets.length}</span></h2>
+      <div class="pfeed">${sets.map(f => setPol('fmCard', f)).join('')}</div>
     </section>
-    <section class="sec"><h2><span>Offense sets</span><span>${fms.length}</span></h2>
-      <div class="list">${fms.length ? fms.map(f => `
-        <div class="li">
-          <span class="li-main"><span class="li-t">${esc(f.name)}</span><span class="li-s mono ${f._bad ? 'bad' : ''}">${f._bad ? esc(f._bad) : esc(f.code)}</span></span>
-          <button class="li-b" data-act="logFrom" data-id="${f.id}">Log</button>
-          <button class="li-b" data-act="fmMenu" data-id="${f.id}" aria-label="More for ${esc(f.name)}">•••</button>
-        </div>`).join('') : '<div class="empty">No formations yet. Every set you name is saved here, once per code. The NFL base book has a start.</div>'}</div>
+    <section class="sec"><h2><span>Defense fronts</span><span>${fronts.length}</span></h2>
+      <div class="pfeed">${fronts.map(f => frontPol('frCard', f, null)).join('')}</div>
     </section>
-    <div class="row" style="margin:0 0 14px"><span class="lbl cl" style="width:auto;padding-right:6px">Base names</span>${seg('naming', [['pro','Pro'],['desc','Descriptive']], NAMING)}</div>
-    <div class="ver" style="display:flex;align-items:center;justify-content:center;gap:10px">v${VERSION} · ${esc(syncWord())}${SYNC.state === 'on' && SYNC.lastPull ? ' · checked ' + new Date(SYNC.lastPull).toTimeString().slice(0, 5) : ''}
+    <div class="row" style="margin:0 0 8px"><span class="lbl cl" style="width:auto;padding-right:6px">Names</span>${seg('naming', [['pro','Pro'],['desc','Descriptive']], NAMING)}</div>
+    <button class="btn small wide" data-act="gloss" data-v="${NAMING}">What the words mean</button>
+    <div class="ver" style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px">v${VERSION} · ${esc(syncWord())}${SYNC.state === 'on' && SYNC.lastPull ? ' · checked ' + new Date(SYNC.lastPull).toTimeString().slice(0, 5) : ''}
       <button class="li-b" data-act="syncSheet">Sync</button></div>`;
+}
+/* one time: clear the sets you entered, keep the NFL base (you asked for a clean book) */
+function clearPrompt(){
+  if (EMBED || lsGetRaw('pb.clear091') || !S.formations.length) return;
+  showSheet(`<h3>Clear your saved sets?</h3><p>${S.formations.length} set${S.formations.length === 1 ? '' : 's'} you entered go; the ${BASE.formations.length || 43} NFL base sets stay. Logged plays keep their own copy of their set. The phone's sync carries the delete to the iPad.</p>
+    <div class="row"><button class="btn" data-act="clearSetsNo">Keep them</button><button class="btn danger" data-act="clearSetsYes">Clear ${S.formations.length}</button></div>`);
 }
 
 /* ================= actions ================= */
@@ -4422,6 +5059,192 @@ Object.assign(ACT, {
   embedLog(){ startQueued(embedQ()); },
   embedSet(){ startTemplate(null); W.embedTag = false; }
 });
+/* ================= 0.9.1 actions: calls, Polaroid pickers, sets from sets, the words, tendencies ================= */
+function cardRes(q, v, st){
+  const r = q.res && typeof q.res === 'object' ? q.res : {};
+  const ptype = v.c.ptype || r.ptype || null, loc = r.loc || null;
+  const dir = loc === 'left' || loc === 'right' ? (((loc === 'right') === (st === 'R')) ? 'strong' : 'weak') : loc === 'middle' ? 'middle' : null;
+  return ptype || loc || r.yds != null ? Object.assign({}, r, {ptype, dir}) : null;
+}
+Object.assign(ACT, {
+  noop(){},
+  allPlays(){ HOMEV.allPlays = !HOMEV.allPlays; renderHome(); },
+  gloss(d){ glossSheet(d && d.v || NAMING); },
+  naming(d){ NAMING = d.v === 'desc' ? 'desc' : 'pro'; lsSetRaw('pb.naming', NAMING); diag('naming', NAMING); refresh(); glossSheet(NAMING); },
+  tend(d){ tendSheet(d && d.v || ''); },
+  clearSetsNo(){ lsSetRaw('pb.clear091', 'kept'); hideSheet(); diag('clear.sets', 'kept'); },
+  clearSetsYes(){
+    const gone = S.formations.slice();
+    S.formations = [];
+    if (!saveStore('clear.sets')){ S.formations = gone; return; }
+    gone.forEach(f => { tomb(f.id); dbDel('formations', f.id, 'clear.sets'); });
+    lsSetRaw('pb.clear091', 'done'); hideSheet(); diag('clear.sets', `${gone.length} sets cleared, base kept`); toast(`Cleared ${gone.length} sets. The NFL base sets are your book now.`); refresh();
+  },
+  /* ---- sets: every picker is a grid of Polaroids, your sets and the NFL base together ---- */
+  tplNew(){
+    showSheet(`<h3>New offense set</h3><p>Start from any set and move people, then name it — it saves as a new set. Or start on an empty field.</p>
+      <button class="btn pri" data-act="tplBlank">Empty field</button>${setGrid('tplFrom')}<button class="btn" data-act="closeSheet">Cancel</button>`);
+  },
+  tplBlank(){ hideSheet(); startTemplate(null); },
+  tplFrom(d){
+    const f = fmGet(d.id); if (!f) return;
+    hideSheet();
+    startTemplate(Object.assign({}, f, {id:null, name:''}));
+    W.fromSet = fmName(f);
+    toast(`Starting from ${esc(fmName(f))}. Drag anyone, then name it: it saves as a new set.`);
+    diag('flow', `new set from "${fmName(f)}" ${f.code}`);
+  },
+  fmCard(d){
+    const f = fmGet(d.id); if (!f) return;
+    showSheet(`<div class="pol-big">${PBA.setArt(f, fmName(f))}</div><h3>${esc(fmName(f))}</h3><p>${esc(fmSub(f))}${f.base && NAMING !== 'desc' && f.desc ? '<br>' + esc(f.desc) : ''}${f.aliases && f.aliases.length ? '<br>Also: ' + esc(f.aliases.join(', ')) : ''}</p>
+      ${f._bad ? `<p class="bad">${esc(f._bad)}</p>` : codeRow(f.code, 'formation code')}
+      <button class="btn pri" data-act="tplFrom" data-id="${f.id}">New set from this</button>
+      <div class="row"><button class="btn" data-act="logFrom" data-id="${f.id}">Log a play</button><button class="btn" data-act="designFrom" data-id="${f.id}">Draw a play</button></div>
+      ${f.base ? '' : `<div class="row"><button class="btn" data-act="fmEdit" data-id="${f.id}">Edit or rename</button><button class="btn danger" data-act="fmDel" data-id="${f.id}">Delete</button></div>`}
+      <button class="btn" data-act="closeSheet">Close</button>`);
+  },
+  frCard(d){
+    const f = frGet(d.id); if (!f) return;
+    showSheet(`<div class="pol-big">${PBA.frontArt(f, {label:frName(f)})}</div><h3>${esc(frName(f))}</h3><p>${esc(frSub(f))}${f.aliases && f.aliases.length ? '<br>Also: ' + esc(f.aliases.join(', ')) : ''}</p>
+      ${f._bad ? `<p class="bad">${esc(f._bad)}</p>` : codeRow(f.code, 'front code')}
+      <button class="btn def" data-act="frCalls" data-id="${f.id}">See every coverage call on it</button>
+      ${f.base ? `<button class="btn" data-act="baseFrCopy" data-id="${f.id}">Add to my fronts</button>` : `<div class="row"><button class="btn" data-act="frEdit" data-id="${f.id}">Edit or rename</button><button class="btn danger" data-act="frDel" data-id="${f.id}">Delete</button></div>`}
+      <button class="btn" data-act="closeSheet">Close</button>`);
+  },
+  frCalls(d){
+    const f = frGet(d.id); if (!f) return;
+    const off = BASE.formations.find(x => x.id === 'base-o-ace-doubles') || null;
+    const list = PBA.COVS.filter(c => PBA.fits(f, c.id)).sort((a,b) => (b.shell === f.shell) - (a.shell === f.shell));
+    showSheet(`<h3>${esc(frName(f))} · the calls</h3><p>Against 11 personnel, Ace Doubles. Blue = deep zones, yellow = underneath, orange = rush, dotted white = man.</p>
+      <div class="pgrid">${list.map(c => pol('noop', c.id, PBA.frontArt(f, {off, cid:c.id, strong:'R', label:c.name}), c.name, `${c.shell === f.shell ? 'fits the shell · ' : ''}${c.note}`)).join('')}</div>
+      <button class="btn" data-act="frCard" data-id="${f.id}">Back</button>`);
+  },
+  saved(){
+    showSheet(`<h3>Start from a set</h3><p>It loads on the field; drag anyone to match.</p>${setGrid('loadFm')}
+      <label class="lbl" for="pasteCode">Or paste a code</label>
+      <input id="pasteCode" class="txt mono" placeholder="O11G wN Bs sI sS' sN'" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <div class="row"><button class="btn" data-act="closeSheet">Cancel</button><button class="btn pri" data-act="loadCode">Load code</button></div>`);
+  },
+  designNew(){
+    if (!allSets().length){ startDesign(null); return; }
+    showSheet(`<h3>Draw a play</h3><p>Pick the set. A base 4-3 lines up against it.</p><button class="btn pri" data-act="designBlank">Place a new set</button>${setGrid('designFrom')}<button class="btn" data-act="closeSheet">Cancel</button>`);
+  },
+  dset(){
+    showSheet(`<h3>Change the set</h3><p>Routes stay with the same letter.</p><button class="btn" data-act="dsetEdit">Move men in this set</button>${setGrid('dsetPick')}<button class="btn" data-act="closeSheet">Cancel</button>`);
+  },
+  dfront(){
+    const cur = W.defSrc || {};
+    const row = (id, t, sub, on) => `<button class="li" data-act="dfrontPick" data-id="${id}"><span class="li-main"><span class="li-t">${esc(t)}${on ? ' ✓' : ''}</span><span class="li-s mono">${esc(sub)}</span></span></button>`;
+    showSheet(`<h3>Defense</h3><p>It lines up to the offense's strong side. Blocks you stamp next aim at it.</p>
+      <div class="list">${Object.entries(PRESETS).map(([id, pr]) => row('preset:' + id, pr.name + (id === '43o' ? ' (base)' : ''), 'D ' + pr.code, cur.kind === 'preset' && cur.id === id)).join('')}
+        ${row('none:', 'No defense', 'Art on an empty field', cur.kind === 'none')}</div>
+      ${frontGrid('dfrontPick', edOff(), cur.kind === 'front' ? cur.id : null, 'front:')}
+      <button class="btn" data-act="closeSheet">Cancel</button>`);
+  },
+  /* ---- defense: pick a front, pick a call, drag to match ---- */
+  savedFronts(){
+    showSheet(`<h3>Pick the front</h3><p>It loads to this play's strong side. Next you pick the coverage call, then drag anyone to match the film.</p>
+      ${frontGrid('loadFront', edOff())}<button class="btn" data-act="closeSheet">Cancel</button>`);
+  },
+  loadFront(d){
+    const f = frGet(d.id); if (!f) return;
+    loadFrontInto(f); hideSheet(); W.defCall = null;
+    diag('def.loadFront', `"${f.name}" ${f.code} strong ${W.strength}`);
+    setStep('rest'); rebuildRest(); refresh();
+    if (W.mode !== 'dtemplate' && defList().length === 11) ACT.callSheet();
+    else toast(`Loaded ${esc(frName(f))}. Check it, then save.`);
+  },
+  callSheet(){
+    const front = edFront(), n = front.box.length + front.dbs.length;
+    if (n !== 11){ toast(`Place all 11 first. The defense has ${n}.`); return; }
+    const off = edOff(), cur = covNow();
+    const list = PBA.COVS.filter(c => PBA.fits(front, c.id)).sort((a,b) => (b.shell === W.def.shell) - (a.shell === W.def.shell));
+    const id = PBA.frontId(front, W.strength);
+    showSheet(`<h3>Coverage call</h3><p>${esc(id.id)}${id.num ? ' · 49ers ' + esc(id.num) : ''} · ${W.def.shell}-high now. Tap a call: every man gets his job and his spot. Then drag anyone to match the film — his job goes with him.</p>
+      <div class="pgrid">${list.map(c => pol('callPick', c.id, PBA.frontArt(front, {off, cid:c.id, strong:W.strength, solid:true, label:c.name}), c.name, `${c.shell === W.def.shell ? 'fits the shell · ' : ''}${c.note}`, cur && cur.call === c.id)).join('')}</div>
+      <div class="row"><button class="btn" data-act="gloss" data-v="defense">The words</button><button class="btn" data-act="closeSheet">Set jobs by hand</button></div>`);
+  },
+  callPick(d){
+    hideSheet();
+    if (!applyCall(d.id)) return;
+    setStep('djobs'); refresh();
+    const c = covNow();
+    toast(`${esc(c ? c.name : d.id)}${c ? ' · ' + esc(c.pressure) : ''}. Drag anyone to match the film.`);
+  },
+  toJobs(){
+    const n = defList().length;
+    if (n !== 11){ toast(`Place all 11 first. The defense has ${n}.`); return; }
+    W.dsel = null; setStep('djobs'); diag('flow', 'shell → jobs'); refresh();
+    if (!Object.keys(W.droles || {}).length) ACT.callSheet();
+  },
+  /* ---- the card ---- */
+  cardType(d){ const q = topCard(); if (!q) return; cardOf(q.key).ptype = d.v || ''; renderHome(); },
+  cardSet(){
+    const q = topCard(); if (!q) return;
+    const v = cardView(q), pers = persOf(q.pers), qb = qbOf(q.qb), cur = v.set ? v.set.f.id : null;
+    const L = v.c.strength === 'L';
+    const card = x => { const off = offFromSet(x.f, pers); return pol('cardSetPick', x.f.id, PBA.setArt(L ? mirrorOff(off) : off), x.f.base ? fmFiled(x.f, pers || x.f.pers, v.c.strength) : x.f.name,
+      [x.n ? `${x.n}× logged` : '', x.f.base ? 'NFL base' : 'your set'].filter(Boolean).join(' · '), x.f.id === cur); };
+    showSheet(`<h3>Fix the set</h3><p>${esc([pers ? pers + ' personnel' : 'personnel unknown', qb ? QB_LABEL[qb] : 'QB unknown'].join(' · '))} · most-logged first</p>
+      <div class="pgrid">${v.sc.list.slice(0, 60).map(card).join('')}</div>
+      <button class="btn" data-act="cardEdit" data-v="blank">New set on the field</button>
+      <button class="btn" data-act="closeSheet">Cancel</button>`);
+  },
+  cardFront(){
+    const q = topCard(); if (!q) return;
+    const v = cardView(q), cur = v.front ? v.front.code : null, offR = cardOffRight(q, v);
+    const L = v.c.strength === 'L', off = offR ? (L ? mirrorOff(offR) : offR) : null;
+    const card = x => { const f = {box:x.d.box, dbs:x.d.dbs, shell:x.d.shell}; return pol('cardFrontPick', x.code, PBA.frontArt(L ? mirrorFront(f) : f, {off, solid:true}), x.name,
+      [x.src === 'ipad' ? 'the iPad’s pick' : x.n ? `${x.n}× logged` : '', PBA.frontId(f, 'R').id, x.src === 'base' ? 'NFL base' : ''].filter(Boolean).join(' · '), x.code === cur, ` data-v="${esc(x.code)}"`); };
+    showSheet(`<h3>Fix the front</h3><p>It lines up to the strong side on the card. Next: the coverage call.</p>
+      <div class="pgrid">${v.fc.list.slice(0, 60).map(card).join('')}</div>
+      <button class="btn def" data-act="cardChart">${v.c.chart ? 'Chart it on the field after Confirm ✓' : 'Chart it on the field after Confirm'}</button>
+      <div class="row"><button class="btn" data-act="cardFrontNone">No defense</button><button class="btn" data-act="closeSheet">Cancel</button></div>`);
+  },
+  cardFrontPick(d){ const q = topCard(); if (!q) return; const c = cardOf(q.key); c.frontCode = d.v; c.covId = undefined; hideSheet(); renderHome(); ACT.cardCov(); },
+  cardCov(){
+    const q = topCard(); if (!q) return;
+    const v = cardView(q); if (!v.front){ toast('Pick the front first.'); return; }
+    const offR = cardOffRight(q, v), L = v.c.strength === 'L', off = offR ? (L ? mirrorOff(offR) : offR) : null;
+    const f0 = {box:v.front.d.box, dbs:v.front.d.dbs, shell:v.front.d.shell}, front = L ? mirrorFront(f0) : f0;
+    const list = PBA.COVS.filter(c => PBA.fits(f0, c.id)).sort((a,b) => (b.shell === f0.shell) - (a.shell === f0.shell));
+    showSheet(`<h3>Coverage call</h3><p>${esc(v.front.name)} · ${f0.shell}-high look. Each picture is the call on this front against this set.</p>
+      <div class="pgrid">${list.map(c => pol('cardCovPick', c.id, PBA.frontArt(front, {off, cid:c.id, strong:v.c.strength, solid:true, label:c.name}), c.name, `${c.shell === f0.shell ? 'fits the shell · ' : ''}${c.note}`, v.cov === c.id)).join('')}</div>
+      <div class="row"><button class="btn" data-act="cardCovNone">No call</button><button class="btn" data-act="gloss" data-v="defense">The words</button></div>`);
+  },
+  cardCovPick(d){ const q = topCard(); if (!q) return; cardOf(q.key).covId = d.id; hideSheet(); renderHome(); },
+  cardCovNone(){ const q = topCard(); if (!q) return; cardOf(q.key).covId = null; hideSheet(); renderHome(); },
+  cardFrontNone(){ const q = topCard(); if (!q) return; const c = cardOf(q.key); c.frontCode = null; c.covId = null; c.chart = false; hideSheet(); renderHome(); },
+  cardOk(){
+    const q = topCard(); if (!q){ renderHome(); return; }
+    const v = cardView(q);
+    if (!v.set){ toast('Pick the set first: tap Set.'); renderHome(); return; }
+    const offR = cardOffRight(q, v);
+    const off = v.c.strength === 'L' ? mirrorOff(offR) : offR;
+    const st = strengthOf(off.tokens);
+    let def = null;
+    if (v.front){
+      let d = Object.assign({}, v.front.d);
+      if (v.cov){ const cd = PBA.callDef({box:d.box, dbs:d.dbs, shell:d.shell}, offR, v.cov); if (cd) d = Object.assign(d, {box:cd.box, dbs:cd.dbs, shell:cd.shell, cov:cd.cov, roles:null, strength:'R'}); }
+      def = frontDef(d, st, v.front.name);
+      if (v.cov && d.cov) def.call = v.cov;
+    }
+    const res = cardRes(q, v, st);
+    const p = makePlay({off, name:v.set.f.base ? fmFiled(v.set.f, off.pers, st) : v.set.f.name, baseId:v.set.f.base ? v.set.f.id : null, def, key:q.key, sit:q.sit || null, hash:v.c.hash,
+      spot:q.sit && q.sit.yard != null ? yardToSpot(q.sit.yard) : -35, src:'card', stage:'card.confirm', extra:res ? {res} : null});
+    if (!p){ renderHome(); return; }
+    const chart = v.c.chart;
+    CARD.delete(q.key); PARK.delete(q.key); parkSave(); CARDV.key = null; CARDV.shot = 'snap';
+    diag('card.confirm', `${q.key} → play ${p.n}: ${playCode(p)}`);
+    if (chart){
+      ACT.openPlay({id:p.id}); ACT.redoDef({id:p.id}); W.chain = null;
+      if (p.def && p.def.call){ setStep('djobs'); refresh(); }
+      toast(`Play ${p.n} logged. Drag anyone to match the film, then save the defense.`); return;
+    }
+    toast(`Play ${p.n} logged: ${esc(p.name)}${def ? ' vs ' + esc(v.front.name) + (def.cov ? ' · ' + esc(def.cov.name) : '') : ''}`);
+    renderHome();
+  }
+});
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   if (!el || el.disabled) return;
@@ -4450,6 +5273,7 @@ else {
   connectDb();
   syncStart();
   baseLoad();
+  clearPrompt();
 }
 })();
 </script>
