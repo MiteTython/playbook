@@ -253,6 +253,30 @@ summary{font-weight:600;font-size:14px}
 .wc{flex:none;height:32px;padding:0 12px;border-radius:16px;border:0;background:var(--raise);color:var(--fg);font-size:13px;font-weight:600;white-space:nowrap}
 .wc.on{background:var(--fg);color:var(--bg)}
 .panel.tall{max-height:64vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.wname{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:17px;font-weight:700;min-height:22px}
+.wname small{font-family:var(--mono);font-size:11px;color:var(--fg2);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;text-align:right}
+/* 0.11.0 the tabs: one screen per job */
+.tabs{flex:none;display:flex;border-top:1px solid var(--line);background:var(--panel);padding:6px 6px calc(8px + env(safe-area-inset-bottom,0px))}
+.tabs[hidden]{display:none}
+.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:transparent;color:var(--fg2);font-size:11px;font-weight:700;padding:4px 0 2px;position:relative;letter-spacing:.02em}
+.tabs button.on{color:var(--accent)}
+.tabs svg{width:24px;height:24px}
+.tabs .bdg{position:absolute;top:-2px;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:9px;background:var(--accent);color:var(--on-accent);font-size:11px;line-height:18px;padding:0 5px;box-sizing:border-box;text-align:center}
+.fchips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px 12px;padding:0 16px}
+.fchips::-webkit-scrollbar{display:none}
+.sec h2 .li-b{height:30px;padding:0 12px;font-size:13px;text-transform:none;letter-spacing:0}
+.card-res{font-size:14px;color:var(--fg);display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.card-res b{font-size:15px}
+.card-res .y{font-variant-numeric:tabular-nums;font-weight:700}
+.card-res .y.neg{color:var(--danger)}
+.card-res .y.pos{color:var(--ok)}
+.card-res .tag{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:7px;background:var(--raise);color:var(--fg2)}
+.card-res .tag.hot{background:var(--accent);color:var(--on-accent)}
+details.game{margin-bottom:6px}
+details.game summary{list-style:none;display:flex;justify-content:space-between;align-items:baseline;font-size:15px;font-weight:700;padding:10px 0;border-bottom:1px solid var(--line)}
+details.game summary::-webkit-details-marker{display:none}
+details.game summary span{font-size:12px;color:var(--fg2);font-weight:600}
+.more .li{min-height:56px}
 .shots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
 .shots button{height:30px;border:0;border-radius:8px;background:var(--raise);color:var(--fg2);font-size:11px;font-weight:800;letter-spacing:.05em;padding:0}
 .shots button.on{background:var(--fg);color:var(--bg)}
@@ -324,6 +348,12 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
     <div id="panel" class="panel"></div>
   </section>
   <section id="diag" class="view scroll diag" hidden></section>
+  <nav id="tabs" class="tabs" hidden aria-label="Sections">
+    <button data-act="tab" data-v="inbox" aria-label="Inbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l2.5-8h13L21 13v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M3 13h5l1.5 3h5L16 13h5"/></svg>Inbox<span class="bdg" id="tabBadge" hidden></span></button>
+    <button data-act="tab" data-v="plays" aria-label="Plays"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>Plays</button>
+    <button data-act="tab" data-v="book" aria-label="Book"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg>Book</button>
+    <button data-act="tab" data-v="more" aria-label="More"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>More</button>
+  </nav>
 </div>
 <div id="sheet" class="sheet-back" data-act="closeSheet" hidden><div class="sheet" id="sheetBody"></div></div>
 <div id="toast" class="toast" data-act="dismissToast" hidden></div>
@@ -2876,6 +2906,7 @@ function setView(v){
   $('#home').hidden = v !== 'home';
   $('#editor').hidden = v !== 'editor';
   $('#diag').hidden = v !== 'diag';
+  $('#tabs').hidden = v !== 'home' || !!EMBED;
 }
 function setStep(step){ W.step = step; viewForStep(); }
 function refresh(){
@@ -2887,7 +2918,10 @@ function refresh(){
 function renderTop(){
   const L = $('#topL'), icon = $('#topLIcon');
   let title = 'Playbook', sub = '';
-  if (VIEW === 'home'){ L.hidden = !EMBED; if (EMBED){ icon.setAttribute('d', 'M6 6l12 12M18 6L6 18'); L.setAttribute('aria-label','Close'); } }
+  if (VIEW === 'home'){
+    L.hidden = !EMBED; if (EMBED){ icon.setAttribute('d', 'M6 6l12 12M18 6L6 18'); L.setAttribute('aria-label','Close'); }
+    else { title = TAB_NAME[HOMEV.tab] || 'Playbook'; sub = HOMEV.tab === 'inbox' ? `${inboxSplit().live.length} waiting · ${syncWord()}` : HOMEV.tab === 'plays' ? `${S.plays.length} logged · ${S.plays.filter(p => !p.def && !p._bad).length} without a defense` : HOMEV.tab === 'book' ? `${allSets().length} sets · ${allFronts().length} fronts · ${S.designs.length} drawn` : `v${VERSION} · ${syncWord()}`; }
+  }
   else if (VIEW === 'diag'){ L.hidden = false; icon.setAttribute('d', 'M15 5l-7 7 7 7'); L.setAttribute('aria-label','Back'); title = 'Diagnostics'; sub = `v${VERSION}`; }
   else {
     L.hidden = false; icon.setAttribute('d', 'M6 6l12 12M18 6L6 18'); L.setAttribute('aria-label','Close');
@@ -2970,14 +3004,21 @@ function panelOff(){
     ${ballRow}
     <div class="scrollx">${PERS.map(p => `<button class="chip ${p === W.pers ? 'on' : ''}" data-act="pers" data-v="${p}" aria-label="${p} personnel">${p}</button>`).join('')}
       <button class="chip ${W.xol ? 'on' : ''}" data-act="xol" ${xolOK ? '' : 'disabled'} aria-label="Sixth offensive lineman">6 OL</button></div>`;
-  if (W.wizOn) return head + `
+  if (W.wizOn){
+    let live = '';
+    try { if (!st.left){ const off = offObject(); live = NAMES.setText({qb:off.qb, xol:off.xol, tokens:off.tokens.map(t => ({type:t.type, slot:t.slot}))}, 'pro', {field:nameStepField(), neutral:true}); } } catch(e){ live = ''; }
+    const quick = W.mode === 'log';
+    return head + `
+    <div class="wname"><span>${esc(live || '—')}</span><small>${esc(st.left ? '' : formationCodeOf(offObject()))}</small></div>
     ${wizHTML()}
     <div class="status ${cls}" role="status">${esc(msg)}</div>
     <div class="row">
       <button class="btn slim" data-act="saved">Sets</button>
-      <button class="btn slim" data-act="wizMode" aria-label="Place every man by hand instead">By hand</button>
-      <button class="btn pri" data-act="next" ${nextOff ? 'disabled' : ''}>${nextLabel}</button>
+      <button class="btn slim" data-act="wizMode" aria-label="Place every man by hand instead">Hand</button>
+      ${quick ? `<button class="btn slim" data-act="next" ${nextOff ? 'disabled' : ''}>Name…</button><button class="btn pri" data-act="logNow" ${nextOff ? 'disabled' : ''}>Log →</button>`
+        : `<button class="btn pri" data-act="next" ${nextOff ? 'disabled' : ''}>${nextLabel}</button>`}
     </div>`;
+  }
   return head + `
     <div class="scrollx">${queue}</div>
     <div class="status ${cls}" role="status">${esc(msg)}</div>
@@ -3200,7 +3241,7 @@ const sitWord = q => q && q.down ? `${ORD[q.down] || q.down} & ${q.dist == null 
 const yardToSpot = y => { y = Math.round(+y); if (!(y > 0 && y < 100)) return -35; return y === 50 ? 50 : (y > 50 ? -(100 - y) : y); };
 function startQueued(q){
   W = newWork('log');
-  W.qkey = q.key; W.qsit = q.sit || null; W.qdesc = q.desc || ''; W.qpers = persOf(q.pers); W.qres = q.res && typeof q.res === 'object' ? q.res : null;
+  W.qkey = q.key; W.qsit = q.sit || null; W.qdesc = q.desc || ''; W.qpers = persOf(q.pers); W.qres = resOf(q);
   if (q.pers && PERS.includes(String(q.pers))){ W.pers = String(q.pers); W.tokens = buildTokens(W.pers, false, []); }
   const qb = {U:'under', S:'gun', P:'pistol', under:'under', gun:'gun', pistol:'pistol'}[q.qb];
   if (qb) W.qb = qb;
@@ -5445,9 +5486,9 @@ function setCands(q){
   const out = [], seen = new Set();
   const push = (f, n, src) => { if (!f || f._bad) return; const k = codeBodyOf(f.code); if (seen.has(k)) return; seen.add(k); out.push({f, n, src}); };
   const hist = S.plays.filter(p => p.off && !p._bad && p.formationId && (!pers || p.off.pers === pers) && (!qb || p.off.qb === qb));
-  const cnt = new Map();
-  hist.forEach(p => cnt.set(p.formationId, (cnt.get(p.formationId) || 0) + 1));
-  [...cnt.entries()].sort((a,b) => b[1] - a[1]).forEach(([id, n]) => push(fmGet(id), n, 'log'));
+  const team = q.sit && q.sit.pos ? q.sit.pos : null, cnt = new Map();
+  hist.forEach(p => { const c = cnt.get(p.formationId) || {n:0, w:0}; c.n++; c.w += team && p.sit && p.sit.pos === team ? 3 : 1; cnt.set(p.formationId, c); });
+  [...cnt.entries()].sort((a,b) => b[1].w - a[1].w || b[1].n - a[1].n).forEach(([id, c]) => push(fmGet(id), c.n, 'log'));
   S.formations.filter(f => (!qb || f.qb === qb) && (!pers || f.pers === pers)).sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''))).forEach(f => push(f, 0, 'book'));
   BASE.formations.filter(f => !qb || f.qb === qb).slice().sort((a,b) => pers ? (b.pers === pers) - (a.pers === pers) : 0).forEach(f => push(f, 0, 'base'));
   return {list:out, total:hist.length};
@@ -5484,7 +5525,7 @@ function cardView(q){
   if (c.frontCode === null) frontNote = 'none';
   else if (c.frontCode){ front = fc.list.find(x => x.code === c.frontCode) || null; frontNote = 'your pick'; }
   else { front = fc.list.find(x => x.src === 'ipad') || fc.list.find(x => x.n > 0) || null; frontNote = front ? (front.src === 'ipad' ? 'the iPad\'s pick' : `guess · ${front.n} of ${fc.total}`) : ''; }
-  if (c.ptype == null) c.ptype = (q.res && (q.res.ptype === 'run' || q.res.ptype === 'pass')) ? q.res.ptype : '';
+  { const r = resOf(q); c.ptype = r ? r.ptype : ''; }
   let cov = null, covNote = '';
   if (front && c.covId !== null){
     if (c.covId){ cov = c.covId; covNote = 'your pick'; }
@@ -5514,8 +5555,7 @@ function inboxHTML(){
       <span class="li-main"><span class="li-t">${esc(q.desc || (q.sit && q.sit.yard != null ? spotLabel(yardToSpot(q.sit.yard)) : q.key))}</span>
       <span class="li-s">${esc([persOf(q.pers) ? q.pers + ' personnel' : '', qbOf(q.qb) ? QB_LABEL[qbOf(q.qb)] : '', q.snap != null ? 'snap marked' : '', q.fromTag ? 'tagged' : ''].filter(Boolean).join(' · '))}</span></span>
     </button>`;
-  const head = `<div class="ibx"><h1>Inbox</h1><span class="ibx-s">${esc(syncWord())}</span></div>
-    <p class="sub">${live.length} waiting · ${st.n} logged today · ${parked.length} parked${st.pace ? ` · ${st.pace}s a play` : ''}</p>`;
+  const head = `<p class="sub" style="margin:8px 0 12px">${st.n} logged today · ${parked.length} parked${st.pace ? ` · ${st.pace}s a play` : ''}</p>`;
   let body = '';
   if (top) body += cardHTML(top) + (live.length > 1 ? `<button class="btn small wide" data-act="qStart">Log them all in the editor · ${live.length}</button>` : '');
   else body += `<div class="zero"><b>${S.plays.length ? 'Inbox zero' : 'Nothing waiting'}</b><small>${SYNC.token ? 'Tap Later on the iPad and the play lands here as a card.' : 'Connect Sync and the iPad\'s plays land here as cards.'}</small></div>
@@ -5761,6 +5801,7 @@ function cardHTML(q){
     <div class="card-h"><b>${esc(sitWord(s))}${where ? ' · ' + esc(where) : ''}</b><span>${s.qtr ? 'Q' + esc(s.qtr) + ' ' : ''}${esc(clockWord(s.clock))}</span></div>
     ${q.desc ? `<div class="card-d">${esc(q.desc)}</div>` : ''}
     ${framesBlock(q.key, CARDV.shot)}
+    ${resLine(resOf(q))}
     <div class="card-f">${esc(facts)}</div>
     <div class="card-mid">
       <div class="card-art">${cardArt(q, v)}</div>
@@ -5770,9 +5811,7 @@ function cardHTML(q){
         <button class="cline ${cov ? '' : 'none'}" data-act="cardCov" ${v.front ? '' : 'disabled'}><span class="lbl">Coverage</span><b>${cov ? esc(cov.name) : 'Tap to add'}</b><small>${cov ? esc(v.covNote || 'your pick') : (v.front ? 'optional' : 'pick a front first')}</small></button>
       </div>
     </div>
-    <div class="row"><span class="lbl cl">Play</span>${seg('cardType', [['run','Run'],['pass','Pass'],['','—']], v.c.ptype || '')}</div>
-    <div class="row"><span class="lbl cl">Strong</span>${seg('cardStr', [['L','Left'],['R','Right']], v.c.strength)}</div>
-    <div class="row"><span class="lbl cl">Hash</span>${seg('cardHash', [['L','Left'],['M','Middle'],['R','Right']], v.c.hash)}</div>
+    <div class="row"><span class="lbl cl">Strong</span>${seg('cardStr', [['L','Left'],['R','Right']], v.c.strength)}<span class="lbl" style="flex:none;width:auto">Hash</span>${seg('cardHash', [['L','L'],['M','M'],['R','R']], v.c.hash)}</div>
     <div class="row">
       <button class="btn slim" data-act="cardPark">Park</button>
       <button class="btn slim" data-act="cardEdit">Wizard</button>
@@ -5783,45 +5822,103 @@ function cardHTML(q){
 }
 
 /* ---- home: the inbox, then the book as feeds of Polaroids ---- */
-const HOMEV = {allPlays:false};
+const HOMEV = {allPlays:false, tab:(['inbox','plays','book','more'].includes(lsGetRaw('pb.tab')) ? lsGetRaw('pb.tab') : 'inbox'), pf:'all'};
+const TAB_NAME = {inbox:'Inbox', plays:'Plays', book:'Book', more:'More'};
+/* ---- 0.11.0 what happened on the snap, from the play's own words when the iPad sent no result ---- */
+function parseDesc(desc){
+  const d = String(desc || '').toLowerCase().replace(/^\(\d+:\d+\)\s*/, ''); if (!d) return null;
+  if (/\bpunts?\b|field goal|kicks off|kickoff|extra point|two-point|\bno play\b|aborted/.test(d) && !/\bpass\b|\bsacked\b|\bscrambles?\b|\b(left|right) (end|tackle|guard)\b|up the middle/.test(d)) return null;
+  let ptype = null;
+  if (/\bpass\b|\bsacked\b|\bscrambles?\b|\bspiked?\b/.test(d)) ptype = 'pass';
+  else if (/\b(left|right) (end|tackle|guard)\b|up the middle|\brush(es|ed)?\b|\bkneels?\b/.test(d)) ptype = 'run';
+  if (!ptype) return null;
+  let loc = null, gap = null, len = null;
+  const m1 = /\b(short|deep) (left|middle|right)\b/.exec(d); if (m1){ len = m1[1]; loc = m1[2]; }
+  const m2 = /\b(left|right) (end|tackle|guard)\b/.exec(d); if (m2){ loc = m2[1]; gap = m2[2]; }
+  if (/up the middle/.test(d)){ loc = 'middle'; gap = 'middle'; }
+  const my = /for (-?\d+) yards?/.exec(d); const yds = my ? +my[1] : (/for no gain|incomplete/.test(d) ? 0 : null);
+  const scr = /scrambles?/.test(d), sack = /sacked/.test(d), td = /touchdown/.test(d), int = /intercepted/.test(d);
+  return {ptype, loc, gap:ptype === 'run' && !scr ? gap : null, len:ptype === 'pass' ? len : null, yds, sack, scr, td, int, fd:false, expl:yds != null && (ptype === 'run' ? yds >= 10 : yds >= 20), from:'desc'};
+}
+function resOf(q){   // the iPad's nflverse result first, else the words under the clip; never a question
+  const r = q && q.res && typeof q.res === 'object' && (q.res.ptype === 'run' || q.res.ptype === 'pass') ? q.res : null;
+  if (r) return r;
+  const d = parseDesc(q && q.desc);
+  if (d && q && q.sit && q.sit.dist != null && d.yds != null) d.fd = d.yds >= +q.sit.dist || d.td;
+  return d;
+}
+function resLine(r){   // "Pass · short right · +12 · 1st down"
+  if (!r) return '';
+  const where = r.ptype === 'run' ? [r.loc, r.gap && r.gap !== 'middle' ? r.gap : ''].filter(Boolean).join(' ') : [r.len, r.loc].filter(Boolean).join(' ');
+  const y = r.yds == null ? '' : `<span class="y ${r.yds > 0 ? 'pos' : r.yds < 0 ? 'neg' : ''}">${r.yds > 0 ? '+' : ''}${r.yds}</span>`;
+  const tags = [r.td ? ['TD', 1] : null, r.int ? ['INT', 1] : null, r.sack ? ['Sack', 0] : null, r.scr ? ['Scramble', 0] : null, !r.td && r.fd ? ['1st down', 0] : null, r.expl && !r.td ? ['Explosive', 1] : null].filter(Boolean);
+  return `<div class="card-res"><b>${r.ptype === 'run' ? 'Run' : 'Pass'}</b>${where ? `<span>${esc(where)}</span>` : ''}${y}${tags.map(([t, hot]) => `<span class="tag ${hot ? 'hot' : ''}">${t}</span>`).join('')}</div>`;
+}
+const gameOf = key => { const g = String(key || '').split(':')[0], p = g.split('_'); return p.length >= 4 ? {id:g, label:`${p[2]} at ${p[3]}`, wk:+p[1] || null, yr:p[0]} : null; };
+
 function renderHome(){
   if (EMBED){ renderEmbedHome(); return; }
-  const plays = S.plays.slice().sort((a,b) => b.n - a.n);
+  const tab = HOMEV.tab;
+  const html = tab === 'plays' ? playsTabHTML() : tab === 'book' ? bookTabHTML() : tab === 'more' ? moreTabHTML() : inboxTabHTML();
+  $('#home').innerHTML = html;
+  $('#tabs').querySelectorAll('button[data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === tab));
+  const live = inboxSplit().live.length, bd = $('#tabBadge'); bd.hidden = !live; bd.textContent = live > 99 ? '99+' : String(live);
+}
+/* ---- Inbox: the iPad's plays as cards, one at a time; log by hand underneath ---- */
+function inboxTabHTML(){
+  return inboxHTML() + `<button class="btn small wide" data-act="logNew" style="margin-top:8px">Log a play by hand</button>`;
+}
+/* ---- Plays: what you logged, by game; filters for what still needs work ---- */
+function playsTabHTML(){
+  const all = S.plays.slice().sort((a,b) => b.n - a.n), open = all.filter(p => !p.def && !p._bad).length;
+  const pf = HOMEV.pf;
+  const plays = all.filter(p => pf === 'nodef' ? !p.def && !p._bad : pf === 'run' || pf === 'pass' ? p.res && p.res.ptype === pf : true);
+  const chip = (v, l, cnt) => `<button class="chip ${pf === v ? 'on' : ''}" data-act="pf" data-v="${v}">${l}${cnt != null ? ` · ${cnt}` : ''}</button>`;
+  const head = `<div class="fchips" style="margin-top:6px">${chip('all', 'All', all.length)}${chip('nodef', 'No defense', open)}${chip('run', 'Run')}${chip('pass', 'Pass')}</div>
+    <div class="row" style="margin-bottom:16px">
+      ${open ? `<button class="btn small" data-act="logDef">Log defense · ${open}</button>` : ''}
+      <button class="btn small" data-act="tend">Tendencies</button>
+    </div>`;
+  if (!plays.length) return head + `<div class="empty">${all.length ? 'Nothing here with that filter.' : 'No plays logged yet. Confirm a card in the Inbox, or log one by hand.'}</div>`;
+  const groups = new Map();
+  plays.forEach(p => { const g = gameOf(p.key); const id = g ? g.id : 'hand'; if (!groups.has(id)) groups.set(id, {g, list:[]}); groups.get(id).list.push(p); });
+  const polOf = p => pol('openPlay', p.id, PBA.playArt(p, callLine(p, 'pro')), `${p.n}. ${callLine(p)}`,
+    p._bad ? p._bad : [p.sit && p.sit.down ? sitWord(p.sit) : '', persStr(p.off && p.off.pers, p.off && p.off.xol), p.def ? (p.def.cov ? p.def.cov.name : (p.def.front || 'front')) : 'no defense', p.res && p.res.ptype ? p.res.ptype + (p.res.yds != null ? ` ${p.res.yds > 0 ? '+' : ''}${p.res.yds}` : '') : ''].filter(Boolean).join(' · '));
+  let i = 0;
+  return head + [...groups.values()].map(({g, list}) => `<details class="game" ${i++ === 0 || groups.size === 1 ? 'open' : ''}>
+      <summary>${esc(g ? g.label + (g.wk ? ' · Wk ' + g.wk : '') : 'Logged by hand')}<span>${list.length} play${list.length === 1 ? '' : 's'}${g ? ' · ' + list.filter(p => !p.def).length + ' no D' : ''}</span></summary>
+      <div class="pgrid" style="margin-top:10px">${list.map(polOf).join('')}</div>
+    </details>`).join('');
+}
+/* ---- Book: your sets, fronts and drawn plays, each with its own New ---- */
+function bookTabHTML(){
   const dzs = S.designs.slice().sort((a,b) => String(b.updated || b.created || '').localeCompare(String(a.updated || a.created || '')));
-  const open = S.plays.filter(p => !p.def && !p._bad).length;
   const sets = allSets(), fronts = allFronts();
-  const tile = (act, color, t, sub) => `<button class="tile" data-act="${act}"><i style="background:${color}"></i><b>${t}</b><small>${sub}</small></button>`;
-  const shown = HOMEV.allPlays ? plays : plays.slice(0, 12);
-  $('#home').innerHTML = `
-    ${inboxHTML()}
-    <div class="tiles">
-      ${inboxSplit().top ? tile('logNew', '#4DA3FF', 'Log plays', 'Place the offense and name it. The next play starts on its own.') : ''}
-      ${tile('logDef', '#FF8A3D', 'Log defense', open ? `${open} play${open === 1 ? '' : 's'} with no defense yet. Pick a front, pick a call, drag to match.` : 'Pick a front, pick a call, drag to match the film.')}
-      ${tile('designNew', '#3DDC84', 'Draw a play', 'Routes, blocks, motion and run concepts on any set.')}
-      ${tile('tplNew', '#9AA5AE', 'New offense set', 'Start from any set — yours or the NFL base — and move people.')}
-      ${tile('frontNew', '#FFE27A', 'New defense front', 'Key the box, set the shell.')}
-      ${tile('tend', '#B78CFF', 'Tendencies', 'Run/pass and strong/weak by down & distance, field zone, personnel, set.')}
-    </div>
-    <section class="sec"><h2><span>Log</span><span>${plays.length}</span></h2>
-      ${plays.length ? `<div class="pgrid">${shown.map(p => pol('openPlay', p.id, PBA.playArt(p, callLine(p, 'pro')), `${p.n}. ${callLine(p)}`,
-        p._bad ? p._bad : [p.sit && p.sit.down ? sitWord(p.sit) : '', persStr(p.off && p.off.pers, p.off && p.off.xol), p.def ? (p.def.cov ? p.def.cov.name : (p.def.front || 'front')) : 'no defense', p.res && p.res.ptype ? p.res.ptype : ''].filter(Boolean).join(' · '))).join('')}</div>
-        ${plays.length > 12 ? `<button class="btn small" data-act="allPlays">${HOMEV.allPlays ? 'Show the last 12' : `Show all ${plays.length}`}</button>` : ''}`
-        : '<div class="empty">No plays logged yet. Confirm a card, or tap Log plays, place the five skill players and name the set.</div>'}
-    </section>
-    <section class="sec"><h2><span>Drawn plays</span><span>${dzs.length}</span></h2>
-      ${dzs.length ? `<div class="pfeed">${dzs.map(d => pol('dzMenu', d.id, PBA.designArt(d, d.name), d.name, d._bad ? d._bad : `${d.setName || ''} vs ${d.defName || ''}`)).join('')}</div>`
-        : '<div class="empty">No drawn plays yet. Tap Draw a play and pick a set.</div>'}
-    </section>
-    <section class="sec"><h2><span>Offense sets</span><span>${sets.length}</span></h2>
+  return `
+    <section class="sec" style="margin-top:6px"><h2><span>Offense sets · ${sets.length}</span><button class="li-b" data-act="tplNew">+ New set</button></h2>
       <div class="pfeed">${sets.map(f => setPol('fmCard', f)).join('')}</div>
     </section>
-    <section class="sec"><h2><span>Defense fronts</span><span>${fronts.length}</span></h2>
+    <section class="sec"><h2><span>Defense fronts · ${fronts.length}</span><button class="li-b" data-act="frontNew">+ New front</button></h2>
       <div class="pfeed">${fronts.map(f => frontPol('frCard', f, null)).join('')}</div>
     </section>
-    <button class="btn small wide" data-act="namesSheet">Names · ${NAMING === 'desc' ? 'Plain English' : 'Neutral calls'} · settings, My words</button>
-    <button class="btn small wide" data-act="gloss" data-v="${NAMING}">What the words mean</button>
-    <div class="ver" style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px">v${VERSION} · ${esc(syncWord())}${SYNC.state === 'on' && SYNC.lastPull ? ' · checked ' + new Date(SYNC.lastPull).toTimeString().slice(0, 5) : ''}
-      <button class="li-b" data-act="syncSheet">Sync</button></div>`;
+    <section class="sec"><h2><span>Drawn plays · ${dzs.length}</span><button class="li-b" data-act="designNew">+ Draw</button></h2>
+      ${dzs.length ? `<div class="pfeed">${dzs.map(d => pol('dzMenu', d.id, PBA.designArt(d, d.name), d.name, d._bad ? d._bad : `${d.setName || ''} vs ${d.defName || ''}`)).join('')}</div>`
+        : '<div class="empty">Nothing drawn yet. Routes, blocks, motion and run concepts on any set.</div>'}
+    </section>
+    <div class="row"><button class="btn small" data-act="namesSheet">Names · ${NAMING === 'desc' ? 'Plain English' : 'Neutral calls'}</button><button class="btn small" data-act="gloss" data-v="${NAMING}">What the words mean</button></div>`;
+}
+/* ---- More: sync, names, the words, housekeeping ---- */
+function moreTabHTML(){
+  const li = (act, t, sub, v) => `<button class="li" data-act="${act}" ${v ? `data-v="${esc(v)}"` : ''}><span class="li-main"><span class="li-t">${t}</span><span class="li-s">${esc(sub)}</span></span><span class="chev">›</span></button>`;
+  return `<div class="list more" style="margin-top:6px">
+      ${li('syncSheet', 'Sync with the iPad', `${syncWord()}${SYNC.state === 'on' && SYNC.lastPull ? ' · checked ' + new Date(SYNC.lastPull).toTimeString().slice(0, 5) : ''}`)}
+      ${li('namesSheet', 'Names', `${NAMING === 'desc' ? 'Plain English' : 'Neutral calls'} · settings, My words`)}
+      ${li('gloss', 'What the words mean', 'The glossary: sets, fronts, coverages', NAMING)}
+      ${li('tend', 'Tendencies', 'Run/pass and strong/weak by down & distance, field zone, personnel, set')}
+      ${li('topR', 'Diagnostics', 'The log, dumps and baselines')}
+      ${li('wipeAsk', 'Start clean', 'Clear logged plays, sets, drawn plays and fronts. The NFL base stays.')}
+    </div>
+    <div class="ver" style="margin-top:16px">Playbook v${VERSION}</div>`;
 }
 /* one time: clear the sets you entered, keep the NFL base (you asked for a clean book) */
 /* one time (0.10.1): start clean — your logged plays, sets, drawn plays and fronts go; the NFL base book stays */
@@ -6458,14 +6555,26 @@ Object.assign(ACT, {
 });
 /* ================= 0.9.1 actions: calls, Polaroid pickers, sets from sets, the words, tendencies ================= */
 function cardRes(q, v, st){
-  const r = q.res && typeof q.res === 'object' ? q.res : {};
-  const ptype = v.c.ptype || r.ptype || null, loc = r.loc || null;
+  const r = resOf(q) || {};
+  const ptype = r.ptype || null, loc = r.loc || null;
   const dir = loc === 'left' || loc === 'right' ? (((loc === 'right') === (st === 'R')) ? 'strong' : 'weak') : loc === 'middle' ? 'middle' : null;
   return ptype || loc || r.yds != null ? Object.assign({}, r, {ptype, dir}) : null;
 }
 Object.assign(ACT, {
   noop(){},
   allPlays(){ HOMEV.allPlays = !HOMEV.allPlays; renderHome(); },
+  tab(d){ if (!TAB_NAME[d.v]) return; HOMEV.tab = d.v; lsSetRaw('pb.tab', d.v); diag('tab', d.v); refresh(); $('#home').scrollTop = 0; },
+  pf(d){ HOMEV.pf = d.v; renderHome(); },
+  wipeAsk(){ if (!Object.keys(WIPE).some(k => (S[k] || []).length)){ toast('Nothing to clear — the book is the NFL base alone.'); return; } lsSetRaw('pb.clear0101', ''); clearPrompt(); },
+  logNow(){   // 0.11.0: the wizard's one key — the neutral name, the play logged, the defense next (Skip is there)
+    const st = offStatus();
+    if (st.left){ toast(`${st.left} ${st.left === 1 ? 'man has' : 'men have'} no spot yet.`, 'err'); return; }
+    if (!st.legal){ toast(st.issues[0].msg, 'err'); return; }
+    W.tokens.forEach(t => { delete t.fixed; });
+    if (W.mode !== 'template'){ W.name = ''; W.nameOv = null; W.myName = ''; }
+    diag('flow', 'wizard → logged straight', formationCodeOf(offObject()));
+    saveOff('def');
+  },
   gloss(d){ glossSheet(d && d.v || NAMING); },
   naming(d){ NAMING = d.v === 'desc' ? 'desc' : 'pro'; lsSetRaw('pb.naming', NAMING); diag('naming', NAMING); refresh(); glossSheet(NAMING); },
   tend(d){ tendSheet(d && d.v || ''); },
