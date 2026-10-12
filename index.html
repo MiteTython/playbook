@@ -229,8 +229,30 @@ summary{font-weight:600;font-size:14px}
 .card-d{color:var(--fg2);font-size:13px;line-height:18px;max-height:36px;overflow:hidden}
 .card-f{font-size:13px;color:var(--fg);font-weight:600}
 .card-hint{font-size:12px;color:var(--fg2);text-align:center}
-.shot{border-radius:14px;overflow:hidden;background:#000;aspect-ratio:16/9}
+.shot{border-radius:14px;overflow:hidden;background:#000;aspect-ratio:16/9;border:0;padding:0;width:100%;display:block;position:relative}
 .shot img{width:100%;height:100%;object-fit:cover;display:block}
+.shot::after{content:"⤢";position:absolute;right:8px;bottom:6px;width:26px;height:26px;border-radius:13px;background:rgba(0,0,0,.55);color:#fff;font-size:15px;line-height:26px;text-align:center}
+/* 0.11.0 the frame up close */
+#zoomer{position:fixed;inset:0;z-index:50;background:#000;display:flex;flex-direction:column;color:#F2F4F3}
+#zoomer[hidden]{display:none}
+.zoomTop{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 8px;font-size:13px;color:#B8C0C6}
+.zoomTop b{color:#F2F4F3;font-size:15px}
+.zoomTop button{height:34px;padding:0 14px;border-radius:17px;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:14px;font-weight:700}
+#zoomStage{flex:1;position:relative;overflow:hidden;touch-action:none;min-height:0}
+#zoomImg{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;max-width:none;-webkit-user-drag:none;pointer-events:none}
+.zoomBar{flex:none;padding:10px 16px calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px}
+.zoomBar .shots button{background:rgba(255,255,255,.14);color:#D8DEE3}
+.zoomBar .shots button.on{background:#fff;color:#111}
+.zoomBar small{text-align:center;color:#8B9196;font-size:12px}
+/* 0.11.0 the wizard: rows of words, the set draws itself */
+.wiz{display:flex;flex-direction:column;gap:6px}
+.wrow{display:flex;align-items:center;gap:8px;margin:0 -16px;padding:0 16px}
+.wlab{flex:none;width:62px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wopts{flex:1;min-width:0;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0}
+.wopts::-webkit-scrollbar{display:none}
+.wc{flex:none;height:32px;padding:0 12px;border-radius:16px;border:0;background:var(--raise);color:var(--fg);font-size:13px;font-weight:600;white-space:nowrap}
+.wc.on{background:var(--fg);color:var(--bg)}
+.panel.tall{max-height:64vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .shots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
 .shots button{height:30px;border:0;border-radius:8px;background:var(--raise);color:var(--fg2);font-size:11px;font-weight:800;letter-spacing:.05em;padding:0}
 .shots button.on{background:var(--fg);color:var(--bg)}
@@ -305,11 +327,16 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
 </div>
 <div id="sheet" class="sheet-back" data-act="closeSheet" hidden><div class="sheet" id="sheetBody"></div></div>
 <div id="toast" class="toast" data-act="dismissToast" hidden></div>
+<div id="zoomer" hidden>
+  <div class="zoomTop"><span><b id="zoomTitle"></b> <span id="zoomSub"></span></span><button data-act="zoomClose">Done</button></div>
+  <div id="zoomStage"><img id="zoomImg" alt="The frame, up close"></div>
+  <div class="zoomBar"><div class="shots" id="zoomShots"></div><small>Pinch to zoom · drag to pan · double-tap in and out</small></div>
+</div>
 
 <script>
 (() => {
 'use strict';
-const VERSION = '0.10.2';
+const VERSION = '0.11.0';
 const KEYS = {store:'pb.store', diag:'pb.diag', dumps:'pb.dumps', base:'pb.baseline', bad:'pb.store.bad'};
 const LETTER_COLOR = {X:'#FF5A4E', Y:'#FFD23F', Z:'#B78CFF', H:'#4DA3FF', F:'#3DDC84'};
 const PERS = ['11','12','10','13','21','22','20','23','01','02','00','31','30'];
@@ -989,7 +1016,8 @@ function buildTokens(pers, xol, old){
 function newDef(){ return {box:[], shell:2, deep:[], rest:[], cur:0, pendingHand:null, sel:null, shellBuilt:false, mode:'down', hist:[]}; }
 function newWork(mode){
   return {mode, step:'off', pers:'11', xol:false, qb:'gun', hash:'M', spot:-35, strength:'R', tokens:buildTokens('11', false, []), cur:0, name:'', editId:null, playId:null, def:newDef(),
-    droles:{}, dsel:null, side:'O', routes:{}, motion:{}, rmode:'route', pside:1, psideSet:false, concept:null, pick:null, rsel:null, rhist:[], defSrc:{kind:'preset', id:'43o'}, defName:'4-3 Over', setName:'', editDesign:null, dirty:false};
+    droles:{}, dsel:null, side:'O', routes:{}, motion:{}, rmode:'route', pside:1, psideSet:false, concept:null, pick:null, rsel:null, rhist:[], defSrc:{kind:'preset', id:'43o'}, defName:'4-3 Over', setName:'', editDesign:null, dirty:false,
+    wiz:{}, wizOn:false, wizFit:true};
 }
 function loadOffInto(w, off, letters){
   w.pers = off.pers; w.xol = !!off.xol; w.qb = off.qb;
@@ -1142,6 +1170,129 @@ function suggestNames(){
   const off = offObject();
   const x = {qb:off.qb, xol:off.xol, tokens:off.tokens.map(t => ({type:t.type, slot:t.slot}))};
   return NAMES.candidates(x, {field:W && W.mode !== 'template' ? strengthOf(off.tokens) : null}).map(c => ({name:c.text, note:''}));
+}
+
+/* ================= 0.11.0 the wizard: say where every man is, the set draws itself =================
+   Rows of words: the strong side, the backs, each tight end, how the receivers split and how each side is spread.
+   Every tap rebuilds the slots. The line rule puts the right men on the ball: 7 on the line, the outside man of the
+   side with no tight end first, then the other side, then inside men. Drag anyone after. "By hand" is the old flow. */
+const WIZ_LS = 'pb.wiz';
+const wizPref = () => lsGetRaw(WIZ_LS) !== '0';
+const WIZ_BK = {
+  under:{1:[['tb','Deep'],['fb','Short'],['sfb','Offset strong'],['wfb','Offset weak']], 2:[['i','I'],['si','Strong I'],['wi','Weak I'],['split','Split']], 3:[['house','Full house'],['spi','Power I strong'],['wpi','Power I weak']]},
+  pistol:{1:[['tb','Behind'],['sfb','Strong hip'],['wfb','Weak hip']], 2:[['stb','Strong'],['wtb','Weak'],['split','Split']], 3:[['diamond','Diamond']]},
+  gun:{1:[['wfb','Weak hip'],['sfb','Strong hip'],['tb','Deep']], 2:[['split','Split'],['stb','Strong + deep'],['wtb','Weak + deep']], 3:[['diamond','Diamond']]}
+};
+const WIZ_BK_SLOTS = {tb:['M:TB'], fb:['M:FB'], sfb:['s:FB'], wfb:['w:FB'], i:['M:FB','M:TB'], si:['s:FB','M:TB'], wi:['w:FB','M:TB'], split:['L:FB','R:FB'], house:['L:FB','M:FB','R:FB'],
+  spi:['M:FB','s:FB','M:TB'], wpi:['M:FB','w:FB','M:TB'], stb:['M:TB','s:FB'], wtb:['M:TB','w:FB'], diamond:['L:FB','R:FB','M:TB']};
+const WIZ_TE = [['sa','On · strong'],['so','Off · strong'],['sh','Wing · strong'],['ss','Slot · strong'],['sw','Wide · strong'],['wa','On · weak'],['wo','Off · weak'],['wh','Wing · weak'],['ws','Slot · weak'],['ww','Wide · weak'],['bf','Backfield']];
+/* each arrangement: [value, word, [column, row or null when the line rule decides]] */
+const WIZ_ARR = {
+  1:[['N','Wide',[['N',null]]],['S','Slot',[['S',null]]],['T','Tight',[['T',null]]]],
+  2:[['NS','Spread',[['N',null],['S',null]]],['NT','Wide & tight',[['N',null],['T',null]]],['ST','Reduced',[['S',null],['T',null]]],['stack','Stack',[['N',0],['N',3]]]],
+  3:[['NST','Spread',[['N',null],['S',null],['T',null]]],['bunch','Bunch',[['T',0],['S',1],['T',3]]],['stackS','Stack & slot',[['N',0],['N',3],['S',null]]],['tight','Tight',[['S',null],['T',null],['I',null]]]],
+  4:[['NSTI','Spread',[['N',null],['S',null],['T',null],['I',null]]],['bunchN','Wide & bunch',[['N',null],['T',0],['S',1],['T',3]]]],
+  5:[['all','Five out',[['W',null],['N',null],['S',null],['T',null],['I',null]]]]
+};
+const WIZ_ALT = {I:['I','T','S','N','W'], T:['T','S','I','N','W'], S:['S','T','N','I','W'], N:['N','S','W','T','I'], W:['W','N','S','T','I']};
+function wizRows(){   // the rows for this personnel and QB; a missing or stale answer becomes the default
+  const A = W.wiz, rows = [];
+  const rb = Math.min(3, +W.pers[0]), te = +W.pers[1], wr = W.tokens.filter(t => t.type === 'W').length;
+  const row = (k, label, opts, def) => { if (!opts.some(o => o[0] === A[k])) A[k] = opts.some(o => o[0] === def) ? def : opts[0][0]; rows.push({k, label, opts, v:A[k]}); };
+  row('str', 'Strong', [['R','Right'],['L','Left']], 'R');
+  if (rb){ const o = WIZ_BK[W.qb] && WIZ_BK[W.qb][rb] || WIZ_BK.gun[rb]; row('bk', rb === 1 ? 'Back' : 'Backs', o, o[0][0]); }
+  for (let j = 0; j < te; j++) row('te' + j, te === 1 ? 'TE' : (['Y','H','3rd TE'][j] || 'TE'), WIZ_TE, ['sa','wa','sh'][j] || 'sh');
+  if (wr){
+    const sp = []; for (let a = wr; a >= 0; a--) sp.push([`${a}-${wr - a}`, wr === 1 ? (a ? 'Strong' : 'Weak') : `${a} – ${wr - a}`]);
+    row('sp', wr === 1 ? 'WR' : 'Split', sp, {1:'0-1', 2:'1-1', 3:'1-2', 4:'2-2', 5:'3-2'}[wr] || sp[0][0]);
+    const [a, b] = A.sp.split('-').map(Number);
+    if (a){ const o = WIZ_ARR[Math.min(a, 5)]; row('as', wr === a ? 'Spread' : 'S side', o.map(x => [x[0], x[1]]), o[0][0]); }
+    if (b){ const o = WIZ_ARR[Math.min(b, 5)]; row('aw', wr === b ? 'Spread' : 'W side', o.map(x => [x[0], x[1]]), o[0][0]); }
+  }
+  return rows;
+}
+function wizBuild(A){   // the slots the answers draw, one per token (null when a man has nowhere to go)
+  const SS = A.str === 'L' ? 'L' : 'R', WK = SS === 'R' ? 'L' : 'R';
+  const sd = c => c === 's' ? SS : c === 'w' ? WK : c;
+  const toks = W.tokens, out = new Array(toks.length).fill(null);
+  const used = new Set(), colUsed = new Set();
+  const place = (i, key) => { out[i] = key; used.add(key); const [s, c] = key.split(':'); if (RCOLS.includes(c)) colUsed.add(s + ':' + c); };
+  const freeCol = (side, col, ok) => WIZ_ALT[col].find(c => !colUsed.has(side + ':' + c) || (ok && ok.has(side + ':' + c))) || null;
+  const idx = type => toks.map((t, i) => t.type === type ? i : -1).filter(i => i >= 0);
+  const autos = [];
+  idx('L').forEach(i => { const c = freeCol(SS, 'I'); if (c) place(i, `${SS}:${c}:0`); });
+  const bk = (WIZ_BK_SLOTS[A.bk] || []).map(t => { const [s, c] = t.split(':'); return `${sd(s)}:${c}`; });
+  const backSlot = () => (W.qb === 'under' ? ['M:FB', `${SS}:FB`, `${WK}:FB`, 'M:TB'] : [`${SS}:FB`, `${WK}:FB`, 'M:TB']).find(k => !used.has(k)) || null;
+  idx('B').forEach((i, j) => { const k = bk[j] && !used.has(bk[j]) && slotOK(bk[j], 'B', W.qb) ? bk[j] : backSlot(); if (k) place(i, k); });
+  idx('T').forEach((i, j) => {
+    const v = A['te' + j] || 'sa';
+    if (v === 'bf'){ const k = backSlot(); if (k) place(i, k); return; }
+    const side = sd(v[0]), kind = v[1];
+    if (kind === 'h'){ const k = `${side}:HB`; if (!used.has(k)){ place(i, k); return; } }
+    if (kind === 'a' || kind === 'h'){ const c = freeCol(side, 'I'); if (c) place(i, `${side}:${c}:0`); return; }
+    if (kind === 'o'){ const c = freeCol(side, 'I'); if (c) place(i, `${side}:${c}:1`); return; }
+    if (kind === 's'){ const c = freeCol(side, 'S'); if (c) place(i, `${side}:${c}:1`); return; }
+    const c = freeCol(side, 'N'); if (c){ autos.push({i, side, col:c}); colUsed.add(side + ':' + c); }
+  });
+  const wrs = idx('W'); let wi = 0;
+  const [na, nb] = String(A.sp || '').split('-').map(Number);
+  [[SS, na || 0, A.as], [WK, nb || 0, A.aw]].forEach(([side, n, arr]) => {
+    if (!n) return;
+    const list = WIZ_ARR[Math.min(n, 5)], pat = (list.find(o => o[0] === arr) || list[0])[2], mine = new Set();
+    for (let j = 0; j < n; j++){
+      const i = wrs[wi++]; if (i == null) break;
+      const e = pat[j] || ['W', null];
+      const c = freeCol(side, e[0], mine); if (!c) continue;
+      mine.add(side + ':' + c);
+      if (e[1] == null){ autos.push({i, side, col:c}); colUsed.add(side + ':' + c); }
+      else { const k = `${side}:${c}:${e[1]}`; if (!used.has(k)) place(i, k); else { autos.push({i, side, col:c}); } }
+    }
+  });
+  /* the line rule */
+  const onBall = side => out.filter(k => k && k[0] === side && /:[ITSNW]:0$/.test(k)).length;
+  let need = 7 - 5 - onBall('L') - onBall('R');
+  const perSide = {L:0, R:0};
+  autos.sort((a, b) => COL_RANK[b.col] - COL_RANK[a.col]);
+  autos.forEach(a => { a.n = perSide[a.side]++; a.has = onBall(a.side); });
+  autos.sort((a, b) => a.has - b.has || a.n - b.n || COL_RANK[b.col] - COL_RANK[a.col]);
+  autos.forEach(a => {
+    const on = need > 0; if (on) need--;
+    const k = `${a.side}:${a.col}:${on ? 0 : 1}`;
+    if (!used.has(k)) place(a.i, k); else { const k2 = `${a.side}:${a.col}:${on ? 1 : 0}`; if (!used.has(k2)) place(a.i, k2); }
+  });
+  return out;
+}
+function wizApply(stage){
+  wizRows();
+  const slots = wizBuild(W.wiz);
+  W.tokens.forEach((t, i) => { t.slot = slots[i] && slotOK(slots[i], t.type, W.qb) ? slots[i] : null; });
+  const i = W.tokens.findIndex(t => !t.slot); W.cur = i >= 0 ? i : 0;
+  W.wizFit = true;
+  diag('wiz', `${stage || 'apply'}: ${JSON.stringify(W.wiz)} → ${codeBody(W.tokens, strengthOf(W.tokens))}${i >= 0 ? ' · ' + W.tokens.filter(t => !t.slot).length + ' unplaced' : ''}`);
+}
+function wizInfer(){   // a set already on the field: the answers that redraw it, or come closest
+  const want = W.tokens.map(t => t.type + ':' + t.slot);
+  const score = slots => { const pool = want.slice(); let n = 0; slots.forEach((k, i) => { const j = pool.indexOf(W.tokens[i].type + ':' + k); if (j >= 0){ pool.splice(j, 1); n++; } }); return n; };
+  W.wiz = {};
+  for (let pass = 0; pass < 3; pass++){
+    for (const row of wizRows()){
+      let best = row.v, bs = -1;
+      for (const [v] of row.opts){ W.wiz[row.k] = v; const s = score(wizBuild(W.wiz)); if (s > bs){ bs = s; best = v; } }
+      W.wiz[row.k] = best;
+    }
+  }
+  const s = score(wizBuild(W.wiz));
+  W.wizFit = s === W.tokens.length;
+  diag('wiz', `inferred ${JSON.stringify(W.wiz)} · ${s} of ${W.tokens.length} men match`);
+}
+function wizEnter(){   // the off step opens: the wizard unless you turned it off; an empty field gets the defaults drawn
+  W.wizOn = wizPref();
+  if (!W.wizOn) return;
+  if (W.tokens.some(t => t.slot)) wizInfer(); else wizApply('defaults');
+}
+function wizHTML(){
+  return `<div class="wiz">${wizRows().map(r => `<div class="wrow"><span class="wlab">${esc(r.label)}</span><div class="wopts" data-k="${r.k}">${r.opts.map(([v, l]) =>
+    `<button class="wc ${v === r.v ? 'on' : ''}" data-act="wiz" data-k="${r.k}" data-v="${esc(v)}">${esc(l)}</button>`).join('')}</div></div>`).join('')}</div>`;
 }
 
 /* ================= defense logic ================= */
@@ -2139,14 +2290,14 @@ svg.addEventListener('pointercancel', endPointer);
 function offDown(p){
   const B = bx();
   const hit = nearest(W.tokens.filter(t => t.slot), t => { const q = dispXY(t); return [sx(B + q.x), sy(offY(q.r))]; }, p);
-  if (hit){ undoFirst = {kind:'off', id:hit.id, slot:hit.slot, cur:W.cur}; W.cur = W.tokens.indexOf(hit); drag = {kind:'off', id:hit.id}; return; }
+  if (hit){ undoFirst = {kind:'off', id:hit.id, slot:hit.slot, cur:W.cur}; W.cur = W.tokens.indexOf(hit); drag = {kind:'off', id:hit.id}; W.touched = true; return; }
   const cur = W.tokens[W.cur];
   if (!cur) return;
   if (wy(p.y) > 0.6){ toast('Tap below the line. The offense is at the bottom.'); return; }
   const k = nearestOffSlot(p, cur);
   if (!k){ toast('No free slot fits that man.'); return; }
   undoFirst = {kind:'off', id:cur.id, slot:cur.slot, cur:W.cur};
-  cur.slot = k;
+  cur.slot = k; W.touched = true;
   drag = {kind:'off', id:cur.id};
   diag('off.place', `${TYPE_LABEL[cur.type]} → ${k}`);
 }
@@ -2760,7 +2911,19 @@ function renderPanel(){
   const P = $('#panel');
   const keep = ['#manRow', '.rgrid'].map(q => { const el = P.querySelector(q); return el ? el.scrollLeft : 0; });
   const sameTab = W.step === 'routes' && P.dataset.tab === `${W.rsel}|${W.rmode}`;
-  if (W.step === 'off') P.innerHTML = panelOff();
+  const wk = {}; P.querySelectorAll('.wopts').forEach(w => { wk[w.dataset.k] = w.scrollLeft; });
+  const top = P.scrollTop;
+  P.classList.toggle('tall', W.step === 'off' && !!W.wizOn);
+  if (W.step === 'off'){
+    P.innerHTML = panelOff();
+    if (W.wizOn){
+      P.querySelectorAll('.wopts').forEach(w => {
+        if (wk[w.dataset.k] != null){ w.scrollLeft = wk[w.dataset.k]; return; }
+        const on = w.querySelector('.on'); if (on && on.offsetLeft + on.offsetWidth > w.clientWidth) w.scrollLeft = on.offsetLeft - 8;
+      });
+      P.scrollTop = top;
+    }
+  }
   else if (W.step === 'name') P.innerHTML = panelName();
   else if (W.step === 'box') P.innerHTML = panelBox();
   else if (W.step === 'rest') P.innerHTML = panelRest();
@@ -2793,25 +2956,35 @@ function panelOff(){
   let msg, cls = '';
   const issue = st.issues[0];
   if (!st.left && issue){ msg = issue.msg; cls = issue.lvl; }
-  else if (!st.left) msg = 'All 11 set. Drag anyone to another slot. Then name it.';
+  else if (!st.left) msg = W.wizOn ? (W.wizFit ? 'Drag anyone to fix a spot. Then name it.' : 'Placed by hand — a tap on a word redraws the set.') : 'All 11 set. Drag anyone to another slot. Then name it.';
+  else if (W.wizOn) msg = `${st.left} ${st.left === 1 ? 'man has' : 'men have'} no spot for those words. Tap the field to place ${st.left === 1 ? 'him' : 'them'}.`;
   else if (!cur.slot) msg = `Tap the field to place the ${TYPE_LABEL[cur.type]}. He snaps to the nearest slot.`;
   else msg = 'Drag him to another slot if needed. Then tap Next.';
   const nextLabel = st.left ? 'Next' : (W.mode === 'design' ? 'Draw routes' : 'Name it');
   const nextOff = st.left ? !cur.slot : !st.legal;
   const ballRow = (W.mode === 'template' || W.mode === 'design') ? '' : `<div class="row">${seg('hash', [['L','L hash'],['M','Middle'],['R','R hash']], W.hash)}${spotSelect()}</div>`;
   const xolOK = +W.pers[0] + +W.pers[1] <= 4;
-  return `
+  const head = `
     ${W.qdesc ? `<div class="status" style="color:var(--fg)">${esc(W.qdesc)}</div>` : ''}
     <div class="row">${seg('qb', [['under','Under C'],['pistol','Pistol'],['gun','Gun']], W.qb)}</div>
     ${ballRow}
     <div class="scrollx">${PERS.map(p => `<button class="chip ${p === W.pers ? 'on' : ''}" data-act="pers" data-v="${p}" aria-label="${p} personnel">${p}</button>`).join('')}
-      <button class="chip ${W.xol ? 'on' : ''}" data-act="xol" ${xolOK ? '' : 'disabled'} aria-label="Sixth offensive lineman">6 OL</button></div>
+      <button class="chip ${W.xol ? 'on' : ''}" data-act="xol" ${xolOK ? '' : 'disabled'} aria-label="Sixth offensive lineman">6 OL</button></div>`;
+  if (W.wizOn) return head + `
+    ${wizHTML()}
+    <div class="status ${cls}" role="status">${esc(msg)}</div>
+    <div class="row">
+      <button class="btn slim" data-act="saved">Sets</button>
+      <button class="btn slim" data-act="wizMode" aria-label="Place every man by hand instead">By hand</button>
+      <button class="btn pri" data-act="next" ${nextOff ? 'disabled' : ''}>${nextLabel}</button>
+    </div>`;
+  return head + `
     <div class="scrollx">${queue}</div>
     <div class="status ${cls}" role="status">${esc(msg)}</div>
     <div class="row">
       <button class="btn slim" data-act="saved">Sets</button>
       <button class="btn slim" data-act="flip" aria-label="Flip the set left to right">Flip</button>
-      <button class="btn" data-act="back" ${W.cur === 0 ? 'disabled' : ''}>Back</button>
+      <button class="btn slim" data-act="wizMode" aria-label="Say where everyone is instead">Wizard</button>
       <button class="btn pri" data-act="next" ${nextOff ? 'disabled' : ''}>${nextLabel}</button>
     </div>`;
 }
@@ -3032,6 +3205,7 @@ function startQueued(q){
   const qb = {U:'under', S:'gun', P:'pistol', under:'under', gun:'gun', pistol:'pistol'}[q.qb];
   if (qb) W.qb = qb;
   if (q.sit && q.sit.yard != null) W.spot = yardToSpot(q.sit.yard);
+  wizEnter();
   setStep('off'); setView('editor'); refresh();
   setHold(q.key, 'snap');
   diag('flow', `queue: logging ${q.key} (${sitWord(q.sit)})`);
@@ -3040,12 +3214,14 @@ function goHome(){ if (SYNC.hold) setHold(null); W = null; drag = null; bubble =
 function startLog(f){
   W = newWork('log');
   if (f) loadOffInto(W, f, false);
+  wizEnter();
   setStep('off'); setView('editor'); refresh();
   diag('flow', f ? `log from formation "${f.name}" ${f.code}` : 'log formations');
 }
 function startTemplate(f){
   W = newWork('template');
   if (f){ loadOffInto(W, f, false); W.editId = f.id; W.name = f.name; }
+  wizEnter();
   setStep('off'); setView('editor'); refresh();
   diag('flow', f ? `edit formation "${f.name}"` : 'new formation');
 }
@@ -3229,7 +3405,7 @@ function startDesign(f){
   W = newWork('design');
   setView('editor');
   if (f){ loadOffInto(W, f, false); goRoutes(); }
-  else { setStep('off'); refresh(); }
+  else { wizEnter(); setStep('off'); refresh(); }
   diag('flow', f ? `draw a play from "${f.name}"` : 'draw a play from a new set');
 }
 function openDesign(dz){
@@ -5157,11 +5333,93 @@ function framesBlock(key, cur){
   const F = framesNow(key);
   if (!F) return '';
   const pick = F.img[cur] ? cur : (F.img.snap ? 'snap' : Object.keys(F.img)[0]);
-  return `<div class="shot"><img src="${F.img[pick]}" alt="${pick} frame"></div>
+  return `<button class="shot" data-act="zoom" data-key="${esc(key)}" data-v="${pick}" aria-label="See the ${pick} frame up close"><img src="${F.img[pick]}" alt="${pick} frame"></button>
     <div class="shots">${FRAME_NAMES.map(([n,l]) => `<button class="${n === pick ? 'on' : ''}" data-act="shot" data-v="${n}" ${F.img[n] ? '' : 'disabled'}>${l}</button>`).join('')}</div>`;
 }
 const FILMV = {open:false, shot:'snap'};
 function filmBtnSync(){ const b = $('#filmBtn'); if (b) b.hidden = !(VIEW === 'editor' && W && W.qkey && framesNow(W.qkey)); }
+
+/* ---- 0.11.0 the frame up close: pinch to zoom, one finger pans, double-tap in and out, the other frames along the foot ---- */
+const ZM = {key:null, shot:'snap', s:1, fit:1, tx:0, ty:0, w:0, h:0, ptrs:new Map(), pinch:null, pan:null, lastTap:0, lastXY:null};
+function zoomOpen(key, shot){
+  const F = framesNow(key); if (!F){ toast('That frame has not come down from the iPad yet.'); return; }
+  ZM.key = key; ZM.shot = F.img[shot] ? shot : (F.img.snap ? 'snap' : Object.keys(F.img)[0]);
+  $('#zoomer').hidden = false; zoomShow();
+  diag('zoom', `${key} · ${ZM.shot}`);
+}
+function zoomShow(){
+  const F = framesNow(ZM.key); if (!F){ zoomClose(); return; }
+  if (!F.img[ZM.shot]) ZM.shot = F.img.snap ? 'snap' : Object.keys(F.img)[0];
+  const img = $('#zoomImg'), lab = (FRAME_NAMES.find(([n]) => n === ZM.shot) || [ZM.shot, ZM.shot])[1];
+  const q = SYNC.ipad.queue.find(o => o && o.key === ZM.key) || tagOf(ZM.key) || null;
+  $('#zoomTitle').textContent = lab; $('#zoomSub').textContent = q && q.sit ? '· ' + sitWord(q.sit) : '';
+  $('#zoomShots').innerHTML = FRAME_NAMES.map(([n, l]) => `<button class="${n === ZM.shot ? 'on' : ''}" data-act="zoomShot" data-v="${n}" ${F.img[n] ? '' : 'disabled'}>${l}</button>`).join('');
+  const ready = () => { ZM.w = img.naturalWidth; ZM.h = img.naturalHeight; zoomFit(); };
+  img.onload = ready;
+  img.src = F.img[ZM.shot];
+  if (img.complete && img.naturalWidth) ready();
+}
+function zoomFit(){
+  const st = $('#zoomStage'), sw = st.clientWidth, sh = st.clientHeight;
+  if (!ZM.w || !sw || !sh) return;
+  ZM.fit = Math.min(sw / ZM.w, sh / ZM.h); ZM.s = ZM.fit;
+  ZM.tx = (sw - ZM.w * ZM.s) / 2; ZM.ty = (sh - ZM.h * ZM.s) / 2; zoomDraw();
+}
+function zoomDraw(){ $('#zoomImg').style.transform = `translate(${ZM.tx.toFixed(1)}px,${ZM.ty.toFixed(1)}px) scale(${ZM.s.toFixed(4)})`; }
+function zoomClampDraw(){
+  const st = $('#zoomStage'), sw = st.clientWidth, sh = st.clientHeight, w = ZM.w * ZM.s, h = ZM.h * ZM.s;
+  ZM.tx = w <= sw ? (sw - w) / 2 : clamp(ZM.tx, sw - w, 0);
+  ZM.ty = h <= sh ? (sh - h) / 2 : clamp(ZM.ty, sh - h, 0);
+  zoomDraw();
+}
+function zoomTo(s, px, py){   // the point under (px, py) stays put
+  s = clamp(s, ZM.fit, ZM.fit * 8);
+  const wx = (px - ZM.tx) / ZM.s, wy = (py - ZM.ty) / ZM.s;
+  ZM.s = s; ZM.tx = px - wx * s; ZM.ty = py - wy * s; zoomClampDraw();
+}
+function zoomWire(){
+  const st = $('#zoomStage');
+  const pt = e => { const r = st.getBoundingClientRect(); return {x:e.clientX - r.left, y:e.clientY - r.top}; };
+  const two = () => { const [a, b] = [...ZM.ptrs.values()]; return {d:Math.hypot(a.x - b.x, a.y - b.y) || 1, x:(a.x + b.x) / 2, y:(a.y + b.y) / 2}; };
+  st.addEventListener('pointerdown', e => {
+    try { st.setPointerCapture(e.pointerId); } catch(err){}
+    const p = pt(e); ZM.ptrs.set(e.pointerId, p);
+    if (ZM.ptrs.size === 2){ ZM.pinch = two(); ZM.pan = null; }
+    else if (ZM.ptrs.size === 1) ZM.pan = {x:p.x, y:p.y, tx:ZM.tx, ty:ZM.ty, moved:false};
+  });
+  st.addEventListener('pointermove', e => {
+    if (!ZM.ptrs.has(e.pointerId)) return;
+    const p = pt(e); ZM.ptrs.set(e.pointerId, p);
+    if (ZM.ptrs.size >= 2 && ZM.pinch){
+      const t = two();
+      ZM.tx += t.x - ZM.pinch.x; ZM.ty += t.y - ZM.pinch.y;
+      zoomTo(ZM.s * t.d / ZM.pinch.d, t.x, t.y);
+      ZM.pinch = t; return;
+    }
+    if (ZM.ptrs.size === 1 && ZM.pan){
+      const dx = p.x - ZM.pan.x, dy = p.y - ZM.pan.y;
+      if (!ZM.pan.moved && Math.hypot(dx, dy) > 6) ZM.pan.moved = true;
+      if (ZM.pan.moved){ ZM.tx = ZM.pan.tx + dx; ZM.ty = ZM.pan.ty + dy; zoomClampDraw(); }
+    }
+  });
+  const up = e => {
+    if (!ZM.ptrs.has(e.pointerId)) return;
+    const p = pt(e); ZM.ptrs.delete(e.pointerId);
+    if (ZM.ptrs.size < 2) ZM.pinch = null;
+    if (ZM.ptrs.size === 1){ const q = [...ZM.ptrs.values()][0]; ZM.pan = {x:q.x, y:q.y, tx:ZM.tx, ty:ZM.ty, moved:true}; return; }
+    if (ZM.ptrs.size === 0){
+      const tap = ZM.pan && !ZM.pan.moved && e.type === 'pointerup';
+      ZM.pan = null;
+      if (!tap) return;
+      const now = performance.now();
+      if (now - ZM.lastTap < 320 && ZM.lastXY && Math.hypot(p.x - ZM.lastXY.x, p.y - ZM.lastXY.y) < 30){ zoomTo(ZM.s > ZM.fit * 1.05 ? ZM.fit : ZM.fit * 2.6, p.x, p.y); ZM.lastTap = 0; }
+      else { ZM.lastTap = now; ZM.lastXY = p; }
+    }
+  };
+  st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
+  window.addEventListener('resize', () => { if (!$('#zoomer').hidden && ZM.w) zoomFit(); });
+}
+function zoomClose(){ $('#zoomer').hidden = true; ZM.key = null; ZM.ptrs.clear(); ZM.pinch = null; ZM.pan = null; }
 
 /* ---- the inbox: the iPad's queue as a stack of cards ---- */
 const PARK = new Set();
@@ -5517,7 +5775,7 @@ function cardHTML(q){
     <div class="row"><span class="lbl cl">Hash</span>${seg('cardHash', [['L','Left'],['M','Middle'],['R','Right']], v.c.hash)}</div>
     <div class="row">
       <button class="btn slim" data-act="cardPark">Park</button>
-      <button class="btn slim" data-act="cardEdit">Editor</button>
+      <button class="btn slim" data-act="cardEdit">Wizard</button>
       <button class="btn pri" data-act="cardOk" ${v.set ? '' : 'disabled'}>Confirm</button>
     </div>
     <div class="card-hint">Swipe right to confirm · left to park · tap a line to fix it</div>
@@ -5584,12 +5842,13 @@ const ACT = {
     if (VIEW === 'diag'){ setView(PREV_VIEW === 'diag' ? 'home' : PREV_VIEW); refresh(); return; }
     if (EMBED && VIEW === 'home'){ try { parent.postMessage({type:'pb-close'}, '*'); } catch(e){ diag('embed', 'pb-close not sent'); } return; }
     if (VIEW !== 'editor' || !W) return goHome();
-    if (W.mode === 'design' && (W.dirty || (W.step === 'off' && W.tokens.some(t => t.slot)))){
+    const placed = W.tokens.some(t => t.slot) && (W.touched || !W.wizOn);   // 0.11.0: the wizard's defaults alone are nothing to lose
+    if (W.mode === 'design' && (W.dirty || (W.step === 'off' && placed))){
       showSheet(`<h3>Leave without saving?</h3><p>${W.step === 'routes' ? 'The routes on this play are not saved.' : 'The placements on this set will be lost.'}</p>
         <div class="row"><button class="btn" data-act="closeSheet">Stay</button><button class="btn danger" data-act="leaveYes">Leave</button></div>`);
       return;
     }
-    if ((W.step === 'off' || W.step === 'name') && W.tokens.some(t => t.slot)){
+    if ((W.step === 'off' || W.step === 'name') && placed){
       showSheet(`<h3>Leave without saving?</h3><p>The placements on this set will be lost.</p>
         <div class="row"><button class="btn" data-act="closeSheet">Stay</button><button class="btn danger" data-act="leaveYes">Leave</button></div>`);
       return;
@@ -5664,6 +5923,7 @@ const ACT = {
     W.qb = d.v;
     W.tokens.forEach(t => { if (t.slot && !slotOK(t.slot, t.type, W.qb)){ diag('off.qb', `${TYPE_LABEL[t.type]} at ${t.slot} does not fit with ${W.qb}, unplaced`); t.slot = null; } });
     diag('off.qb', `QB → ${W.qb}`);
+    if (W.wizOn && W.step === 'off') wizApply('qb');
     refresh();
   },
   hash(d){ W.hash = d.v; diag('off.hash', `ball on ${W.hash} hash`); refresh(); },
@@ -5674,6 +5934,7 @@ const ACT = {
     W.tokens = buildTokens(W.pers, W.xol, W.tokens);
     const i = W.tokens.findIndex(t => !t.slot); W.cur = i >= 0 ? i : 0;
     diag('off.pers', `${persStr(W.pers, W.xol)}: queue ${before} → ${W.tokens.map(t => t.type).join('')}`);
+    if (W.wizOn && W.step === 'off') wizApply('pers');
     refresh();
   },
   xol(){
@@ -5682,9 +5943,20 @@ const ACT = {
     W.tokens = buildTokens(W.pers, W.xol, W.tokens);
     const i = W.tokens.findIndex(t => !t.slot); W.cur = i >= 0 ? i : 0;
     diag('off.xol', `sixth lineman ${W.xol ? 'on' : 'off'}`);
+    if (W.wizOn && W.step === 'off') wizApply('xol');
     refresh();
   },
-  flip(){ W.tokens.forEach(t => { if (t.slot) t.slot = mirrorKey(t.slot); }); diag('off.flip', 'set mirrored'); refresh(); },
+  flip(){ W.tokens.forEach(t => { if (t.slot) t.slot = mirrorKey(t.slot); }); if (W.wiz) W.wiz.str = W.wiz.str === 'L' ? 'R' : 'L'; diag('off.flip', 'set mirrored'); refresh(); },
+  wiz(d){ W.wiz[d.k] = d.v; W.touched = true; wizApply('tap ' + d.k); refresh(); },
+  wizMode(){
+    W.wizOn = !W.wizOn; lsSetRaw(WIZ_LS, W.wizOn ? '1' : '0');
+    if (W.wizOn){ if (W.tokens.some(t => t.slot)) wizInfer(); else wizApply('defaults'); }
+    diag('wiz', W.wizOn ? 'on' : 'by hand');
+    refresh();
+  },
+  zoom(d){ zoomOpen(d.key, d.v); },
+  zoomShot(d){ ZM.shot = d.v; zoomShow(); },
+  zoomClose(){ zoomClose(); },
   pick(d){ W.cur = +d.i; refresh(); },
   next(){
     const st = offStatus();
@@ -5707,13 +5979,13 @@ const ACT = {
   loadCode(){
     const inp = $('#pasteCode');
     if (!inp || !inp.value.trim()){ toast('Paste a code first.'); return; }
-    if (loadFromCode(inp.value)){ hideSheet(); refresh(); toast('Code loaded with the strength to the right. Tap Flip for left.'); }
+    if (loadFromCode(inp.value)){ W.touched = true; if (W.wizOn) wizInfer(); hideSheet(); refresh(); toast(W.wizOn ? 'Code loaded, strength right. Strong · Left mirrors it.' : 'Code loaded with the strength to the right. Tap Flip for left.'); }
   },
   loadFm(d){
     const f = fmGet(d.id); if (!f) return;
     const errs = validateOffense(f);
     if (errs.length){ fail('load.formation', 'valid formation', errs[0], f); return; }
-    loadOffInto(W, f.base && W.qpers ? offFromSet(f, W.qpers) : f, false); hideSheet(); diag('off.load', `loaded "${f.name}" ${f.code}`); refresh();
+    loadOffInto(W, f.base && W.qpers ? offFromSet(f, W.qpers) : f, false); W.touched = true; if (W.wizOn) wizInfer(); hideSheet(); diag('off.load', `loaded "${f.name}" ${f.code}`); refresh();
   },
   /* name */
   sug(d){ W.name = d.v; const inp = $('#fname'); if (inp) inp.value = d.v; $('#panel').querySelectorAll('.sug').forEach(b => b.classList.toggle('on', b.dataset.v === d.v)); },
@@ -6091,7 +6363,8 @@ Object.assign(ACT, {
     hideSheet();
     const v = cardView(q);
     startQueued(q); W.fromCard = true;
-    if (v.set && !(d && d.v === 'blank')){ const off = offFromSet(v.set.f, persOf(q.pers)); loadOffInto(W, v.c.strength === 'L' ? mirrorOff(off) : off, false); W.hash = v.c.hash; refresh(); }
+    if (v.set && !(d && d.v === 'blank')){ const off = offFromSet(v.set.f, persOf(q.pers)); loadOffInto(W, v.c.strength === 'L' ? mirrorOff(off) : off, false); W.hash = v.c.hash; if (W.wizOn) wizInfer(); refresh(); }
+    else if (W.wizOn && v.c.strength === 'L' && W.wiz.str !== 'L'){ W.wiz.str = 'L'; wizApply('card strength'); refresh(); }
   },
   cardOk(){
     const q = topCard(); if (!q){ renderHome(); return; }
@@ -6400,7 +6673,7 @@ if (!Array.isArray(DIAG)) DIAG = [];
 diag('boot', `v${VERSION} start, ${navigator.userAgent}`);
 if ('ResizeObserver' in window) new ResizeObserver(() => { if (VIEW === 'editor' && measure()){ clampCam(); render(); } }).observe($('#fieldWrap'));
 window.addEventListener('resize', () => { if (VIEW === 'editor' && measure()){ clampCam(); render(); } });
-namesLoad(); nameActs();
+namesLoad(); nameActs(); zoomWire();
 if (EMBED) embedBoot();
 else {
   loadStore();
