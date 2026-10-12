@@ -33,6 +33,7 @@
   --bg:#0E1114; --panel:#151A1F; --raise:#1F262D; --raise2:#323B44; --line:rgba(255,255,255,.09);
   --fg:#EEF1F3; --fg2:#98A3AC; --accent:#4DA3FF; --on-accent:#06121F;
   --danger:#FF6B5E; --warn:#FFB340; --ok:#3DDC84; --toast:#2A323A; color-scheme:dark;}
+[hidden]{display:none!important}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;overflow:hidden;
   -webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-text-size-adjust:100%}
@@ -218,7 +219,7 @@ summary{font-weight:600;font-size:14px}
 <script>
 (() => {
 'use strict';
-const VERSION = '0.8.0';
+const VERSION = '0.8.1';
 const KEYS = {store:'pb.store', diag:'pb.diag', dumps:'pb.dumps', base:'pb.baseline', bad:'pb.store.bad'};
 const LETTER_COLOR = {X:'#FF5A4E', Y:'#FFD23F', Z:'#B78CFF', H:'#4DA3FF', F:'#3DDC84'};
 const PERS = ['11','12','10','13','21','22','20','23','01','02','00','31','30'];
