@@ -190,6 +190,38 @@ summary{font-weight:600;font-size:14px}
 #copyBox{width:100%;height:160px;font-family:var(--mono);font-size:11px;background:var(--raise);color:var(--fg);border:1px solid var(--line);border-radius:10px;
   -webkit-user-select:text;user-select:text;margin-top:10px;box-sizing:border-box}
 @media (prefers-reduced-motion:no-preference){.toast{animation:tin .18s ease-out}@keyframes tin{from{transform:translateY(-6px);opacity:0}}}
+/* 0.9.0: inbox + cards, frames, base book */
+.ibx{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.ibx h1{font-size:34px;line-height:40px;margin:6px 0 14px;letter-spacing:-.4px}
+.ibx-s{font-size:12px;color:var(--fg2);font-weight:600}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:10px;touch-action:pan-y;margin-bottom:12px;box-sizing:border-box}
+.card[data-lean="ok"]{box-shadow:inset 0 0 0 2px var(--ok)}
+.card[data-lean="park"]{box-shadow:inset 0 0 0 2px var(--warn)}
+.card-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.card-h b{font-size:20px;line-height:24px}
+.card-h span{color:var(--fg2);font-size:13px;font-variant-numeric:tabular-nums;flex:none}
+.card-d{color:var(--fg2);font-size:13px;line-height:18px;max-height:36px;overflow:hidden}
+.card-f{font-size:13px;color:var(--fg);font-weight:600}
+.card-hint{font-size:12px;color:var(--fg2);text-align:center}
+.shot{border-radius:14px;overflow:hidden;background:#000;aspect-ratio:16/9}
+.shot img{width:100%;height:100%;object-fit:cover;display:block}
+.shots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.shots button{height:30px;border:0;border-radius:8px;background:var(--raise);color:var(--fg2);font-size:11px;font-weight:800;letter-spacing:.05em;padding:0}
+.shots button.on{background:var(--fg);color:var(--bg)}
+.shots button:disabled{opacity:.3}
+.cline{display:grid;grid-template-columns:58px minmax(0,1fr) auto;align-items:center;gap:8px;min-height:52px;border:0;border-radius:14px;background:var(--raise);color:var(--fg);text-align:left;padding:6px 12px;width:100%;box-sizing:border-box;font-family:var(--font)}
+.cline b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cline small{font-size:12px;color:var(--fg2);white-space:nowrap}
+.cline.none b{color:var(--fg2);font-weight:600}
+.lbl.cl{width:58px;flex:none}
+.zero{display:flex;flex-direction:column;gap:4px;padding:18px 16px;border-radius:18px;border:1px dashed var(--raise2);margin-bottom:12px}
+.zero b{font-size:18px}
+.zero small{color:var(--fg2);font-size:13px;line-height:18px}
+.btn.wide{width:100%;flex:none;margin-bottom:6px}
+details.base{background:transparent;border:0;padding:0;margin:0}
+details.base > summary{padding:10px 2px;color:var(--fg2);font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+#filmBtn{position:absolute;left:10px;top:10px;height:34px;padding:0 14px;border-radius:17px;border:1px solid rgba(255,255,255,.25);
+  background:rgba(20,26,30,.75);color:#F2F4F3;font-size:13px;font-weight:700}
 </style>
 <style>#app{padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}</style>
 </head>
@@ -208,7 +240,7 @@ summary{font-weight:600;font-size:14px}
   </header>
   <main id="home" class="view scroll home"></main>
   <section id="editor" class="view editor" hidden>
-    <div id="fieldWrap"><svg id="field" role="img" aria-label="Football field"></svg><button id="fitBtn" data-act="fit" hidden>Fit field</button></div>
+    <div id="fieldWrap"><svg id="field" role="img" aria-label="Football field"></svg><button id="fitBtn" data-act="fit" hidden>Fit field</button><button id="filmBtn" data-act="film" hidden>Film</button></div>
     <div id="panel" class="panel"></div>
   </section>
   <section id="diag" class="view scroll diag" hidden></section>
@@ -219,7 +251,7 @@ summary{font-weight:600;font-size:14px}
 <script>
 (() => {
 'use strict';
-const VERSION = '0.8.1';
+const VERSION = '0.9.0';
 const KEYS = {store:'pb.store', diag:'pb.diag', dumps:'pb.dumps', base:'pb.baseline', bad:'pb.store.bad'};
 const LETTER_COLOR = {X:'#FF5A4E', Y:'#FFD23F', Z:'#B78CFF', H:'#4DA3FF', F:'#3DDC84'};
 const PERS = ['11','12','10','13','21','22','20','23','01','02','00','31','30'];
@@ -257,13 +289,16 @@ const DEF_ORANGE = '#FF8A3D';
 const $ = s => document.querySelector(s);
 const svg = $('#field');
 const mirrorKey = k => { const p = k.split(':'); p[0] = p[0] === 'L' ? 'R' : p[0] === 'R' ? 'L' : p[0]; return p.join(':'); };
+/* inside chalk on the iPad (window.PB_EMBED set by chalk): no sync, nothing written to that page's storage */
+const EMBED = window.PB_EMBED && typeof window.PB_EMBED === 'object' ? window.PB_EMBED : null;
+const MEM = new Map();
 
 /* ================= diagnostics: always on ================= */
 let DIAG = [];
 let diagTimer = null;
 let failing = false;
-function lsGetRaw(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
-function lsSetRaw(k,v){ try { localStorage.setItem(k,v); return true; } catch(e){ return e; } }
+function lsGetRaw(k){ if (EMBED) return MEM.has(k) ? MEM.get(k) : null; try { return localStorage.getItem(k); } catch(e){ return null; } }
+function lsSetRaw(k,v){ if (EMBED){ MEM.set(k, String(v)); return true; } try { localStorage.setItem(k,v); return true; } catch(e){ return e; } }
 function lsGetJSON(k, fb){ const raw = lsGetRaw(k); if (raw == null) return fb; try { return JSON.parse(raw); } catch(e){ return fb; } }
 function diag(stage, msg, data){
   const e = {t:Date.now(), s:stage, m:msg};
@@ -648,13 +683,13 @@ function pushBaseline(kind, obj){
    Neither side ever writes the other's file, so nothing gets overwritten. Pull every 4 s while the app
    is open (an unchanged gist answers 304 and costs nothing); writes wait 1.5 s so a burst becomes one save. */
 const GIST_DESC = 'chalk-playbook sync v1';
-const SYNC = {token:null, id:null, etag:null, state:'off', err:null, lastPull:0, lastPush:0, ipad:{queue:[], tags:[], at:null},
+const SYNC = {token:null, id:null, etag:null, state:'off', err:null, lastPull:0, lastPush:0, ipad:{queue:[], tags:[], adds:[], at:null},
   hold:null, timer:null, wtimer:null, writing:false, dirty:false, deleted:[], merged:false, failed:false};
 function syncLoadCfg(){
   SYNC.token = lsGetRaw('pb.gh.token') || null;
   SYNC.id = lsGetRaw('pb.gh.gist') || null;
   const d = lsGetJSON('pb.deleted', []); SYNC.deleted = Array.isArray(d) ? d : [];
-  const ip = lsGetJSON('pb.ipad', null); if (ip && Array.isArray(ip.queue)) SYNC.ipad = ip;
+  const ip = lsGetJSON('pb.ipad', null); if (ip && Array.isArray(ip.queue)) SYNC.ipad = Object.assign({tags:[], adds:[]}, ip);
 }
 async function gh(method, path, body, etag){
   const t0 = performance.now();
@@ -728,18 +763,20 @@ async function syncPull(){
   if (r.status === 304) return false;
   SYNC.etag = r.etag;
   const files = (r.json && r.json.files) || {};
+  FRM.files = new Map(Object.entries(files).filter(([n]) => /^frames-/.test(n)));
   const ip = await readFile(files['ipad.json']);
   if (ip){
     const bad = [];
     if (!Array.isArray(ip.queue)) bad.push(`queue: expected array, got ${typeof ip.queue}`);
     if (ip.tags != null && !Array.isArray(ip.tags)) bad.push(`tags: expected array, got ${typeof ip.tags}`);
+    if (ip.adds != null && !Array.isArray(ip.adds)) bad.push(`adds: expected array, got ${typeof ip.adds}`);
     if (bad.length) fail('sync.ipad', 'ipad.json with queue[] and tags[]', bad.join('; '), JSON.stringify(ip).slice(0, 400));
     else {
       const before = SYNC.ipad.queue.length;
-      SYNC.ipad = {queue:ip.queue, tags:ip.tags || [], at:ip.at || null};
+      SYNC.ipad = {queue:ip.queue, tags:ip.tags || [], adds:ip.adds || [], at:ip.at || null};
       lsSetRaw('pb.ipad', JSON.stringify(SYNC.ipad));
       pushBaseline('ipad', SYNC.ipad);
-      diag('sync.pull', `iPad: ${ip.queue.length} queued (was ${before}), ${(ip.tags || []).length} tags, written ${ip.at}`);
+      diag('sync.pull', `iPad: ${ip.queue.length} queued (was ${before}), ${(ip.tags || []).length} tags, ${(ip.adds || []).length} adds, ${FRM.files.size} frame files, written ${ip.at}`);
     }
   }
   if (!SYNC.merged){
@@ -748,6 +785,7 @@ async function syncPull(){
     SYNC.merged = true;
     syncMark();
   }
+  adoptIpad();
   return true;
 }
 function syncMark(ms){
@@ -1024,6 +1062,7 @@ function suggestNames(){
   const out = [];
   const code = formationCodeOf(off);
   S.formations.filter(f => f.code === code).forEach(f => out.push({name:f.name, note:'saved'}));
+  BASE.formations.filter(f => codeBodyOf(f.code) === codeBodyOf(code)).forEach(f => out.push({name:fmFiled(f, off.pers), note:'NFL base'}));
   if (W.editId){ const f = S.formations.find(o => o.id === W.editId); if (f) out.unshift({name:f.name, note:'current'}); }
   const st = strengthOf(off.tokens);
   const men = W.tokens.filter(t => t.slot && t.type !== 'L').map(t => { const [side, col, row] = t.slot.split(':'); const d = dispXY(t); return {side, col, row, type:t.type, x:d.x, r:d.r}; });
@@ -1410,9 +1449,9 @@ function applyDefSrc(){
     if (res.errors.length){ fail('design.def', `${pre.name} reads back`, res.errors[0], pre.code); return; }
     defFromParsed(res); W.defName = pre.name;
   } else if (src.kind === 'front'){
-    const f = S.fronts.find(o => o.id === src.id);
+    const f = frGet(src.id);
     if (!f){ diag('design.def', `front ${src.id} is gone: base 4-3 instead`); W.defSrc = {kind:'preset', id:'43o'}; applyDefSrc(); return; }
-    loadFrontInto(f); W.defName = f.name;
+    loadFrontInto(f); W.defName = frName(f);
   } else { W.defName = 'No defense'; diag('design.def', 'no defense'); return; }
   const e = validateDefense(defObject());
   if (e.length) fail('design.def', `${W.defName}: 11 legal defenders`, e[0], defObject());
@@ -2636,12 +2675,12 @@ function refresh(){
   renderTop();
   if (VIEW === 'home') renderHome();
   else if (VIEW === 'diag') renderDiag();
-  else { renderPanel(); if (measure()){ clampCam(); render(); } }
+  else { renderPanel(); if (measure()){ clampCam(); render(); } filmBtnSync(); }
 }
 function renderTop(){
   const L = $('#topL'), icon = $('#topLIcon');
   let title = 'Playbook', sub = '';
-  if (VIEW === 'home'){ L.hidden = true; }
+  if (VIEW === 'home'){ L.hidden = !EMBED; if (EMBED){ icon.setAttribute('d', 'M6 6l12 12M18 6L6 18'); L.setAttribute('aria-label','Close'); } }
   else if (VIEW === 'diag'){ L.hidden = false; icon.setAttribute('d', 'M15 5l-7 7 7 7'); L.setAttribute('aria-label','Back'); title = 'Diagnostics'; sub = `v${VERSION}`; }
   else {
     L.hidden = false; icon.setAttribute('d', 'M6 6l12 12M18 6L6 18'); L.setAttribute('aria-label','Close');
@@ -2900,69 +2939,6 @@ function panelView(){
       <button class="btn pri" data-act="redoDef" data-id="${play.id}">${play.def ? 'Redo defense' : 'Log defense'}</button>
     </div>`;
 }
-function renderHome(){
-  const plays = S.plays.slice().sort((a,b) => b.n - a.n);
-  const fms = S.formations.slice().sort((a,b) => String(a.name || '').localeCompare(String(b.name || '')));
-  const dzs = S.designs.slice().sort((a,b) => String(b.updated || b.created || '').localeCompare(String(a.updated || a.created || '')));
-  const open = S.plays.filter(p => !p.def && !p._bad).length;
-  const queue = queueOpen(), qn = queue.length;
-  const tile = (act, color, t, sub) => `<button class="tile" data-act="${act}"><i style="background:${color}"></i><b>${t}</b><small>${sub}</small></button>`;
-  $('#home').innerHTML = `
-    <h1>Playbook</h1>
-    <p class="sub">${plays.length} plays logged · ${dzs.length} drawn · ${fms.length} sets · ${S.fronts.length} fronts</p>
-    <button class="hero" data-act="${qn ? 'qStart' : 'logNew'}">
-      <span class="hero-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg></span>
-      <span style="flex:1;min-width:0">${qn ? `<b>Log the queue · ${qn} waiting</b><small>The iPad holds each play on the snap while you log it. The next one opens on its own.</small>` : '<b>Log plays</b><small>Place the offense and name it. Chart the defense on the same play, or skip it. The next play starts on its own.</small>'}</span>
-      <span class="chev" style="color:inherit;opacity:.7">›</span>
-    </button>
-    <div class="tiles">
-      ${tile('logDef', '#FF8A3D', 'Log defense', open ? `${open} play${open === 1 ? '' : 's'} with no defense yet, or a front on its own.` : 'A front on its own, or on a logged play.')}
-      ${tile('designNew', '#3DDC84', 'Draw a play', 'Routes, blocks, motion and run concepts against a base 4-3.')}
-      ${tile('tplNew', '#4DA3FF', 'New offense set', 'Place and name a formation.')}
-      ${tile('frontNew', '#FFE27A', 'New defense front', 'Key the box, set the shell.')}
-    </div>
-    <section class="sec"><h2><span>Log</span><span>${plays.length}</span></h2>
-      <div class="list">${plays.length ? plays.map(p => `
-        <button class="li" data-act="openPlay" data-id="${p.id}">
-          <span class="li-n">${p.n}</span>
-          <span class="li-main"><span class="li-t">${esc(p.name)}</span>
-          <span class="li-s ${p._bad ? 'bad' : ''}">${p._bad ? esc(p._bad) : `${esc(persStr(p.off && p.off.pers, p.off && p.off.xol))} · strong ${p.strength === 'R' ? 'R' : 'L'} · ${esc(p.hash)} hash · ${spotLabel(p.spot)} · ${p.def ? esc(p.def.summary) : 'no defense yet'}`}</span></span>
-        </button>`).join('') : '<div class="empty">No plays logged yet. Tap Log formations, place the five skill players, name the set, and the next play starts. Open any play later to add its defense.</div>'}</div>
-    </section>
-    ${qn || SYNC.token ? `<section class="sec"><h2><span>Queue from the iPad</span><span>${qn}</span></h2>
-      <div class="list">${qn ? queue.slice(0, 30).map(q => `
-        <button class="li" data-act="qOpen" data-key="${esc(q.key)}">
-          <span class="li-n" style="width:auto;min-width:64px;font-size:15px">${esc(sitWord(q.sit))}</span>
-          <span class="li-main"><span class="li-t">${esc(q.desc || q.key)}</span>
-          <span class="li-s">${esc([q.pers ? q.pers + ' personnel' : '', q.sit && q.sit.yard != null ? spotLabel(yardToSpot(q.sit.yard)) : '', q.shift ? 'shift marked' : '', q.snap != null ? 'snap marked' : ''].filter(Boolean).join(' · '))}</span></span>
-        </button>`).join('') : '<div class="empty">Nothing waiting. Tap Later on the iPad and the play shows up here.</div>'}</div>
-    </section>` : ''}
-    <section class="sec"><h2><span>Drawn plays</span><span>${dzs.length}</span></h2>
-      <div class="list">${dzs.length ? dzs.map(d => `
-        <div class="li">
-          <button class="li-main" data-act="openDesign" data-id="${d.id}" style="border:0;background:transparent;color:inherit;text-align:left;padding:0;min-height:44px;justify-content:center">
-            <span class="li-t">${esc(d.name)}</span><span class="li-s ${d._bad ? 'bad' : ''}">${d._bad ? esc(d._bad) : esc(`${d.concept ? d.concept.name + ' · ' : ''}${d.setName || ''} vs ${d.defName || ''} · ${(d.arts || d.routes || []).filter(r => r.name && (r.kind === 'route' || r.kind === 'carry' || !r.kind)).map(r => `${r.tag || r.letter} ${r.name}`).join(', ') || 'no art'}`)}</span></button>
-          <button class="li-b" data-act="dzMenu" data-id="${d.id}" aria-label="More for ${esc(d.name)}">•••</button>
-        </div>`).join('') : '<div class="empty">No drawn plays yet. Tap Draw a play, pick a set, and drag routes onto it.</div>'}</div>
-    </section>
-    <section class="sec"><h2><span>Defense fronts</span><span>${S.fronts.length}</span></h2>
-      <div class="list">${S.fronts.length ? S.fronts.slice().sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''))).map(f => `
-        <div class="li">
-          <span class="li-main"><span class="li-t">${esc(f.name)}</span><span class="li-s mono ${f._bad ? 'bad' : ''}">${f._bad ? esc(f._bad) : esc(f.code)}</span></span>
-          <button class="li-b" data-act="frMenu" data-id="${f.id}" aria-label="More for ${esc(f.name)}">•••</button>
-        </div>`).join('') : '<div class="empty">No fronts yet. Tap New defense front to build one. Load it on any play with Saved fronts.</div>'}</div>
-    </section>
-    <section class="sec"><h2><span>Offense sets</span><span>${fms.length}</span></h2>
-      <div class="list">${fms.length ? fms.map(f => `
-        <div class="li">
-          <span class="li-main"><span class="li-t">${esc(f.name)}</span><span class="li-s mono ${f._bad ? 'bad' : ''}">${f._bad ? esc(f._bad) : esc(f.code)}</span></span>
-          <button class="li-b" data-act="logFrom" data-id="${f.id}">Log</button>
-          <button class="li-b" data-act="fmMenu" data-id="${f.id}" aria-label="More for ${esc(f.name)}">•••</button>
-        </div>`).join('') : '<div class="empty">No formations yet. Every set you name is saved here, once per code. You can also build one with New formation.</div>'}</div>
-    </section>
-    <div class="ver" style="display:flex;align-items:center;justify-content:center;gap:10px">v${VERSION} · ${esc(syncWord())}${SYNC.state === 'on' && SYNC.lastPull ? ' · checked ' + new Date(SYNC.lastPull).toTimeString().slice(0, 5) : ''}
-      <button class="li-b" data-act="syncSheet">Sync</button></div>`;
-}
 function renderDiag(){
   let dumps = lsGetJSON(KEYS.dumps, []); if (!Array.isArray(dumps)) dumps = [];
   const raw = lsGetRaw(KEYS.store) || '';
@@ -3015,7 +2991,7 @@ const sitWord = q => q && q.down ? `${ORD[q.down] || q.down} & ${q.dist == null 
 const yardToSpot = y => { y = Math.round(+y); if (!(y > 0 && y < 100)) return -35; return y === 50 ? 50 : (y > 50 ? -(100 - y) : y); };
 function startQueued(q){
   W = newWork('log');
-  W.qkey = q.key; W.qsit = q.sit || null; W.qdesc = q.desc || '';
+  W.qkey = q.key; W.qsit = q.sit || null; W.qdesc = q.desc || ''; W.qpers = persOf(q.pers);
   if (q.pers && PERS.includes(String(q.pers))){ W.pers = String(q.pers); W.tokens = buildTokens(W.pers, false, []); }
   const qb = {U:'under', S:'gun', P:'pistol', under:'under', gun:'gun', pistol:'pistol'}[q.qb];
   if (qb) W.qb = qb;
@@ -3064,6 +3040,7 @@ function upsertFormation(off, name, editId){
   return f;
 }
 function startNext(keep){
+  if (EMBED || keep.card){ goHome(); return; }
   if (keep.queue){
     const nx = queueOpen()[0];
     if (nx){ startQueued(nx); return; }
@@ -3084,7 +3061,7 @@ function saveOff(after){
   if (rt.errors.length){ fail('save.code', 'a code that reads back', rt.errors[0], fcode); return; }
   const f = upsertFormation(off, name, W.mode === 'template' ? W.editId : null);
   if (W.mode === 'template'){
-    if (saveStore('save.formation')){ pushBaseline('formation', f); dbPut('formations', f, 'save.formation'); toast(`Saved formation: ${esc(name)}`); goHome(); }
+    if (saveStore('save.formation')){ pushBaseline('formation', f); dbPut('formations', f, 'save.formation'); embedPost('formation', f, {tag:W.embedTag !== false}); toast(`Saved formation: ${esc(name)}`); goHome(); }
     return;
   }
   const play = {id:'p' + Date.now().toString(36), n:++S.seq, t:new Date().toISOString(), formationId:f.id, name, fcode,
@@ -3094,8 +3071,9 @@ function saveOff(after){
   pushBaseline('play', play);
   dbPut('formations', f, 'save.formation');
   dbPut('plays', play, 'save.play');
+  embedPost('formation', Object.assign({}, f, {play:{strength:play.strength, hash:play.hash, spot:play.spot}}));
   /* the next play keeps personnel, QB depth, hash and spot */
-  const keep = {pers:W.pers, xol:W.xol, qb:W.qb, hash:W.hash, spot:W.spot, queue:!!W.qkey};
+  const keep = {pers:W.pers, xol:W.xol, qb:W.qb, hash:W.hash, spot:W.spot, queue:!!W.qkey && !W.fromCard, card:!!W.fromCard};
   if (after === 'def'){
     W.playId = play.id; W.strength = play.strength; W.mode = 'log'; W.chain = keep;
     W.tokens.forEach((t,i) => { t.fixed = play.off.tokens[i] ? (play.off.tokens[i].letter || null) : null; });
@@ -3121,6 +3099,7 @@ function saveDef(){
   if (!saveStore('save.defense')){ play.def = before; return; }
   pushBaseline('play', play);
   dbPut('plays', play, 'save.defense');
+  embedLoggedFront(play);
   diag('save.defense', `play ${play.n}: ${defCode(d, play.strength)}`);
   toast(`Play ${play.n} defense saved: ${esc(d.summary)}`);
   if (W.chain) startNext(W.chain); else goHome();
@@ -3146,6 +3125,7 @@ function saveFront(name){
   if (!saveStore('save.front')) return;
   pushBaseline('front', f);
   dbPut('fronts', f, 'save.front');
+  embedPost('front', f, {tag:W.embedTag === true});
   diag('save.front', `"${name}" ${code}`);
   hideSheet();
   toast(`Saved front: ${esc(name)}`);
@@ -3272,6 +3252,7 @@ function saveDesign(name){
   if (!saveStore('save.design')){ if (isNew) S.designs.pop(); return; }
   pushBaseline('design', dz);
   dbPut('designs', dz, 'save.design');
+  embedPost('design', dz);
   W.editDesign = dz.id; W.name = name; W.dirty = false;
   diag('save.design', `${isNew ? 'new' : 'updated'} "${name}" ${dz.code}`);
   hideSheet();
@@ -3279,10 +3260,568 @@ function saveDesign(name){
   refresh();
 }
 
+/* ================= 0.9.0: the base book, what the iPad decided, the frames, chalk's frame, the inbox =================
+   None of this touches the editor. It decides what opens it, and files what the iPad already decided.
+   Tags (ipad.json tags[]) with a set become logged plays here on their own. Adds (ipad.json adds[]) go in the book.
+   Queue items become cards: chalk's facts plus a best guess from your own log, confirm or fix. */
+const BASE = {formations:[], fronts:[], at:null, state:'off'};
+let NAMING = 'pro';
+let pbSeq = 0;
+const pbId = p => p + Date.now().toString(36) + (++pbSeq).toString(36);
+const isoNow = () => new Date().toISOString();
+const persOf = v => { const s = String(v == null ? '' : v); return /^\d\d$/.test(s) && +s[0] + +s[1] <= 5 ? s : null; };
+const qbOf = v => ({U:'under', S:'gun', G:'gun', P:'pistol', under:'under', gun:'gun', pistol:'pistol'})[v] || null;
+const codeBodyOf = code => String(code || '').replace(/^O(6\/)?\d\d/, 'O$1');
+const fmGet = id => (id && (S.formations.find(o => o.id === id) || BASE.formations.find(o => o.id === id))) || null;
+const frGet = id => (id && (S.fronts.find(o => o.id === id) || BASE.fronts.find(o => o.id === id))) || null;
+const fmName = f => f.base && NAMING === 'desc' && f.desc ? f.desc : f.name;
+const frName = f => f.base && NAMING === 'desc' && f.summary ? f.summary : f.name;
+/* the name a base set is filed under. Your book keeps one set per code for both sides, so the side goes: "Gun Trey Rt" files
+   as "Gun Trey", and the description says strong and weak. With other personnel the description takes it, and the TE words go. */
+function fmFiled(f, pers){
+  if (!f.base) return f.name;
+  if (NAMING !== 'desc' || !f.desc) return String(f.name).replace(/ (Rt|Lt)$/, '');
+  let parts = f.desc.split(' · ');
+  if (pers && pers !== f.pers) parts = parts.filter(x => !/\bTE/.test(x)).map(x => /\d\d personnel/.test(x) ? `${pers} personnel` : x);
+  return parts.join(' · ').replace(/\bright\b/g, 'strong').replace(/\bleft\b/g, 'weak');
+}
+const mirrorOff = off => Object.assign({}, off, {tokens:off.tokens.map(t => ({type:t.type, slot:mirrorKey(t.slot)}))});
+/* any set with any personnel: same slots, the men typed again the way a pasted code is */
+function retype(off, pers){
+  if (!persOf(pers)) return null;
+  const xol = !!off.xol;
+  if (+pers[0] + +pers[1] > 5 - (xol ? 1 : 0)) return null;
+  const out = off.tokens.map(t => ({slot:t.slot, ol:t.type === 'L'}));
+  const types = inferTypes(out, pers);
+  const o = {pers, xol, qb:off.qb, tokens:out.map((q,i) => ({type:types[i], slot:q.slot}))};
+  return validateOffense(o).length ? null : o;
+}
+function offFromSet(f, pers){
+  const off = {pers:f.pers, xol:!!f.xol, qb:f.qb, tokens:f.tokens.map(t => ({type:t.type, slot:t.slot}))};
+  if (pers && pers !== off.pers){ const r = retype(off, pers); if (r) return r; diag('retype', `${f.name} does not take ${pers} personnel: kept ${off.pers}`); }
+  return off;
+}
+/* a front (stored strong right, or carrying the strength it was logged with) on a play with this strength */
+function frontDef(d, strength, name){
+  const flip = (d.strength === 'L' ? 'L' : 'R') !== (strength === 'L' ? 'L' : 'R');
+  const box = d.box.map(b => { const x = flip && b.x !== 0 ? -b.x : b.x; return {x, d:b.d, hand:b.d === 1 ? b.hand : null, tech:techOf(x), label:b.label || null, cat:b.cat || (b.d === 1 && b.hand === 'down' ? 'DL' : 'LB')}; });
+  const dbs = d.dbs.map(o => ({slot:flip ? mirrorKey(o.slot) : o.slot, label:o.label || null, kind:o.kind === 'deep' ? 'deep' : 'rest'}));
+  const out = {box, dbs, shell:d.shell, summary:frontSummary(box, d.shell) + (d.cov ? ` · ${d.cov.name} · ${d.cov.pressure}` : ''), front:name || d.name || null};
+  if (d.cov) out.cov = d.cov;
+  if (d.roles && !flip) out.roles = d.roles;
+  return out;
+}
+const frontNorm = (def, strength) => strength === 'L' ? Object.assign(mirrorDef(def), {strength:'R', roles:null}) : def;
+
+/* ---- the base book: base-book.json beside this page, a copy kept on the phone ---- */
+function baseAccept(b, stage){
+  if (!b || !Array.isArray(b.formations) || !Array.isArray(b.fronts)){ fail(stage, 'a base book with formations[] + fronts[]', b ? Object.keys(b).join(',') : String(b)); return false; }
+  const fms = [], frs = []; let bad = 0;
+  b.formations.forEach(f => { const e = f && f.id ? validateOffense(f) : ['no id']; if (e.length){ bad++; diag(stage, `base set ${f && f.id}: ${e[0]}`); return; } fms.push(Object.assign({}, f, {base:true})); });
+  b.fronts.forEach(f => { const e = f && f.id ? validateDefense(f) : ['no id']; if (e.length){ bad++; diag(stage, `base front ${f && f.id}: ${e[0]}`); return; } frs.push(Object.assign({}, f, {base:true})); });
+  BASE.formations = fms; BASE.fronts = frs; BASE.at = b.at || null; BASE.state = 'on';
+  diag(stage, `base book: ${fms.length} sets, ${frs.length} fronts, ${bad} skipped, written ${b.at}`);
+  if (bad) toast(`<b>${esc(stage)}</b>: ${bad} base item(s) failed checks. See Diagnostics.`, 'err');
+  return true;
+}
+async function baseLoad(){
+  const cached = lsGetJSON('pb.base', null);
+  if (cached) baseAccept(cached, 'base.cache');
+  try {
+    const r = await fetch('base-book.json', {cache:'no-cache'});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const b = await r.json();
+    if (baseAccept(b, 'base.fetch')) lsSetRaw('pb.base', JSON.stringify(b));
+  } catch(e){ diag('base.fetch', `base book not fetched (${e && e.message})${cached ? ': using the copy on this phone' : ''}`); if (!cached) BASE.state = 'error'; }
+  adoptIpad();
+  if (VIEW === 'home') renderHome();
+}
+function baseFmRows(act){
+  if (!BASE.formations.length) return '';
+  return `<details class="base"><summary>NFL base sets · ${BASE.formations.length}</summary><div class="list">${BASE.formations.map(f => `
+    <button class="li" data-act="${act}" data-id="${f.id}"><span class="li-main"><span class="li-t">${esc(fmName(f))}</span>
+    <span class="li-s">${esc(NAMING === 'desc' ? `${f.name} · ${f.code}` : (f.desc || f.code))}</span></span></button>`).join('')}</div></details>`;
+}
+function baseFrRows(act, pre){
+  if (!BASE.fronts.length) return '';
+  return `<details class="base"><summary>NFL base fronts · ${BASE.fronts.length}</summary><div class="list">${BASE.fronts.map(f => `
+    <button class="li" data-act="${act}" data-id="${pre || ''}${f.id}"><span class="li-main"><span class="li-t">${esc(frName(f))}</span>
+    <span class="li-s mono">${esc(NAMING === 'desc' ? f.name : f.summary)} · ${esc(f.code)}</span></span></button>`).join('')}</div></details>`;
+}
+
+/* ---- what the iPad decided: adds into the book, tags into logged plays ---- */
+const ADOPT = {bad:new Set(), told:new Set(), log:[]};
+const tagOf = k => (SYNC.ipad.tags || []).find(t => t && t.key === k) || null;
+const addObj = id => { const a = id ? (SYNC.ipad.adds || []).find(x => x && x.id === id) : null; return a ? a.obj : null; };
+const tagSig = t => [t.fcode, t.zid, t.dcode, t.pers, t.fadd, t.dadd, t.zadd].map(x => x == null ? '' : x).join('|');
+function adoptNote(kind, name, key){
+  ADOPT.log.unshift({at:isoNow(), kind, name:String(name || '').slice(0, 80), key:key || null});
+  ADOPT.log = ADOPT.log.slice(0, 30);
+  lsSetRaw('pb.adopted', JSON.stringify(ADOPT.log));
+}
+function adoptAdds(){
+  const seen = new Set(lsGetJSON('pb.addsSeen', []));
+  const dead = new Set(SYNC.deleted);
+  let n = 0;
+  (SYNC.ipad.adds || []).forEach(a => {
+    if (!a || !a.id || seen.has(a.id)) return;
+    seen.add(a.id);
+    const o = a.obj;
+    if (!o || typeof o !== 'object' || !['formation','front','design'].includes(a.kind)){ fail('adopt.add', 'an add with kind + obj', JSON.stringify(a).slice(0, 160)); return; }
+    const id = o.id || a.id;
+    if (dead.has(id)) return;
+    if (a.kind === 'formation'){
+      const off = {pers:o.pers, xol:!!o.xol, qb:o.qb, tokens:Array.isArray(o.tokens) ? o.tokens.map(t => ({type:t.type, slot:t.slot})) : o.tokens};
+      const e = validateOffense(off);
+      if (e.length){ fail('adopt.add', `formation "${o.name}" valid`, e[0], o); return; }
+      const code = formationCodeOf(off), cur = S.formations.find(x => x.id === id);
+      const body = {name:o.name || code, pers:off.pers, xol:off.xol, qb:off.qb, tokens:strongRight(off.tokens), code, fmt:4};
+      if (cur){ if (String(a.at || '') > stamp(cur)){ Object.assign(cur, body, {updated:a.at}); dbPut('formations', cur, 'adopt.add'); n++; } }
+      else if (!S.formations.some(x => x.code === code)){ const f = Object.assign({id, created:a.at || isoNow()}, body); S.formations.push(f); dbPut('formations', f, 'adopt.add'); adoptNote('set', f.name); n++; }
+    } else if (a.kind === 'front'){
+      if (o.logOnly) return;   // a defense logged on one play: it rides on that play's tag, not into the book
+      const d = o.strength === 'L' ? frontNorm(o, 'L') : o;
+      const f = {id, name:o.name || frontSuggest(d), code:defCode(d, 'R'), box:d.box, dbs:d.dbs, shell:d.shell, summary:d.summary || frontSummary(d.box, d.shell)};
+      const e = checkFront(f);
+      if (e.length){ fail('adopt.add', `front "${o.name}" valid`, e[0], o); return; }
+      const cur = S.fronts.find(x => x.id === id);
+      if (cur){ if (String(a.at || '') > stamp(cur)){ Object.assign(cur, f, {updated:a.at}); dbPut('fronts', cur, 'adopt.add'); n++; } }
+      else if (!S.fronts.some(x => x.code === f.code)){ f.created = a.at || isoNow(); S.fronts.push(f); dbPut('fronts', f, 'adopt.add'); adoptNote('front', f.name); n++; }
+    } else {
+      const dz = JSON.parse(JSON.stringify(o)); dz.id = id;
+      const e = checkDesign(dz);
+      if (e.length){ fail('adopt.add', `drawn play "${o.name}" valid`, e[0], o); return; }
+      const cur = S.designs.find(x => x.id === id);
+      if (cur){ if (stamp(dz) > stamp(cur)){ Object.assign(cur, dz); dbPut('designs', cur, 'adopt.add'); n++; } }
+      else { S.designs.push(dz); dbPut('designs', dz, 'adopt.add'); adoptNote('play', dz.name); n++; }
+    }
+  });
+  lsSetRaw('pb.addsSeen', JSON.stringify([...seen].slice(-1000)));
+  return n;
+}
+function tagOffense(t){
+  if (t.zid){
+    const dz = S.designs.find(o => o.id === t.zid) || addObj(t.zadd || t.zid);
+    if (dz && dz.off) return {off:{pers:dz.off.pers, xol:!!dz.off.xol, qb:dz.off.qb, tokens:dz.off.tokens}, name:t.fname || dz.setName || dz.name, oriented:true, extra:{call:t.zname || dz.name, designId:dz.id}};
+  }
+  let f = t.fadd ? addObj(t.fadd) : null, play = f && f.play ? f.play : null;
+  if (!f && t.fcode) f = S.formations.find(o => o.code === t.fcode) || BASE.formations.find(o => o.code === t.fcode) || null;
+  if (!f && t.fbase) f = Object.assign({base:true}, t.fbase);
+  if (!f && t.fcode){
+    const r = parseFormation(t.fcode);
+    if (!r.errors.length){ const types = inferTypes(r.out, r.pers); f = {pers:r.pers, xol:r.xol, qb:r.qb, tokens:r.out.map((o,i) => ({type:types[i], slot:o.slot}))}; }
+  }
+  if (!f || !Array.isArray(f.tokens)) return null;
+  const off = offFromSet(f, persOf(t.pers));
+  /* a set saved with a logged play in chalk's frame carries that play's own strength, hash and spot */
+  return {off:play && play.strength === 'L' ? mirrorOff({pers:off.pers, xol:off.xol, qb:off.qb, tokens:strongRight(off.tokens)}) : off, name:(f.base ? fmFiled(f, off.pers) : (f.name || t.fname)) || formationCodeOf(off), play, oriented:!!play};
+}
+function tagDefense(t){
+  let d = t.dadd ? addObj(t.dadd) : null;
+  if (!d && t.dcode) d = S.fronts.find(o => o.code === t.dcode) || BASE.fronts.find(o => o.code === t.dcode) || null;
+  if (!d && t.dbase) d = t.dbase;
+  if (!d || !Array.isArray(d.box) || !Array.isArray(d.dbs)) return null;
+  return {d, name:t.dname || (d.base ? frName(d) : d.name) || d.summary};
+}
+function fileSet(off, name){
+  const code = formationCodeOf(off);
+  const f = S.formations.find(x => x.code === code);
+  if (f) return {f, isNew:false};
+  return {f:upsertFormation(off, name, null), isNew:true};
+}
+/* one logged play, made the way saveOff makes it; the set goes in the book once per code and is never renamed here */
+function makePlay(o){
+  const off = {pers:o.off.pers, xol:!!o.off.xol, qb:o.off.qb, tokens:o.off.tokens.map(t => ({type:t.type, slot:t.slot}))};
+  const errs = validateOffense(off);
+  if (errs.length){ fail(o.stage, 'valid offense', errs.join('; '), off); return null; }
+  if (o.def){ const de = validateDefense(o.def); if (de.length){ fail(o.stage, 'valid defense', de.join('; '), o.def); return null; } }
+  const fs = fileSet(off, o.name);
+  const fcode = formationCodeOf(off);
+  const play = Object.assign({id:pbId('p'), n:++S.seq, t:isoNow(), formationId:fs.f.id, name:fs.f.name, fcode, strength:strengthOf(off.tokens),
+    hash:/^[LMR]$/.test(o.hash || '') ? o.hash : 'M', spot:o.spot == null ? -35 : o.spot, off, def:o.def || null, fmt:4, key:o.key || null, sit:o.sit || null, src:o.src}, o.extra || {});
+  S.plays.push(play);
+  if (!saveStore(o.stage)){ S.plays.pop(); S.seq--; if (fs.isNew) S.formations.splice(S.formations.indexOf(fs.f), 1); return null; }
+  pushBaseline('play', play);
+  if (fs.isNew) dbPut('formations', fs.f, o.stage);
+  dbPut('plays', play, o.stage);
+  return play;
+}
+/* each tag is filed once per version of it: delete the play here and it stays deleted until the iPad tags that play again */
+function adoptTags(){
+  let n = 0;
+  const done = lsGetJSON('pb.tagDone', {}) || {}, was = JSON.stringify(done);
+  const mark = (k, sig) => { delete done[k]; done[k] = sig; };
+  (SYNC.ipad.tags || []).forEach(t => {
+    if (!t || !t.key) return;
+    const sig = tagSig(t);
+    const p = S.plays.find(x => x.key === t.key);
+    if (p && p.tagSig === sig) return;
+    if (!p && done[t.key] === sig) return;
+    const hasOff = !!(t.fcode || t.zid || t.fbase || t.fadd), hasDef = !!(t.dcode || t.dadd || t.dbase);
+    if (p && p.src !== 'ipad'){
+      /* logged here: the iPad only fills a defense that is missing */
+      if (!p.def && hasDef){
+        const D = tagDefense(t), def = D ? frontDef(D.d, p.strength, D.name) : null;
+        if (def && !validateDefense(def).length){ p.def = def; p.tagSig = sig; p.updated = isoNow(); mark(t.key, sig); dbPut('plays', p, 'adopt.tag'); n++; diag('adopt.tag', `play ${p.n}: defense from the iPad, ${def.summary}`); }
+      }
+      return;
+    }
+    if (!hasOff) return;   // a defense with no set waits as a card in the inbox
+    const O = tagOffense(t);
+    if (!O){
+      ADOPT.bad.add(t.key);
+      if (!ADOPT.told.has(sig)){ ADOPT.told.add(sig); fail('adopt.tag', `a set for ${t.key}`, `nothing matched ${t.fcode || t.zid || t.fadd}`, t); }
+      return;
+    }
+    ADOPT.bad.delete(t.key);
+    const off = O.oriented ? O.off : (t.strength === 'L' ? mirrorOff(O.off) : O.off);
+    const st = strengthOf(off.tokens);
+    const D = hasDef ? tagDefense(t) : null;
+    let def = D ? frontDef(D.d, st, D.name) : null;
+    if (def && validateDefense(def).length){ diag('adopt.tag', `${t.key}: the tagged defense did not check, left off`); def = null; }
+    if (p){
+      const fs = fileSet(off, O.name);
+      Object.assign(p, {off, fcode:formationCodeOf(off), strength:st, formationId:fs.f.id, name:fs.f.name, tagSig:sig, updated:isoNow()}, O.extra || {});
+      if (def) p.def = def;
+      checkPlay(p);
+      if (fs.isNew) dbPut('formations', fs.f, 'adopt.tag');
+      dbPut('plays', p, 'adopt.tag'); n++; mark(t.key, sig);
+      diag('adopt.tag', `play ${p.n} updated from the iPad: ${playCode(p)}`);
+      return;
+    }
+    const ps = O.play || {};
+    const spot = ps.spot != null ? ps.spot : (t.sit && t.sit.yard != null ? yardToSpot(t.sit.yard) : null);
+    const np = makePlay({off, name:O.name, def, key:t.key, sit:t.sit || null, hash:ps.hash, spot, src:'ipad', stage:'adopt.tag', extra:Object.assign({tagSig:sig}, O.extra || {})});
+    if (np){ n++; mark(t.key, sig); adoptNote('logged', `${np.name}${np.call ? ' · ' + np.call : ''}${def ? ' vs ' + (def.front || def.summary) : ''}`, t.key); diag('adopt.tag', `${t.key} → play ${np.n}: ${playCode(np)}`); }
+  });
+  if (JSON.stringify(done) !== was){ const ks = Object.keys(done); ks.slice(0, Math.max(0, ks.length - 3000)).forEach(k => delete done[k]); lsSetRaw('pb.tagDone', JSON.stringify(done)); }
+  return n;
+}
+function adoptIpad(){
+  if (EMBED || !SYNC.merged) return;
+  const t0 = performance.now();
+  let a = 0, t = 0;
+  try { a = adoptAdds(); t = adoptTags(); }
+  catch(e){ fail('adopt', 'the iPad\'s adds and tags filed', String(e && e.message), String(e && e.stack || '')); }
+  if (a + t){ saveStore('adopt'); diag('adopt', `${a} into the book, ${t} plays from tags, ${(performance.now() - t0).toFixed(1)} ms`); toast(`From the iPad: ${t ? `${t} play${t === 1 ? '' : 's'} logged` : ''}${a && t ? ' · ' : ''}${a ? `${a} for the book` : ''}`); }
+}
+
+/* ---- the frames chalk keeps (set, shift, snap, post, end zone): frames-<key>.json in the gist, the iPad's own file ---- */
+const FRM = {files:new Map(), cache:new Map(), busy:new Set(), timer:null};
+const FRAME_NAMES = [['set','SET'],['shift','SHIFT'],['snap','SNAP'],['post','POST'],['ez','END Z']];
+const okImg = s => typeof s === 'string' && s.length < 2e6 && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s);
+function framesCheck(obj, key, name){
+  if (!obj || typeof obj !== 'object' || !obj.img || typeof obj.img !== 'object'){ diag('frames.check', `${name}: expected {img:{…}}, got ${obj ? Object.keys(obj).join(',') : obj}`); return null; }
+  const img = {}; let bad = 0;
+  FRAME_NAMES.forEach(([n]) => { if (obj.img[n] == null) return; if (okImg(obj.img[n])) img[n] = obj.img[n]; else bad++; });
+  if (bad) diag('frames.check', `${name}: ${bad} picture(s) were not image data, skipped`);
+  if (obj.key && obj.key !== key) diag('frames.check', `${name}: made for ${obj.key}, shown for ${key}`);
+  return Object.keys(img).length ? {key, img, t:obj.t || {}, at:obj.at || null} : null;
+}
+function framesSoon(){
+  clearTimeout(FRM.timer);
+  FRM.timer = setTimeout(() => {
+    if (VIEW === 'home') renderHome();
+    else if (VIEW === 'editor') filmBtnSync();
+    if (FILMV.open && !$('#sheet').hidden) ACT.film();
+  }, 60);
+}
+function framesNow(key){
+  if (!key) return null;
+  const q = SYNC.ipad.queue.find(o => o && o.key === key) || tagOf(key);
+  const name = (q && typeof q.frames === 'string' && q.frames) || ('frames-' + String(key).replace(/[^A-Za-z0-9_.-]+/g, '-') + '.json');
+  const f = FRM.files.get(name);
+  if (!f) return null;
+  const sig = `${f.size}|${f.raw_url || ''}`, c = FRM.cache.get(name);
+  if (c && c.sig === sig) return c.data;
+  if (!FRM.busy.has(name)){
+    FRM.busy.add(name);
+    readFile(f).then(obj => {
+      const data = framesCheck(obj, key, name);
+      FRM.cache.set(name, {sig, data});
+      while (FRM.cache.size > 40) FRM.cache.delete(FRM.cache.keys().next().value);
+      if (data){ diag('frames.read', `${name}: ${Object.keys(data.img).join(' ')}`); framesSoon(); }
+    }).catch(e => diag('frames.read', `${name}: ${e && e.message}`)).finally(() => FRM.busy.delete(name));
+  }
+  return c ? c.data : null;
+}
+function framesBlock(key, cur){
+  const F = framesNow(key);
+  if (!F) return '';
+  const pick = F.img[cur] ? cur : (F.img.snap ? 'snap' : Object.keys(F.img)[0]);
+  return `<div class="shot"><img src="${F.img[pick]}" alt="${pick} frame"></div>
+    <div class="shots">${FRAME_NAMES.map(([n,l]) => `<button class="${n === pick ? 'on' : ''}" data-act="shot" data-v="${n}" ${F.img[n] ? '' : 'disabled'}>${l}</button>`).join('')}</div>`;
+}
+const FILMV = {open:false, shot:'snap'};
+function filmBtnSync(){ const b = $('#filmBtn'); if (b) b.hidden = !(VIEW === 'editor' && W && W.qkey && framesNow(W.qkey)); }
+
+/* ---- the inbox: the iPad's queue as a stack of cards ---- */
+const PARK = new Set();
+const CARD = new Map();
+const CARDV = {key:null, shot:'snap'};
+function parkSave(){ lsSetRaw('pb.parked', JSON.stringify([...PARK].slice(-300))); }
+function inboxItems(){
+  const out = queueOpen(), have = new Set(out.map(q => q.key));
+  (SYNC.ipad.tags || []).forEach(t => {
+    if (!t || !t.key || have.has(t.key) || S.plays.some(p => p.key === t.key)) return;
+    const hasOff = !!(t.fcode || t.zid || t.fbase || t.fadd), hasDef = !!(t.dcode || t.dadd || t.dbase);
+    if (hasOff && !ADOPT.bad.has(t.key)) return;
+    if (!hasOff && !hasDef) return;
+    out.push({key:t.key, sit:t.sit || null, pers:t.pers || null, qb:null, nfl:t.nfl || null, frames:t.frames || null, at:t.at || null, desc:'', fromTag:true});
+    have.add(t.key);
+  });
+  return out;
+}
+function cardOf(key){ let c = CARD.get(key); if (!c){ c = {setId:null, frontCode:undefined, strength:'R', hash:'M', chart:false}; CARD.set(key, c); } return c; }
+/* sets ranked: what you logged most with this personnel and QB, then your book, then the NFL base */
+function setCands(q){
+  const pers = persOf(q.pers), qb = qbOf(q.qb);
+  const out = [], seen = new Set();
+  const push = (f, n, src) => { if (!f || f._bad) return; const k = codeBodyOf(f.code); if (seen.has(k)) return; seen.add(k); out.push({f, n, src}); };
+  const hist = S.plays.filter(p => p.off && !p._bad && p.formationId && (!pers || p.off.pers === pers) && (!qb || p.off.qb === qb));
+  const cnt = new Map();
+  hist.forEach(p => cnt.set(p.formationId, (cnt.get(p.formationId) || 0) + 1));
+  [...cnt.entries()].sort((a,b) => b[1] - a[1]).forEach(([id, n]) => push(S.formations.find(o => o.id === id), n, 'log'));
+  S.formations.filter(f => (!qb || f.qb === qb) && (!pers || f.pers === pers)).sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''))).forEach(f => push(f, 0, 'book'));
+  BASE.formations.filter(f => !qb || f.qb === qb).slice().sort((a,b) => pers ? (b.pers === pers) - (a.pers === pers) : 0).forEach(f => push(f, 0, 'base'));
+  return {list:out, total:hist.length};
+}
+function frontCands(q){
+  const pers = persOf(q.pers), out = [], seen = new Set();
+  const push = (d, name, n, src) => {
+    if (!d || d._bad || !Array.isArray(d.box) || !Array.isArray(d.dbs)) return;
+    const dn = d.strength === 'L' ? frontNorm(d, 'L') : d;
+    if (validateDefense(dn).length) return;
+    const code = defCode(dn, 'R');
+    if (seen.has(code)) return;
+    seen.add(code); out.push({d:dn, name, n, src, code});
+  };
+  const t = tagOf(q.key), D = t ? tagDefense(t) : null;
+  if (D) push(D.d, D.name, 0, 'ipad');
+  const hist = S.plays.filter(p => p.def && !p._bad && (!pers || (p.off && p.off.pers === pers)));
+  const cnt = new Map();
+  hist.forEach(p => { const dn = frontNorm(p.def, p.strength), code = defCode(dn, 'R'); const c = cnt.get(code); if (c) c.n++; else cnt.set(code, {n:1, d:dn, p}); });
+  [...cnt.entries()].sort((a,b) => b[1].n - a[1].n).forEach(([code, c]) => {
+    const f = S.fronts.find(o => o.code === code) || BASE.fronts.find(o => o.code === code);
+    push({box:c.d.box, dbs:c.d.dbs, shell:c.d.shell}, f ? frName(f) : (c.p.def.front || frontSummary(c.d.box, c.d.shell)), c.n, 'log');
+  });
+  S.fronts.slice().sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''))).forEach(f => push(f, f.name, 0, 'book'));
+  BASE.fronts.forEach(f => push(f, frName(f), 0, 'base'));
+  return {list:out, total:hist.length};
+}
+function cardView(q){
+  const c = cardOf(q.key), sc = setCands(q), fc = frontCands(q);
+  let set = null, setNote = '';
+  if (c.setId){ const f = fmGet(c.setId); const hit = sc.list.find(x => x.f.id === c.setId); set = f ? (hit || {f, n:0, src:f.base ? 'base' : 'book'}) : null; setNote = 'your pick'; }
+  else if (sc.list[0]){ set = sc.list[0]; setNote = set.n ? `guess · ${set.n} of ${sc.total}` : set.src === 'base' ? 'guess · NFL base' : 'guess · your book'; }
+  let front = null, frontNote = '';
+  if (c.frontCode === null) frontNote = 'none';
+  else if (c.frontCode){ front = fc.list.find(x => x.code === c.frontCode) || null; frontNote = 'your pick'; }
+  else { front = fc.list.find(x => x.src === 'ipad') || fc.list.find(x => x.n > 0) || null; frontNote = front ? (front.src === 'ipad' ? 'the iPad\'s pick' : `guess · ${front.n} of ${fc.total}`) : ''; }
+  return {c, set, setNote, front, frontNote, sc, fc};
+}
+const clockWord = c => c == null ? '' : (typeof c === 'number' && isFinite(c) ? `${Math.floor(c / 60)}:${String(Math.floor(c % 60)).padStart(2, '0')}` : String(c));
+function inboxSplit(){
+  const all = inboxItems();
+  const live = all.filter(q => !PARK.has(q.key)), parked = all.filter(q => PARK.has(q.key));
+  let top = (CARDV.key && live.find(q => q.key === CARDV.key)) || live[0] || null;
+  if (top && top.key !== CARDV.key){ CARDV.key = top.key; CARDV.shot = 'snap'; }
+  return {all, live, parked, top};
+}
+function todayStats(){
+  const day = new Date().toDateString();
+  const ts = S.plays.map(p => Date.parse(p.t)).filter(t => isFinite(t) && new Date(t).toDateString() === day).sort((a,b) => a - b);
+  const gaps = []; for (let i = 1; i < ts.length; i++){ const g = (ts[i] - ts[i-1]) / 1000; if (g > 0 && g < 300) gaps.push(g); }
+  return {n:ts.length, pace:gaps.length >= 3 ? Math.round(gaps.reduce((a,b) => a + b, 0) / gaps.length) : null};
+}
+function cardHTML(q){
+  const v = cardView(q), s = q.sit || {};
+  const pers = persOf(q.pers), qb = qbOf(q.qb);
+  const where = s.yard != null ? spotLabel(yardToSpot(s.yard)) : '';
+  const setName = v.set ? (v.set.f.base ? fmFiled(v.set.f, pers || v.set.f.pers) : v.set.f.name) : '';
+  const facts = [pers ? `${pers} personnel` : 'personnel ?', qb ? QB_LABEL[qb] : 'QB ?', q.shift != null ? 'shift marked' : '', q.snap != null ? 'snap marked' : ''].filter(Boolean).join(' · ');
+  return `<div class="card" id="card" data-key="${esc(q.key)}">
+    <div class="card-h"><b>${esc(sitWord(s))}${where ? ' · ' + esc(where) : ''}</b><span>${s.qtr ? 'Q' + esc(s.qtr) + ' ' : ''}${esc(clockWord(s.clock))}</span></div>
+    ${q.desc ? `<div class="card-d">${esc(q.desc)}</div>` : ''}
+    ${framesBlock(q.key, CARDV.shot)}
+    <div class="card-f">${esc(facts)}${q.fromTag ? ' · tagged on the iPad' : ''}</div>
+    <button class="cline ${v.set ? '' : 'none'}" data-act="cardSet"><span class="lbl">Set</span><b>${v.set ? esc(setName) : 'Tap to pick'}</b><small>${esc(v.setNote)}</small></button>
+    <button class="cline ${v.front ? '' : 'none'}" data-act="cardFront"><span class="lbl">Front</span><b>${v.front ? esc(v.front.name) : (v.c.chart ? 'Chart it next' : 'Tap to add')}</b><small>${esc(v.c.chart ? 'on the field' : (v.front ? v.frontNote : 'optional'))}</small></button>
+    <div class="row"><span class="lbl cl">Strong</span>${seg('cardStr', [['L','Left'],['R','Right']], v.c.strength)}</div>
+    <div class="row"><span class="lbl cl">Hash</span>${seg('cardHash', [['L','Left'],['M','Middle'],['R','Right']], v.c.hash)}</div>
+    <div class="row">
+      <button class="btn slim" data-act="cardPark">Park</button>
+      <button class="btn slim" data-act="cardEdit">Editor</button>
+      <button class="btn pri" data-act="cardOk" ${v.set ? '' : 'disabled'}>Confirm</button>
+    </div>
+    <div class="card-hint">Swipe right to confirm · left to park · tap a line to fix it</div>
+  </div>`;
+}
+function inboxHTML(){
+  const {live, parked, top} = inboxSplit(), st = todayStats();
+  const row = (q, act) => `<button class="li" data-act="${act}" data-key="${esc(q.key)}">
+      <span class="li-n" style="width:auto;min-width:64px;font-size:15px">${esc(sitWord(q.sit))}</span>
+      <span class="li-main"><span class="li-t">${esc(q.desc || (q.sit && q.sit.yard != null ? spotLabel(yardToSpot(q.sit.yard)) : q.key))}</span>
+      <span class="li-s">${esc([persOf(q.pers) ? q.pers + ' personnel' : '', qbOf(q.qb) ? QB_LABEL[qbOf(q.qb)] : '', q.snap != null ? 'snap marked' : '', q.fromTag ? 'tagged' : ''].filter(Boolean).join(' · '))}</span></span>
+    </button>`;
+  const head = `<div class="ibx"><h1>Inbox</h1><span class="ibx-s">${esc(syncWord())}</span></div>
+    <p class="sub">${live.length} waiting · ${st.n} logged today · ${parked.length} parked${st.pace ? ` · ${st.pace}s a play` : ''}</p>`;
+  let body = '';
+  if (top) body += cardHTML(top) + (live.length > 1 ? `<button class="btn small wide" data-act="qStart">Log them all in the editor · ${live.length}</button>` : '');
+  else body += `<div class="zero"><b>${S.plays.length ? 'Inbox zero' : 'Nothing waiting'}</b><small>${SYNC.token ? 'Tap Later on the iPad and the play lands here as a card.' : 'Connect Sync and the iPad\'s plays land here as cards.'}</small></div>
+    <button class="hero" data-act="logNew">
+      <span class="hero-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg></span>
+      <span style="flex:1;min-width:0"><b>Log plays</b><small>Place the offense and name it. Chart the defense on the same play, or skip it. The next play starts on its own.</small></span>
+      <span class="chev" style="color:inherit;opacity:.7">›</span>
+    </button>`;
+  if (live.length > 1) body += `<section class="sec" style="margin-top:14px"><h2><span>Up next</span><span>${live.length - 1}</span></h2><div class="list">${live.filter(q => q !== top).slice(0, 12).map(q => row(q, 'cardTo')).join('')}</div></section>`;
+  if (parked.length) body += `<section class="sec"><h2><span>Parked</span><span>${parked.length}</span></h2><div class="list">${parked.slice(0, 20).map(q => row(q, 'cardTo')).join('')}</div>
+    <button class="btn small" data-act="unparkAll">Work the ${parked.length} parked</button></section>`;
+  if (ADOPT.log.length) body += `<section class="sec"><h2><span>From the iPad</span><span>${ADOPT.log.length}</span></h2><div class="list">${ADOPT.log.slice(0, 6).map(a => `
+    <div class="li"><span class="li-n" style="width:auto;min-width:64px;font-size:13px;text-transform:uppercase">${esc(a.kind)}</span><span class="li-main"><span class="li-t">${esc(a.name)}</span><span class="li-s">${esc(new Date(a.at).toLocaleString([], {weekday:'short', hour:'numeric', minute:'2-digit'}))}</span></span></div>`).join('')}</div></section>`;
+  return head + body;
+}
+
+/* ---- chalk's frame: the designer inside chalk on the iPad. No sync, no storage; what you save goes to chalk as a message ---- */
+function embedQ(){ const f = (EMBED && EMBED.facts) || {}; return {key:EMBED && EMBED.key || null, sit:f.sit || null, desc:f.desc || '', pers:f.pers || null, qb:f.qb || f.ql || null}; }
+function embedPost(kind, obj, extra){
+  if (!EMBED) return;
+  try { parent.postMessage(Object.assign({type:'pb-save', kind, obj:dbBody(obj)}, extra || {}), '*'); diag('embed.post', `${kind} "${obj.name || ''}" → chalk`); }
+  catch(e){ fail('embed.post', 'a message to chalk', String(e && e.message)); }
+}
+function embedLoggedFront(play){
+  const d = play.def; if (!d) return;
+  const code = defCode(frontNorm(d, play.strength), 'R');
+  const f = S.fronts.find(o => o.code === code) || BASE.fronts.find(o => o.code === code);
+  embedPost('front', Object.assign({}, d, {id:pbId('d'), name:f ? frName(f) : frontSuggest(d), code, strength:play.strength, logOnly:true}));
+}
+function renderEmbedHome(){
+  const q = embedQ(), s = q.sit || {}, pers = persOf(q.pers), qb = qbOf(q.qb);
+  $('#home').innerHTML = `
+    <h1>Playbook</h1>
+    <p class="sub">Inside chalk · what you save goes to your iPhone's book${q.key ? ' and onto this play' : ''}</p>
+    ${q.key ? `<div class="card"><div class="card-h"><b>${esc(sitWord(s))}${s.yard != null ? ' · ' + esc(spotLabel(yardToSpot(s.yard))) : ''}</b><span>${s.qtr ? 'Q' + esc(s.qtr) + ' ' : ''}${esc(clockWord(s.clock))}</span></div>
+      ${q.desc ? `<div class="card-d">${esc(q.desc)}</div>` : ''}<div class="card-f">${esc([pers ? pers + ' personnel' : '', qb ? QB_LABEL[qb] : ''].filter(Boolean).join(' · ') || 'No numbers for this snap')}</div></div>` : ''}
+    <div class="tiles">
+      ${q.key ? `<button class="tile" data-act="embedLog"><i style="background:#4DA3FF"></i><b>Log this play</b><small>Place the offense, name it, chart the defense.</small></button>` : ''}
+      <button class="tile" data-act="designNew"><i style="background:#3DDC84"></i><b>Draw a play</b><small>Routes, blocks, motion and run concepts.</small></button>
+      <button class="tile" data-act="embedSet"><i style="background:#9AA5AE"></i><b>New offense set</b><small>Place and name a formation.</small></button>
+      <button class="tile" data-act="frontNew"><i style="background:#FFE27A"></i><b>New defense front</b><small>Key the box, set the shell.</small></button>
+    </div>
+    <div class="ver">v${VERSION} · in chalk</div>`;
+}
+function embedBoot(){
+  const b = (EMBED && EMBED.book) || {};
+  const mine = (arr, base) => (Array.isArray(arr) ? arr : []).filter(x => x && typeof x === 'object' && !!x.base === base);
+  S = {v:1, seq:0, formations:mine(b.formations, false).map(normFormation), plays:[], fronts:mine(b.fronts, false), designs:Array.isArray(b.designs) ? b.designs : []};
+  S.formations.forEach(checkFormation); S.fronts.forEach(checkFront); S.designs.forEach(checkDesign);
+  baseAccept({formations:mine(b.formations, true), fronts:mine(b.fronts, true), at:null}, 'embed.base');
+  NAMING = EMBED.naming === 'desc' ? 'desc' : 'pro';
+  diag('embed', `in chalk: ${S.formations.length} sets, ${S.fronts.length} fronts, ${S.designs.length} drawn, mode ${EMBED.mode}, key ${EMBED.key}`);
+  setView('home'); refresh();
+  const from = EMBED.from && typeof EMBED.from === 'object' ? EMBED.from : null;
+  try {
+    if (from && Array.isArray(from.arts) && from.off) openDesign(from);
+    else if (from && Array.isArray(from.tokens)){
+      const e = validateOffense(from);
+      if (e.length) fail('embed.from', 'a legal set to adjust', e[0], from);
+      else { startTemplate(Object.assign({}, from, {id:null, name:from.base ? fmFiled(from, from.pers) : (from.name || '')})); W.embedTag = true; }
+    }
+  } catch(e){ fail('embed.from', 'the set chalk handed over opened', String(e && e.message), from); }
+  try { parent.postMessage({type:'pb-ready', v:VERSION}, '*'); } catch(e){ diag('embed', 'pb-ready not sent: ' + (e && e.message)); }
+}
+
+/* ---- the card's swipe: right confirms, left parks ---- */
+const SWIPE = {id:null, x0:0, y0:0, dx:0, on:false, block:0, el:null};
+document.addEventListener('pointerdown', e => {
+  const c = e.target.closest && e.target.closest('#card');
+  if (!c || VIEW !== 'home' || EMBED) return;
+  Object.assign(SWIPE, {id:e.pointerId, x0:e.clientX, y0:e.clientY, dx:0, on:false, el:c});
+});
+document.addEventListener('pointermove', e => {
+  if (e.pointerId !== SWIPE.id || !SWIPE.el) return;
+  const dx = e.clientX - SWIPE.x0, dy = e.clientY - SWIPE.y0;
+  if (!SWIPE.on){
+    if (Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.3) SWIPE.on = true;
+    else if (Math.abs(dy) > 12){ SWIPE.id = null; SWIPE.el = null; return; }
+    else return;
+  }
+  SWIPE.dx = dx;
+  SWIPE.el.style.transform = `translateX(${dx}px) rotate(${(dx / 40).toFixed(2)}deg)`;
+  SWIPE.el.dataset.lean = dx > 60 ? 'ok' : dx < -60 ? 'park' : '';
+});
+function swipeEnd(e){
+  if (e.pointerId !== SWIPE.id) return;
+  const c = SWIPE.el, dx = SWIPE.dx, on = SWIPE.on;
+  SWIPE.id = null; SWIPE.el = null;
+  if (!c || !on) return;
+  SWIPE.block = performance.now() + 350;
+  diag('card.swipe', `${Math.round(dx)} px`);
+  if (dx > 110 && e.type === 'pointerup') ACT.cardOk();
+  else if (dx < -110 && e.type === 'pointerup') ACT.cardPark();
+  else { c.style.transition = 'transform .18s'; c.style.transform = ''; c.dataset.lean = ''; setTimeout(() => { c.style.transition = ''; }, 200); }
+}
+document.addEventListener('pointerup', swipeEnd);
+document.addEventListener('pointercancel', swipeEnd);
+
+function renderHome(){
+  if (EMBED){ renderEmbedHome(); return; }
+  const plays = S.plays.slice().sort((a,b) => b.n - a.n);
+  const fms = S.formations.slice().sort((a,b) => String(a.name || '').localeCompare(String(b.name || '')));
+  const dzs = S.designs.slice().sort((a,b) => String(b.updated || b.created || '').localeCompare(String(a.updated || a.created || '')));
+  const open = S.plays.filter(p => !p.def && !p._bad).length;
+  const tile = (act, color, t, sub) => `<button class="tile" data-act="${act}"><i style="background:${color}"></i><b>${t}</b><small>${sub}</small></button>`;
+  $('#home').innerHTML = `
+    ${inboxHTML()}
+    <div class="tiles">
+      ${inboxSplit().top ? tile('logNew', '#4DA3FF', 'Log plays', 'Place the offense and name it. The next play starts on its own.') : ''}
+      ${tile('logDef', '#FF8A3D', 'Log defense', open ? `${open} play${open === 1 ? '' : 's'} with no defense yet, or a front on its own.` : 'A front on its own, or on a logged play.')}
+      ${tile('designNew', '#3DDC84', 'Draw a play', 'Routes, blocks, motion and run concepts against a base 4-3.')}
+      ${tile('tplNew', '#9AA5AE', 'New offense set', 'Place and name a formation.')}
+      ${tile('frontNew', '#FFE27A', 'New defense front', 'Key the box, set the shell.')}
+      ${tile('baseSheet', '#B78CFF', 'NFL base book', BASE.formations.length ? `${BASE.formations.length} sets · ${BASE.fronts.length} fronts to build from.` : (BASE.state === 'error' ? 'Not loaded. It loads with a connection.' : 'Loading…'))}
+    </div>
+    <section class="sec"><h2><span>Log</span><span>${plays.length}</span></h2>
+      <div class="list">${plays.length ? plays.map(p => `
+        <button class="li" data-act="openPlay" data-id="${p.id}">
+          <span class="li-n">${p.n}</span>
+          <span class="li-main"><span class="li-t">${esc(p.name)}${p.call ? ' · ' + esc(p.call) : ''}</span>
+          <span class="li-s ${p._bad ? 'bad' : ''}">${p._bad ? esc(p._bad) : `${esc(persStr(p.off && p.off.pers, p.off && p.off.xol))} · strong ${p.strength === 'R' ? 'R' : 'L'} · ${esc(p.hash)} hash · ${spotLabel(p.spot)} · ${p.def ? esc(p.def.summary) : 'no defense yet'}${p.src === 'ipad' ? ' · iPad' : ''}`}</span></span>
+        </button>`).join('') : '<div class="empty">No plays logged yet. Confirm a card, or tap Log plays, place the five skill players and name the set.</div>'}</div>
+    </section>
+    <section class="sec"><h2><span>Drawn plays</span><span>${dzs.length}</span></h2>
+      <div class="list">${dzs.length ? dzs.map(d => `
+        <div class="li">
+          <button class="li-main" data-act="openDesign" data-id="${d.id}" style="border:0;background:transparent;color:inherit;text-align:left;padding:0;min-height:44px;justify-content:center">
+            <span class="li-t">${esc(d.name)}</span><span class="li-s ${d._bad ? 'bad' : ''}">${d._bad ? esc(d._bad) : esc(`${d.concept ? d.concept.name + ' · ' : ''}${d.setName || ''} vs ${d.defName || ''} · ${(d.arts || d.routes || []).filter(r => r.name && (r.kind === 'route' || r.kind === 'carry' || !r.kind)).map(r => `${r.tag || r.letter} ${r.name}`).join(', ') || 'no art'}`)}</span></button>
+          <button class="li-b" data-act="dzMenu" data-id="${d.id}" aria-label="More for ${esc(d.name)}">•••</button>
+        </div>`).join('') : '<div class="empty">No drawn plays yet. Tap Draw a play, pick a set, and drag routes onto it.</div>'}</div>
+    </section>
+    <section class="sec"><h2><span>Defense fronts</span><span>${S.fronts.length}</span></h2>
+      <div class="list">${S.fronts.length ? S.fronts.slice().sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''))).map(f => `
+        <div class="li">
+          <span class="li-main"><span class="li-t">${esc(f.name)}</span><span class="li-s mono ${f._bad ? 'bad' : ''}">${f._bad ? esc(f._bad) : esc(f.code)}</span></span>
+          <button class="li-b" data-act="frMenu" data-id="${f.id}" aria-label="More for ${esc(f.name)}">•••</button>
+        </div>`).join('') : '<div class="empty">No fronts yet. Tap New defense front, or copy one from the NFL base book.</div>'}</div>
+    </section>
+    <section class="sec"><h2><span>Offense sets</span><span>${fms.length}</span></h2>
+      <div class="list">${fms.length ? fms.map(f => `
+        <div class="li">
+          <span class="li-main"><span class="li-t">${esc(f.name)}</span><span class="li-s mono ${f._bad ? 'bad' : ''}">${f._bad ? esc(f._bad) : esc(f.code)}</span></span>
+          <button class="li-b" data-act="logFrom" data-id="${f.id}">Log</button>
+          <button class="li-b" data-act="fmMenu" data-id="${f.id}" aria-label="More for ${esc(f.name)}">•••</button>
+        </div>`).join('') : '<div class="empty">No formations yet. Every set you name is saved here, once per code. The NFL base book has a start.</div>'}</div>
+    </section>
+    <div class="row" style="margin:0 0 14px"><span class="lbl cl" style="width:auto;padding-right:6px">Base names</span>${seg('naming', [['pro','Pro'],['desc','Descriptive']], NAMING)}</div>
+    <div class="ver" style="display:flex;align-items:center;justify-content:center;gap:10px">v${VERSION} · ${esc(syncWord())}${SYNC.state === 'on' && SYNC.lastPull ? ' · checked ' + new Date(SYNC.lastPull).toTimeString().slice(0, 5) : ''}
+      <button class="li-b" data-act="syncSheet">Sync</button></div>`;
+}
+
 /* ================= actions ================= */
 const ACT = {
   topL(){
     if (VIEW === 'diag'){ setView(PREV_VIEW === 'diag' ? 'home' : PREV_VIEW); refresh(); return; }
+    if (EMBED && VIEW === 'home'){ try { parent.postMessage({type:'pb-close'}, '*'); } catch(e){ diag('embed', 'pb-close not sent'); } return; }
     if (VIEW !== 'editor' || !W) return goHome();
     if (W.mode === 'design' && (W.dirty || (W.step === 'off' && W.tokens.some(t => t.slot)))){
       showSheet(`<h3>Leave without saving?</h3><p>${W.step === 'routes' ? 'The routes on this play are not saved.' : 'The placements on this set will be lost.'}</p>
@@ -3310,7 +3849,7 @@ const ACT = {
   copyCode(d){ copyText(d.v, 'Code'); },
   logNew(){ startLog(null); },
   tplNew(){ startTemplate(null); },
-  logFrom(d){ const f = S.formations.find(o => o.id === d.id); if (f) startLog(f); },
+  logFrom(d){ hideSheet(); const f = fmGet(d.id); if (f) startLog(f); },
   fmMenu(d){
     const f = S.formations.find(o => o.id === d.id); if (!f) return;
     showSheet(`<h3>${esc(f.name)}</h3><p>${esc(persStr(f.pers, f.xol))} personnel · ${QB_LABEL[f.qb] || esc(f.qb)}</p>
@@ -3399,6 +3938,7 @@ const ACT = {
     showSheet(`<h3>Start from a saved set</h3>
       ${fms.length ? `<div class="list">${fms.map(f => `<button class="li" data-act="loadFm" data-id="${f.id}"><span class="li-main"><span class="li-t">${esc(f.name)}</span><span class="li-s mono">${esc(f.code)}</span></span></button>`).join('')}</div>`
         : '<p>No saved sets yet. Each set you name is saved for next time.</p>'}
+      ${baseFmRows('loadFm')}
       <label class="lbl" for="pasteCode">Or paste a code</label>
       <input id="pasteCode" class="txt mono" placeholder="O11G wN Bs sI sS' sN'" autocomplete="off" autocapitalize="off" spellcheck="false">
       <div class="row"><button class="btn" data-act="closeSheet">Cancel</button><button class="btn pri" data-act="loadCode">Load code</button></div>`);
@@ -3409,10 +3949,10 @@ const ACT = {
     if (loadFromCode(inp.value)){ hideSheet(); refresh(); toast('Code loaded with the strength to the right. Tap Flip for left.'); }
   },
   loadFm(d){
-    const f = S.formations.find(o => o.id === d.id); if (!f) return;
+    const f = fmGet(d.id); if (!f) return;
     const errs = validateOffense(f);
     if (errs.length){ fail('load.formation', 'valid formation', errs[0], f); return; }
-    loadOffInto(W, f, false); hideSheet(); diag('off.load', `loaded "${f.name}" ${f.code}`); refresh();
+    loadOffInto(W, f.base && W.qpers ? offFromSet(f, W.qpers) : f, false); hideSheet(); diag('off.load', `loaded "${f.name}" ${f.code}`); refresh();
   },
   /* name */
   sug(d){ W.name = d.v; const inp = $('#fname'); if (inp) inp.value = d.v; $('#panel').querySelectorAll('.sug').forEach(b => b.classList.toggle('on', b.dataset.v === d.v)); },
@@ -3438,13 +3978,14 @@ const ACT = {
   /* play designer */
   designNew(){
     const fms = S.formations.filter(f => !f._bad).sort((a,b) => String(a.name || '').localeCompare(String(b.name || '')));
-    if (!fms.length){ startDesign(null); return; }
+    if (!fms.length && !BASE.formations.length){ startDesign(null); return; }
     showSheet(`<h3>Draw a play</h3><p>Pick the set. A base 4-3 lines up against it.</p>
-      <div class="list">${fms.map(f => `<button class="li" data-act="designFrom" data-id="${f.id}"><span class="li-main"><span class="li-t">${esc(f.name)}</span><span class="li-s mono">${esc(f.code)}</span></span></button>`).join('')}</div>
+      ${fms.length ? `<div class="list">${fms.map(f => `<button class="li" data-act="designFrom" data-id="${f.id}"><span class="li-main"><span class="li-t">${esc(f.name)}</span><span class="li-s mono">${esc(f.code)}</span></span></button>`).join('')}</div>` : ''}
+      ${baseFmRows('designFrom')}
       <button class="btn pri" data-act="designBlank">Place a new set</button>
       <button class="btn" data-act="closeSheet">Cancel</button>`);
   },
-  designFrom(d){ hideSheet(); const f = S.formations.find(o => o.id === d.id); if (f) startDesign(f); },
+  designFrom(d){ hideSheet(); const f = fmGet(d.id); if (f) startDesign(f); },
   designBlank(){ hideSheet(); startDesign(null); },
   openDesign(d){ hideSheet(); const dz = S.designs.find(o => o.id === d.id); if (dz) openDesign(dz); },
   dset(){
@@ -3452,11 +3993,12 @@ const ACT = {
     showSheet(`<h3>Change the set</h3><p>Routes stay with the same letter.</p>
       <button class="btn" data-act="dsetEdit">Move men in this set</button>
       ${fms.length ? `<div class="list">${fms.map(f => `<button class="li" data-act="dsetPick" data-id="${f.id}"><span class="li-main"><span class="li-t">${esc(f.name)}</span><span class="li-s mono">${esc(f.code)}</span></span></button>`).join('')}</div>` : ''}
+      ${baseFmRows('dsetPick')}
       <button class="btn" data-act="closeSheet">Cancel</button>`);
   },
   dsetEdit(){ hideSheet(); W.rsel = null; setStep('off'); W.cur = 0; refresh(); },
   dsetPick(d){
-    const f = S.formations.find(o => o.id === d.id); if (!f) return;
+    const f = fmGet(d.id); if (!f) return;
     hideSheet();
     /* keep each man's art by his tag, stored outside-positive so it lands right on either side */
     const byTag = {};
@@ -3491,6 +4033,7 @@ const ACT = {
         ${fr.map(f => row('front:' + f.id, f.name, f.code, cur.kind === 'front' && cur.id === f.id)).join('')}
         ${row('none:', 'No defense', 'Art on an empty field', cur.kind === 'none')}
       </div>
+      ${baseFrRows('dfrontPick', 'front:')}
       <button class="btn" data-act="closeSheet">Cancel</button>`);
   },
   dfrontPick(d){
@@ -3645,21 +4188,22 @@ const ACT = {
     showSheet(`<h3>Load a saved front</h3>
       ${fr.length ? `<div class="list">${fr.map(f => `<button class="li" data-act="loadFront" data-id="${f.id}"><span class="li-main"><span class="li-t">${esc(f.name)}</span><span class="li-s mono">${esc(f.code)}</span></span></button>`).join('')}</div>`
         : '<p>No saved fronts yet. Build one with New defense front on the home screen.</p>'}
+      ${baseFrRows('loadFront')}
       <p>It loads to this play's strong side. Drag anyone to fix him.</p>
       <button class="btn" data-act="closeSheet">Cancel</button>`);
   },
   loadFront(d){
-    const f = S.fronts.find(o => o.id === d.id); if (!f) return;
+    const f = frGet(d.id); if (!f) return;
     loadFrontInto(f); hideSheet();
     diag('def.loadFront', `"${f.name}" ${f.code} strong ${W.strength}`);
     setStep('rest'); rebuildRest(); refresh();
-    toast(`Loaded ${esc(f.name)}. Check it, then save.`);
+    toast(`Loaded ${esc(frName(f))}. Check it, then save.`);
   },
   saveFrontAsk(){
     const d = defObject();
     const errs = validateDefense(d);
     if (errs.length){ fail('save.front', 'valid defense', errs.join('; '), d); return; }
-    const cur = W.editFront ? (S.fronts.find(o => o.id === W.editFront) || {}).name : '';
+    const cur = W.editFront ? (S.fronts.find(o => o.id === W.editFront) || {}).name : (W.nameHint || '');
     showSheet(`<h3>Name this front</h3>
       <p class="mono">${esc((W.strength === 'L' ? defCode(mirrorDef(d), 'R') : defCode(d, 'R')))}</p>
       <input id="frontName" class="txt" value="${esc(cur || frontSuggest(d))}" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done">
@@ -3768,9 +4312,120 @@ const ACT = {
   },
   clearLog(){ DIAG = []; lsSetRaw(KEYS.diag, '[]'); lsSetRaw(KEYS.dumps, '[]'); diag('diag', 'log and dumps cleared'); refresh(); }
 };
+/* ================= 0.9.0 actions: the inbox cards, the base book, the frames, chalk's frame ================= */
+const topCard = () => inboxSplit().top;
+Object.assign(ACT, {
+  cardTo(d){ PARK.delete(d.key); parkSave(); CARDV.key = d.key; CARDV.shot = 'snap'; renderHome(); $('#home').scrollTop = 0; },
+  unparkAll(){ const n = PARK.size; PARK.clear(); parkSave(); diag('card.park', `${n} unparked`); renderHome(); },
+  shot(d){ if (FILMV.open && !$('#sheet').hidden){ FILMV.shot = d.v; ACT.film(); } else { FILMV.open = false; CARDV.shot = d.v; renderHome(); } },
+  cardStr(d){ const q = topCard(); if (!q) return; cardOf(q.key).strength = d.v === 'L' ? 'L' : 'R'; renderHome(); },
+  cardHash(d){ const q = topCard(); if (!q) return; cardOf(q.key).hash = d.v; renderHome(); },
+  cardPark(){
+    const q = topCard(); if (!q) return;
+    PARK.add(q.key); parkSave(); CARDV.key = null;
+    diag('card.park', q.key); toast(`Parked: ${esc(sitWord(q.sit))}`); renderHome();
+  },
+  cardEdit(d){
+    const q = topCard(); if (!q) return;
+    hideSheet();
+    const v = cardView(q);
+    startQueued(q); W.fromCard = true;
+    if (v.set && !(d && d.v === 'blank')){ const off = offFromSet(v.set.f, persOf(q.pers)); loadOffInto(W, v.c.strength === 'L' ? mirrorOff(off) : off, false); W.hash = v.c.hash; refresh(); }
+  },
+  cardOk(){
+    const q = topCard(); if (!q){ renderHome(); return; }
+    const v = cardView(q);
+    if (!v.set){ toast('Pick the set first: tap Set.'); renderHome(); return; }
+    const off0 = offFromSet(v.set.f, persOf(q.pers));
+    const off = v.c.strength === 'L' ? mirrorOff(off0) : off0;
+    const st = strengthOf(off.tokens);
+    const def = v.front ? frontDef(v.front.d, st, v.front.name) : null;
+    const p = makePlay({off, name:v.set.f.base ? fmFiled(v.set.f, off.pers) : v.set.f.name, def, key:q.key, sit:q.sit || null, hash:v.c.hash,
+      spot:q.sit && q.sit.yard != null ? yardToSpot(q.sit.yard) : -35, src:'card', stage:'card.confirm'});
+    if (!p){ renderHome(); return; }
+    const chart = v.c.chart;
+    CARD.delete(q.key); PARK.delete(q.key); parkSave(); CARDV.key = null; CARDV.shot = 'snap';
+    diag('card.confirm', `${q.key} → play ${p.n}: ${playCode(p)}`);
+    if (chart){ ACT.openPlay({id:p.id}); ACT.redoDef({id:p.id}); W.chain = null; toast(`Play ${p.n} logged. Now chart the defense.`); return; }
+    toast(`Play ${p.n} logged: ${esc(p.name)}${def ? ' vs ' + esc(v.front.name) : ''}`);
+    renderHome();
+  },
+  cardSet(){
+    const q = topCard(); if (!q) return;
+    const v = cardView(q), pers = persOf(q.pers), qb = qbOf(q.qb);
+    const cur = v.set ? v.set.f.id : null;
+    const mine = v.sc.list.filter(x => x.src !== 'base'), base = v.sc.list.filter(x => x.src === 'base');
+    const row = x => `<button class="li" data-act="cardSetPick" data-id="${x.f.id}"><span class="li-main"><span class="li-t">${esc(x.f.base ? fmFiled(x.f, pers || x.f.pers) : x.f.name)}${x.f.id === cur ? ' ✓' : ''}</span>
+      <span class="li-s mono">${x.n ? `${x.n}× · ` : ''}${esc(x.f.base && NAMING !== 'desc' ? (x.f.desc || x.f.code) : x.f.code)}</span></span></button>`;
+    showSheet(`<h3>Fix the set</h3><p>${esc([pers ? pers + ' personnel' : 'personnel unknown', qb ? QB_LABEL[qb] : 'QB unknown'].join(' · '))} · ranked by how often you logged it</p>
+      ${mine.length ? `<div class="list">${mine.slice(0, 40).map(row).join('')}</div>` : '<p>Nothing in your book fits yet. The NFL base sets do.</p>'}
+      ${base.length ? `<details class="base" ${mine.length ? '' : 'open'}><summary>NFL base sets · ${base.length}</summary><div class="list">${base.map(row).join('')}</div></details>` : ''}
+      <button class="btn" data-act="cardEdit" data-v="blank">New set on the field</button>
+      <button class="btn" data-act="closeSheet">Cancel</button>`);
+  },
+  cardSetPick(d){ const q = topCard(); if (!q) return; cardOf(q.key).setId = d.id; hideSheet(); diag('card.set', `${q.key}: ${d.id}`); renderHome(); },
+  cardFront(){
+    const q = topCard(); if (!q) return;
+    const v = cardView(q), cur = v.front ? v.front.code : null;
+    const mine = v.fc.list.filter(x => x.src !== 'base'), base = v.fc.list.filter(x => x.src === 'base');
+    const row = x => `<button class="li" data-act="cardFrontPick" data-v="${esc(x.code)}"><span class="li-main"><span class="li-t">${esc(x.name)}${x.code === cur ? ' ✓' : ''}</span>
+      <span class="li-s mono">${x.src === 'ipad' ? 'the iPad\'s pick · ' : x.n ? `${x.n}× · ` : ''}${esc(x.code)}</span></span></button>`;
+    showSheet(`<h3>Fix the front</h3><p>It lines up to the strong side you set on the card.</p>
+      ${mine.length ? `<div class="list">${mine.slice(0, 40).map(row).join('')}</div>` : ''}
+      ${base.length ? `<details class="base" ${mine.length ? '' : 'open'}><summary>NFL base fronts · ${base.length}</summary><div class="list">${base.map(row).join('')}</div></details>` : ''}
+      <button class="btn def" data-act="cardChart">${v.c.chart ? 'Chart it on the field after Confirm ✓' : 'Chart it on the field after Confirm'}</button>
+      <div class="row"><button class="btn" data-act="cardFrontNone">No defense</button><button class="btn" data-act="closeSheet">Cancel</button></div>`);
+  },
+  cardFrontPick(d){ const q = topCard(); if (!q) return; const c = cardOf(q.key); c.frontCode = d.v; hideSheet(); renderHome(); },
+  cardFrontNone(){ const q = topCard(); if (!q) return; const c = cardOf(q.key); c.frontCode = null; c.chart = false; hideSheet(); renderHome(); },
+  cardChart(){ const q = topCard(); if (!q) return; const c = cardOf(q.key); c.chart = !c.chart; hideSheet(); renderHome(); },
+  film(){
+    const k = W && W.qkey;
+    if (!k || !framesNow(k)){ FILMV.open = false; hideSheet(); return; }
+    FILMV.open = true;
+    showSheet(`<h3>The film</h3><p>${esc(sitWord(W.qsit))} · from chalk</p>${framesBlock(k, FILMV.shot)}<button class="btn" data-act="filmClose">Done</button>`);
+  },
+  filmClose(){ FILMV.open = false; hideSheet(); },
+  baseSheet(){
+    if (!BASE.formations.length){ toast(BASE.state === 'error' ? 'The base book has not loaded. It loads with a connection.' : 'The base book is still loading.'); baseLoad(); return; }
+    showSheet(`<h3>NFL base book</h3><p>Every set takes any personnel. Strength right; Flip mirrors it. Names: ${NAMING === 'desc' ? 'descriptive' : 'pro'}.</p>
+      ${baseFmRows('baseFm').replace('<details class="base">', '<details class="base" open>')}
+      ${baseFrRows('baseFr')}
+      <button class="btn" data-act="closeSheet">Done</button>`);
+  },
+  baseFm(d){
+    const f = fmGet(d.id); if (!f) return;
+    showSheet(`<h3>${esc(fmName(f))}</h3><p>${esc(NAMING === 'desc' ? f.name : (f.desc || ''))}${f.aliases && f.aliases.length ? ' · also ' + esc(f.aliases.join(', ')) : ''}</p>
+      ${codeRow(f.code, 'formation code')}
+      <button class="btn pri" data-act="logFrom" data-id="${f.id}">Log a play from it</button>
+      <button class="btn" data-act="designFrom" data-id="${f.id}">Draw a play from it</button>
+      <button class="btn" data-act="baseFmCopy" data-id="${f.id}">Add to my sets</button>
+      <button class="btn" data-act="baseSheet">Back</button>`);
+  },
+  baseFmCopy(d){ const f = fmGet(d.id); if (!f) return; hideSheet(); startTemplate(Object.assign({}, f, {id:null, name:fmFiled(f, f.pers)})); },
+  baseFr(d){
+    const f = frGet(d.id); if (!f) return;
+    showSheet(`<h3>${esc(frName(f))}</h3><p>${esc(NAMING === 'desc' ? f.name : f.summary)}${f.aliases && f.aliases.length ? ' · also ' + esc(f.aliases.join(', ')) : ''}</p>
+      ${codeRow(f.code, 'front code')}
+      <button class="btn def" data-act="baseFrCopy" data-id="${f.id}">Add to my fronts</button>
+      <button class="btn" data-act="baseSheet">Back</button>`);
+  },
+  baseFrCopy(d){
+    const f = frGet(d.id); if (!f) return;
+    hideSheet();
+    W = newWork('dtemplate'); W.tokens = []; W.editFront = null; W.strength = 'R'; W.nameHint = frName(f);
+    loadFrontInto(f);
+    setStep('box'); setView('editor'); refresh();
+    diag('flow', `front from the base book: ${f.name}`);
+  },
+  naming(d){ NAMING = d.v === 'desc' ? 'desc' : 'pro'; lsSetRaw('pb.naming', NAMING); diag('naming', NAMING); refresh(); },
+  embedLog(){ startQueued(embedQ()); },
+  embedSet(){ startTemplate(null); W.embedTag = false; }
+});
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   if (!el || el.disabled) return;
+  if (performance.now() < SWIPE.block) return;
   const act = el.dataset.act;
   if (act === 'closeSheet' && el.id === 'sheet' && e.target !== el) return;
   const fn = ACT[act];
@@ -3783,12 +4438,19 @@ document.addEventListener('click', e => {
 DIAG = lsGetJSON(KEYS.diag, []);
 if (!Array.isArray(DIAG)) DIAG = [];
 diag('boot', `v${VERSION} start, ${navigator.userAgent}`);
-loadStore();
 if ('ResizeObserver' in window) new ResizeObserver(() => { if (VIEW === 'editor' && measure()){ clampCam(); render(); } }).observe($('#fieldWrap'));
 window.addEventListener('resize', () => { if (VIEW === 'editor' && measure()){ clampCam(); render(); } });
-setView('home'); refresh();
-connectDb();
-syncStart();
+if (EMBED) embedBoot();
+else {
+  loadStore();
+  NAMING = lsGetRaw('pb.naming') === 'desc' ? 'desc' : 'pro';
+  { const pk = lsGetJSON('pb.parked', []); if (Array.isArray(pk)) pk.forEach(k => { if (typeof k === 'string') PARK.add(k); }); }
+  { const al = lsGetJSON('pb.adopted', []); if (Array.isArray(al)) ADOPT.log = al.filter(a => a && a.at).slice(0, 30); }
+  setView('home'); refresh();
+  connectDb();
+  syncStart();
+  baseLoad();
+}
 })();
 </script>
 
