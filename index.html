@@ -309,7 +309,7 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
 <script>
 (() => {
 'use strict';
-const VERSION = '0.10.0';
+const VERSION = '0.10.1';
 const KEYS = {store:'pb.store', diag:'pb.diag', dumps:'pb.dumps', base:'pb.baseline', bad:'pb.store.bad'};
 const LETTER_COLOR = {X:'#FF5A4E', Y:'#FFD23F', Z:'#B78CFF', H:'#4DA3FF', F:'#3DDC84'};
 const PERS = ['11','12','10','13','21','22','20','23','01','02','00','31','30'];
@@ -785,15 +785,15 @@ async function gh(method, path, body, etag){
 const strip = (k,v) => (k === '_bad' || k === '_sync' || k === '_conv') ? undefined : v;
 function phoneJSON(){
   return JSON.stringify({v:1, at:new Date().toISOString(), names:NAMES.cfg(), formations:S.formations, fronts:S.fronts, designs:S.designs, plays:S.plays,
-    deleted:SYNC.deleted.slice(-500), hold:SYNC.hold}, strip);
+    deleted:SYNC.deleted.slice(-5000), hold:SYNC.hold}, strip);
 }
-function tomb(id){ SYNC.deleted.push(id); lsSetRaw('pb.deleted', JSON.stringify(SYNC.deleted.slice(-500))); }
+function tomb(id){ SYNC.deleted.push(id); lsSetRaw('pb.deleted', JSON.stringify(SYNC.deleted.slice(-5000))); }
 const stamp = o => String(o.updated || o.created || o.t || '');
 /* bring in another copy (the gist's, or pasted data): union by id, the newer copy wins, deleted ids stay deleted */
 function mergeStore(src, stage){
   if (src && src.names) namesAdopt(src.names);
   const dead = new Set(SYNC.deleted.concat(Array.isArray(src.deleted) ? src.deleted : []));
-  SYNC.deleted = [...dead]; lsSetRaw('pb.deleted', JSON.stringify(SYNC.deleted.slice(-500)));
+  SYNC.deleted = [...dead]; lsSetRaw('pb.deleted', JSON.stringify(SYNC.deleted.slice(-5000)));
   const counts = {};
   ['formations','fronts','designs','plays'].forEach(coll => {
     const theirs = Array.isArray(src[coll]) ? src[coll] : [];
@@ -5564,10 +5564,16 @@ function renderHome(){
       <button class="li-b" data-act="syncSheet">Sync</button></div>`;
 }
 /* one time: clear the sets you entered, keep the NFL base (you asked for a clean book) */
+/* one time (0.10.1): start clean — your logged plays, sets, drawn plays and fronts go; the NFL base book stays */
+const WIPE = {plays:true, formations:true, designs:true, fronts:true};
+const WIPE_LBL = {plays:'logged plays', formations:'offense sets you entered', designs:'drawn plays', fronts:'defense fronts you entered'};
 function clearPrompt(){
-  if (EMBED || lsGetRaw('pb.clear091') || !S.formations.length) return;
-  showSheet(`<h3>Clear your saved sets?</h3><p>${S.formations.length} set${S.formations.length === 1 ? '' : 's'} you entered go; the ${BASE.formations.length || 43} NFL base sets stay. Logged plays keep their own copy of their set. The phone's sync carries the delete to the iPad.</p>
-    <div class="row"><button class="btn" data-act="clearSetsNo">Keep them</button><button class="btn danger" data-act="clearSetsYes">Clear ${S.formations.length}</button></div>`);
+  if (EMBED || lsGetRaw('pb.clear0101')) return;
+  const n = k => (S[k] || []).length;
+  if (!Object.keys(WIPE).some(k => n(k))){ lsSetRaw('pb.clear0101', 'empty'); return; }
+  showSheet(`<h3>Start clean?</h3><p>Everything ticked goes. The NFL base sets and fronts stay — they're the whole book after this. The delete syncs to the iPad. This can't be undone.</p>
+    ${Object.keys(WIPE).map(k => `<button class="sug ${WIPE[k] && n(k) ? 'on' : ''}" data-act="wipeTog" data-k="${k}" ${n(k) ? '' : 'disabled'}>${WIPE[k] && n(k) ? '✓ ' : ''}${n(k)} ${WIPE_LBL[k]}</button>`).join('')}
+    <div class="row"><button class="btn" data-act="wipeNo">Keep everything</button><button class="btn danger" data-act="wipeYes">Clear</button></div>`);
 }
 
 /* ================= actions ================= */
@@ -6189,6 +6195,18 @@ Object.assign(ACT, {
   naming(d){ NAMING = d.v === 'desc' ? 'desc' : 'pro'; lsSetRaw('pb.naming', NAMING); diag('naming', NAMING); refresh(); glossSheet(NAMING); },
   tend(d){ tendSheet(d && d.v || ''); },
   clearSetsNo(){ lsSetRaw('pb.clear091', 'kept'); hideSheet(); diag('clear.sets', 'kept'); },
+  wipeTog(d){ WIPE[d.k] = !WIPE[d.k]; clearPrompt(); },
+  wipeNo(){ lsSetRaw('pb.clear0101', 'kept'); hideSheet(); diag('wipe', 'kept everything'); },
+  wipeYes(){
+    const keep = {}, gone = {};
+    Object.keys(WIPE).forEach(k => { keep[k] = S[k]; gone[k] = WIPE[k] ? S[k].slice() : []; if (WIPE[k]) S[k] = []; });
+    if (WIPE.plays) S.seq = 0;
+    if (!saveStore('wipe')){ Object.assign(S, keep); return; }
+    Object.keys(gone).forEach(k => gone[k].forEach(o => { tomb(o.id); dbDel(k, o.id, 'wipe'); }));
+    lsSetRaw('pb.clear0101', 'done'); lsSetRaw('pb.clear091', 'done');
+    const said = Object.keys(gone).filter(k => gone[k].length).map(k => `${gone[k].length} ${WIPE_LBL[k]}`).join(', ');
+    diag('wipe', said || 'nothing'); hideSheet(); toast(`Cleared ${esc(said)}. The NFL base book is what's left.`); refresh(); renderHome();
+  },
   clearSetsYes(){
     const gone = S.formations.slice();
     S.formations = [];
