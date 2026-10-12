@@ -1,7 +1,7 @@
 {
  "v": 1,
- "at": "2026-10-12T05:19:33.043Z",
- "note": "Base book for chalk and Playbook — strength right; the apps mirror. Sources: Wikipedia, List of formations in American football; NFL staples.",
+ "at": "2026-10-12T06:30:08.047Z",
+ "note": "Base book for chalk and Playbook — strength right (the tight end’s side; no tight end, more receivers); the apps mirror. Sources: Wikipedia, List of formations in American football; NFL staples.",
  "formations": [
   {
    "id": "base-o-i-rt",
@@ -45,23 +45,24 @@
    "base": true
   },
   {
-   "id": "base-o-i-twins-rt",
-   "name": "I Twins Rt",
-   "pro": "I Twins Rt",
-   "desc": "Under center · 21 personnel · twins right · I backfield · TE inline left",
+   "id": "base-o-i-rt-slot",
+   "name": "I Rt Slot",
+   "pro": "I Rt Slot",
+   "desc": "Under center · 21 personnel · twins left · I backfield · TE inline right",
    "family": "I formation",
    "aliases": [
-    "I Twins"
+    "I Twins",
+    "Pro Slot"
    ],
    "source": "nfl",
-   "note": null,
+   "note": "Tight end right, both receivers left: the strength is the tight end’s side.",
    "pers": "21",
    "xol": false,
    "qb": "under",
    "tokens": [
     {
      "type": "T",
-     "slot": "L:I:0"
+     "slot": "R:I:0"
     },
     {
      "type": "B",
@@ -73,14 +74,14 @@
     },
     {
      "type": "W",
-     "slot": "R:S:1"
+     "slot": "L:S:1"
     },
     {
      "type": "W",
-     "slot": "R:N:0"
+     "slot": "L:N:0"
     }
    ],
-   "code": "O21U wI B T sS' sN",
+   "code": "O21U wN wS' B T sI",
    "fmt": 4,
    "base": true
   },
@@ -700,9 +701,9 @@
    "base": true
   },
   {
-   "id": "base-o-unbalanced-t-rt",
-   "name": "Unbalanced T Rt",
-   "pro": "Unbalanced T Rt",
+   "id": "base-o-t-rt-unbalanced",
+   "name": "T Rt Unbalanced",
+   "pro": "T Rt Unbalanced",
    "desc": "Under center · 31 personnel · 1x0 · three backs · TE flexed right · unbalanced",
    "family": "T formation",
    "aliases": [
@@ -1069,9 +1070,9 @@
    "base": true
   },
   {
-   "id": "base-o-gun-stack-rt",
-   "name": "Gun Stack Rt",
-   "pro": "Gun Stack Rt",
+   "id": "base-o-gun-trey-rt-stack",
+   "name": "Gun Trey Rt Stack",
+   "pro": "Gun Trey Rt Stack",
    "desc": "Shotgun · 11 personnel · stack right · back beside the QB · TE inline right",
    "family": "Shotgun",
    "aliases": [

@@ -283,7 +283,7 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
 <script>
 (() => {
 'use strict';
-const VERSION = '0.9.1';
+const VERSION = '0.9.2';
 const KEYS = {store:'pb.store', diag:'pb.diag', dumps:'pb.dumps', base:'pb.baseline', bad:'pb.store.bad'};
 const LETTER_COLOR = {X:'#FF5A4E', Y:'#FFD23F', Z:'#B78CFF', H:'#4DA3FF', F:'#3DDC84'};
 const PERS = ['11','12','10','13','21','22','20','23','01','02','00','31','30'];
@@ -396,7 +396,8 @@ function dbXY(key, hash){
    O + personnel (6/ in front for a sixth lineman) + QB letter, then each man in 2–3 characters:
    s strong / w weak + I T S N W (O = extra lineman) + nothing on the ball, ' off, " stack
    backfield Hw Bw B T Bs Hs. Order: weak outside → in, backfield, strong inside → out.
-   Strong = more men on that side (receivers + H-backs); tie → more tight ends; tie → the code that sorts first. */
+   Strong = the tight end's side (the side with more of them); no tight end (or one each side) → more men on that side
+   (receivers + H-backs); still even → the code that sorts first. */
 function sideCounts(tokens){
   const c = {L:{n:0, t:0}, R:{n:0, t:0}};
   tokens.forEach(t => {
@@ -425,8 +426,8 @@ function codeBody(tokens, strong){
 }
 function strengthOf(tokens){
   const c = sideCounts(tokens);
-  if (c.L.n !== c.R.n) return c.R.n > c.L.n ? 'R' : 'L';
   if (c.L.t !== c.R.t) return c.R.t > c.L.t ? 'R' : 'L';
+  if (c.L.n !== c.R.n) return c.R.n > c.L.n ? 'R' : 'L';
   return codeBody(tokens, 'R') <= codeBody(tokens, 'L') ? 'R' : 'L';
 }
 const persStr = (pers, xol) => (xol ? '6/' : '') + pers;
@@ -617,8 +618,25 @@ function loadStore(){
     if (checkPlay(p).length){ flagged++; diag('boot.validate', `play ${p.id}: ${p._bad}`); }
     if (p.n > S.seq) S.seq = p.n;
   });
+  if (restrength()) lsSetRaw(KEYS.store, JSON.stringify(S, (k,v) => (k === '_bad' || k === '_conv') ? undefined : v));
   diag('boot.store', `ok: ${S.formations.length} formations, ${S.plays.length} plays, ${S.designs.length} designs, ${conv} converted to slots, ${flagged} flagged, ${raw.length} bytes, ${(performance.now()-t0).toFixed(1)} ms`);
   if (flagged) toast(`<b>boot.validate</b>: ${flagged} saved item(s) failed checks. See Diagnostics.`, 'err');
+}
+/* 0.9.2: strength is the tight end's side. Sets are kept strength-right, plays carry their strength and code: redo both. */
+function restrength(){
+  let n = 0;
+  S.formations.forEach(f => {
+    if (!f || f._bad || !Array.isArray(f.tokens) || validateOffense(f).length) return;
+    const tokens = strongRight(f.tokens.map(t => ({type:t.type, slot:t.slot}))), code = formationCodeOf(Object.assign({}, f, {tokens}));
+    if (code !== f.code){ f.tokens = tokens; f.code = code; n++; }
+  });
+  S.plays.forEach(p => {
+    if (!p || p._bad || !p.off || !Array.isArray(p.off.tokens) || validateOffense(p.off).length) return;
+    const st = strengthOf(p.off.tokens), fc = formationCodeOf(p.off);
+    if (st !== p.strength || fc !== p.fcode){ p.strength = st; p.fcode = fc; n++; }
+  });
+  if (n) diag('restrength', `${n} sets and plays moved to the tight-end strength rule`);
+  return n;
 }
 function saveStore(stage){
   const t0 = performance.now();
@@ -766,6 +784,7 @@ function mergeStore(src, stage){
     counts[coll] = `${added} new, ${newer} newer`;
   });
   S.seq = Math.max(S.seq, ...S.plays.map(p => p.n | 0), 0);
+  restrength();
   saveStore(stage);
   diag(stage, 'merged', counts);
   return counts;
@@ -1121,6 +1140,7 @@ function suggestNames(){
   const isBunch = side => { const xs = side.filter(m => RCOLS.includes(m.col)).map(m => m.x); if (xs.length < 3) return false; return Math.max(...xs) - Math.min(...xs) <= 4 && new Set(side.map(m => m.row)).size > 1; };
   let word = '';
   if (mx >= 4) word = 'Quads';
+  else if (mn > mx) word = mn >= 4 ? 'Quads Weak' : mn === 3 ? 'Trips Weak' : 'Slot';   // strength is the tight end's side, so the weak side can hold more
   else if (mx === 3) word = isBunch(strong) ? 'Bunch' : (hasStack(strong) ? 'Trips Stack' : (mn === 2 ? 'Trey' : (strong.some(m => m.type === 'T') ? 'Trips TE' : 'Trips')));
   else if (mx === 2 && mn === 2) word = hasStack(strong) || hasStack(weak) ? 'Doubles Stack' : ((base === 'Singleback' && tes.length === 2) ? 'Ace' : 'Doubles');
   else if (mx === 2) word = strong.some(m => m.type === 'T' && m.row === '0') ? 'Pro' : 'Twins';
@@ -2100,6 +2120,7 @@ svg.addEventListener('pointermove', e => {
     clampCam(); render(); return;
   }
   if (!drag || lockUntilUp) return;
+  if (drag.p0 && !drag.armed){ if (Math.hypot(p.x - drag.p0.x, p.y - drag.p0.y) < 10) return; drag.armed = true; }
   if (RKINDS.has(drag.kind)) routeMove(p); else if (drag.kind === 'off') offMove(p); else if (drag.kind === 'box') boxMove(p); else restMove(p);
 });
 const endPointer = e => {
@@ -2116,6 +2137,8 @@ const endPointer = e => {
     const t = drag.kind === 'off' ? W.tokens.find(o => o.id === drag.id) : W.def.deep.concat(W.def.rest).find(o => o.id === drag.id);
     if (t) diag(drag.kind + '.move', `${drag.id} → ${t.slot}`);
   }
+  if (drag.toggle && !drag.moved) W.dsel = null;
+  if (W && W.step === 'djobs' && drag.kind === 'rest' && drag.moved) reshell();
   drag = null; bubble = null; undoFirst = null;
   refresh();
 };
@@ -2542,9 +2565,10 @@ function jobsDown(p){
     else { W.droles = W.droles || {}; W.droles[W.dsel] = {job:'Man', on:tH.key}; W.dirty = true; diag('jobs.man', `${W.dsel} on ${tH.tag} (${tH.key})`); }
   } else if (dH){
     /* pick him, and drag him to a new spot: his job goes with him */
-    W.dsel = W.dsel === dH.key ? null : dH.key;
+    const was = W.dsel === dH.key;
+    W.dsel = dH.key;
     const b = W.def.box.find(o => o.id === dH.id);
-    drag = b ? {kind:'box', id:b.id, line0:isLine(b)} : {kind:'rest', id:dH.id};
+    drag = b ? {kind:'box', id:b.id, line0:isLine(b), p0:p, toggle:was} : {kind:'rest', id:dH.id, p0:p, toggle:was};
     return;
   }
   else W.dsel = null;
@@ -3356,9 +3380,11 @@ const PBA = (() => {
     const corner = s => dbs.filter(d => Math.sign(d.x) === s && Math.abs(d.x) >= 8).sort((a,b) => Math.abs(b.x) - Math.abs(a.x))[0] || null;
     const cS = corner(sg), cW = corner(-sg);
     const others = dbs.filter(d => d !== cS && d !== cW);
-    const saf = others.slice().sort((a,b) => b.d - a.d || Math.abs(a.x) - Math.abs(b.x)).slice(0, 2).filter(d => d.d >= 6);
-    const FS = saf.slice().sort((a,b) => b.d - a.d || a.x * sg - b.x * sg)[0] || null;
-    const SS = saf.find(d => d !== FS) || null;
+    /* the free safety is the deepest, most central back; the strong safety the next deepest, strong side first */
+    let FS = others.filter(d => d.d >= 6).sort((a,b) => b.d - a.d || Math.abs(a.x) - Math.abs(b.x))[0] || null;
+    let SS = others.filter(d => d !== FS && d.d >= 6).sort((a,b) => b.d - a.d || ((b.x * sg > 0) - (a.x * sg > 0)) || Math.abs(a.x) - Math.abs(b.x))[0] || null;
+    if (FS && SS && FS.x * sg > 0 && SS.x * sg < 0){ const t = FS; FS = SS; SS = t; }
+    const saf = [FS, SS].filter(Boolean);
     const nick = others.filter(d => !saf.includes(d));
     const downs = D.filter(d => d.lvl === 'dl' && d.hand !== 'up');
     const ups = D.filter(d => d.lvl === 'dl' && d.hand === 'up').sort((a,b) => a.x * sg - b.x * sg);
@@ -3498,7 +3524,7 @@ const PBA = (() => {
   }
   function placeDbs(front, plan){
     const out = (front.dbs || []).map(o => Object.assign({}, o)), taken = new Set();
-    const order = out.map((o,i) => i).sort((a,b) => (plan.want['d' + a] ? 1 : 0) - (plan.want['d' + b] ? 1 : 0));
+    const order = out.map((o,i) => i).sort((a,b) => (plan.want['d' + b] ? 1 : 0) - (plan.want['d' + a] ? 1 : 0));
     order.forEach(i => { const w = plan.want['d' + i] || out[i].slot; const k = taken.has(w) ? nearestFree(w, taken) : w; out[i].slot = k; taken.add(k); });
     /* the shell counts the safeties playing deep; deep corners stay "rest" the way the editor keeps them */
     out.forEach((o,i) => { const a = plan.areas['d' + i]; o.kind = a && a.deep && /:(I|T|S|M):d$/.test(o.slot) ? 'deep' : 'rest'; });
@@ -3513,7 +3539,7 @@ const PBA = (() => {
     return {box:front.box.map(b => Object.assign({}, b)), dbs:P.dbs, shell:P.shell, cov:{name:plan.name, code:plan.code, pressure:plan.pressure, rcode:plan.rcode}, call:plan.id, plan};
   }
 
-  /* ---- what the line sees: the center's front call, and the 49ers front number ---- */
+  /* ---- what the line sees: the center's front call (Over, Under, Odd, Even, Jam, Bear) ---- */
   function frontId(front, strong){
     const sg = strong === 'L' ? -1 : 1, box = front.box || [], L1 = box.filter(b => b.d === 1);
     const at = (lo, hi, s) => L1.some(b => { const v = b.x * s; return v >= lo - 0.01 && v <= hi + 0.01; });
@@ -3523,10 +3549,8 @@ const PBA = (() => {
     const te = box.some(b => b.d === 1 && b.x * sg >= 5.4 && b.x * sg <= 6.1) || (front.dbs || []).some(o => o.slot && /^[LR]:I:p$/.test(o.slot) && (o.slot[0] === 'R') === (sg > 0));
     if (id === 'Jam' && te) id = 'Bear';
     const samOn = L1.some(b => b.hand === 'up' && b.x * sg >= 4.5), willOn = L1.some(b => b.hand === 'up' && b.x * sg <= -4.5);
-    const first = {Under:2, Even:4, Over:5}[id.split(' ')[0]] || (id === 'Odd' ? 3 : null);
-    const second = samOn && willOn ? 3 : samOn ? 5 : willOn ? 7 : 9;
     const nDB = (front.dbs || []).length, pkg = nDB >= 7 ? 'Quarter' : nDB === 6 ? 'Dime' : nDB === 5 ? 'Nickel' : nDB <= 3 ? 'Heavy' : 'Base';
-    return {id, num:first && downs >= 3 ? `${first}${second}` : null, samOn, willOn, downs, pkg};
+    return {id, samOn, willOn, downs, pkg};
   }
 
   /* ---- art: square, field green, the line of scrimmage blue ---- */
@@ -3629,27 +3653,38 @@ const PBA = (() => {
 
   /* ---- the glossary: what each naming style describes, the words, and their opposites ---- */
   const GLOSS = {
-    pro: {title:'Pro names', eg:'Gun Trey Rt',
-      what:'A pro name is the shorthand coaches say out loud. Three pieces, in order: how the QB and backs line up, how the receivers are spread, and which side the strength is to.',
-      parts:[['Backfield','Gun, Pistol, I, Strong I, Weak I, Pro, Ace, Empty'],['Receivers','Doubles, Trips, Trey, Twins, Bunch, Stack, Quads, Spread, Wing, Tank'],['Direction','Rt / Lt — the strength: the side with more receivers, or the tight end when it is even']],
+    pro: {title:'Pro names — the call', eg:'Gun Trey Rt Tight · Z Jet Lt · Inside Zone Lt',
+      what:'A pro name reads in huddle order, the way a play is called: shift, formation, direction, tags, motion, then the play. Every word is common league language — no team’s code words. Rt/Lt is the strength: the tight end’s side; with no tight end, the side with more receivers.',
+      parts:[['1 · Shift','what moves before the set: Shift to…, Y across'],['2 · Formation','backfield and receivers: Gun Trey, I, Ace Doubles, Empty Quads'],['3 · Direction','Rt / Lt — the strength'],['4 · Tags','Tight, Close, Nasty, Wide, Stack, Bunch, Slot, Wing, Off, Flex, Unbalanced'],['5 · Motion','who and where: Z Jet Lt, H Orbit Rt, Y Across, F Short'],['6 · Play','a run’s family and side (Inside Zone Lt, Power Rt); a pass’s concept (Mesh, Smash, Stick, Flood)']],
       words:[
         ['Gun','QB about 5 yards deep (shotgun).','Under center'],
-        ['Pistol','QB about 4 yards deep with the back directly behind him.','Gun (back beside the QB)'],
+        ['Pistol','QB about 4 yards deep, the back directly behind him.','Gun (back beside the QB)'],
         ['Ace / Singleback','One back behind an under-center QB.','I / Pro (two backs)'],
         ['I','Fullback and tailback stacked straight behind the QB.','Split backs (Pro)'],
-        ['Strong I / Weak I','Offset I: the fullback cheats toward the tight end (strong) or away from him (weak).','Each other'],
+        ['Strong I / Weak I','Offset I: the fullback cheats to the strength / away from it.','Each other'],
         ['Pro / Split','Two backs side by side behind the QB.','I (stacked)'],
         ['Empty','No back: five receivers spread out.','Full house (three backs)'],
         ['Doubles (2x2)','Two receivers to each side.','Trips (3x1)'],
         ['Trips (3x1)','Three detached receivers to one side, one alone backside.','Doubles'],
         ['Trey','3x1 where one of the three is the tight end on the line.','Trips (all three detached)'],
-        ['Twins','Two wide receivers to one side, the tight end alone to the other.','Pro (tight end and flanker on the same side)'],
-        ['Bunch','Three receivers in a tight triangle, a yard or two apart.','Spread'],
-        ['Stack','One receiver lined up directly behind another.','Spread'],
-        ['Quads','Four receivers to one side.','Empty balanced (3x2)'],
-        ['Wing','A tight end or H-back a yard off the ball just outside the end man.','Inline (on the line)'],
-        ['Tank','A tight end inline with a second one at wing outside him.','Ace (one tight end each side)'],
-        ['Rt / Lt','The side the strength is to.','Each other'],
+        ['Twins','Two wide receivers to one side, the tight end alone the other side.','Pro (tight end and flanker the same side)'],
+        ['Quads','Four receivers to one side.','Balanced'],
+        ['Rt / Lt','The strength: the tight end’s side; no tight end, the side with more receivers.','Each other'],
+        ['Slot (tag)','The flanker moves inside to the weak side’s slot.','Pro (flanker outside the tight end)'],
+        ['Tight / Close (tag)','A receiver in a reduced split, near the formation.','Wide / Max (split out to the sideline)'],
+        ['Nasty (tag)','A receiver about 4 yards outside the end man — a crack and rub split.','Normal split'],
+        ['Stack (tag)','One receiver directly behind another.','Spread'],
+        ['Bunch (tag)','Three receivers in a tight triangle a yard or two apart.','Spread'],
+        ['Wing (tag)','A tight end or H-back a yard off the ball just outside the end man.','Inline'],
+        ['Flex / Off (tag)','Tight end split a few yards from the tackle / a yard off the ball.','Inline (attached, on the ball)'],
+        ['Unbalanced (tag)','More linemen on one side — a tackle moved over.','Balanced line'],
+        ['Jet / Orbit (motion)','Full speed across the formation at the snap / a loop behind the QB.','Each other'],
+        ['Across / Short / Return (motion)','All the way to the other side / a few yards in / go, then come back.','—'],
+        ['Inside Zone / Outside Zone','The line steps together; the back aims at the guard / the tight end and cuts.','Each other'],
+        ['Power / Counter','A backside guard pulls and leads through the hole / guard and tackle (or H) pull, the back steps away first.','Each other'],
+        ['Duo / Trap / Iso','Double teams, no pullers / a guard traps the first lineman past the center / the fullback leads on a backer.','—'],
+        ['Mesh / Smash / Stick','Two shallow crossers / hitch under a corner / a 6-yard sit with the flat.','—'],
+        ['Flood / Dagger / Levels','Three routes stretching one side deep to short / a seam clears for a dig / in-cuts at two depths.','—'],
         ['11, 12, 21…','Personnel: first digit backs, second tight ends; the rest are wide receivers. 11 = 1 back, 1 TE, 3 WR.','—']]},
     desc: {title:'Descriptive names', eg:'Shotgun · 11 personnel · trey right · back beside the QB · TE inline right',
       what:'A descriptive name spells out what you see, one fact per piece, so nobody has to know a team\'s code words. In order: QB depth, personnel, receiver distribution and side, backfield, tight end.',
@@ -3659,29 +3694,9 @@ const PBA = (() => {
         ['Inline','Tight end on the line, attached to the tackle.','Flexed / detached (split out)'],
         ['On the ball','On the line of scrimmage.','Off the ball (a yard back)'],
         ['Beside the QB','In the gun, the back next to the QB.','Behind the QB (pistol, I)'],
-        ['Strong / weak','Toward / away from the strength.','Each other'],
+        ['Strong / weak','Toward / away from the strength (the tight end’s side; no tight end, more receivers).','Each other'],
         ['Balanced','Same count each side.','Unbalanced (more men, or the linemen, to one side)'],
-        ['Right / left','The side of the strength, from the offense’s view.','Each other']]},
-    niners: {title:'49ers words (2014 book)', eg:'Green Rt Slot ‘Z’ Rt',
-      what:'The 49ers call order: shift, formation word, direction, variation tags, motion, play number, play words, snap count. Their Rt/Lt is the side of the tight end (Y) — not the side with more receivers. In Heavy calls it is the tackle-over side and Y goes the other way.',
-      parts:[['Backfield color','Green, Strong, Weak, Red, Change, Blue, Black, Brown, Tan'],['Formation word','D words (2x2, F weak), F words (2x2, F strong), T words (3x1), Bunch, Crunch'],['Direction','Rt / Lt = the Y side'],['Tags','Slot, Close, Tite, Nasty, Cozy, Stack, Off, Loose, Lex, Club, Open'],['Run number','series digit + hole digit; even right, odd left']],
-      words:[
-        ['Green','I backs: F behind the QB, H at tailback.','Red (split backs)'],
-        ['Strong / Weak','Offset I with F to the Y side / away from it.','Each other'],
-        ['Red / Change','Split backs with F strong / F weak.','Each other'],
-        ['Dot / Deuce / Double','2x2 with F weak: attached / at the tackle’s hip / in the slot.','T words (3x1)'],
-        ['Tank / Tin / Trips / Taz','3x1 strong: F at wing / F at the hip, Y loose / F in the slot / Z in the slot, F outside.','D words'],
-        ['Bunch / Crunch','Triangle / three-man staircase off the tackle.','Spread'],
-        ['Slot','Z moves to the weak slot.','—'],
-        ['Close / Tite / Nasty','Z / X / both in a 4-yard split.','Normal (+2 outside the numbers), Big (+4), Max (+6)'],
-        ['Cozy','A receiver attached to the tackle like a tight end.','—'],
-        ['Off / Loose / Lex','Y a yard off the ball / 2 yards from the tackle / 4 yards from it.','Attached'],
-        ['Heavy','Tackle over to the call side; Y goes opposite.','Balanced line'],
-        ['Regular / Tiger / Zebra / Trey','Personnel 21 / 12 / 11 / 13.','—'],
-        ['Kodiak / Beast / Jumbo','An extra lineman in for a tight end (H = one extra lineman).','—'],
-        ['Even holes','Runs to the right: 2 guard, 4 tackle, 6 tight end, 8 outside.','Odd holes (left)'],
-        ['9x / 3x / 6x / 1x','Tailback from home / back offset in the gun crossing / fullback / QB runs.','—'],
-        ['Zone / Boss / Power / Wrap','Wide zone / wide zone with the F on the force / gap power / guard-and-F counter weak.','—']]},
+        ['Right / left','Sides are always from the offense’s view.','Each other']]},
     defense: {title:'Defense words', eg:'4-3 Over · Cover 3 Sky',
       what:'A defense call names the front (who is on the line and where), then the coverage (who has deep, who has what underneath), then any pressure. Numbers count the shell of deep safeties: 1-high (middle of the field closed) or 2-high (middle open).',
       parts:[['Front','Over, Under, Odd, Even, Jam, Bear, Okie, Tite'],['Techniques','0 nose on the center, 1 center shade, 2i/2/3 on the guard, 4i/4/5 on the tackle, 7/6/9 on the tight end'],['Coverage','Cover 0–6 with tags: Sky, Cloud, Robber, Lurk, Buzz, Tampa, Palms, Invert'],['Pressure','4-man rush, Sim pressure (4 rush with a backer blitzing), Fire zone (5), Cover 0 (6+)']],
@@ -3712,10 +3727,6 @@ const PBA = (() => {
       <div class="gl-parts">${g.parts.map(([a,b]) => `<div><i>${esc(a)}</i><span>${esc(b)}</span></div>`).join('')}</div>
       <div class="gl-w">${g.words.map(([w,m,o]) => `<div class="gl-r"><b>${esc(w)}</b><span>${esc(m)}</span>${o && o !== '—' ? `<small>opposite: ${esc(o)}</small>` : ''}</div>`).join('')}</div></div>`;
   }
-  /* ---- 49ers formation words for base sets that have a clean one (Rt/Lt = the Y side) ---- */
-  const NINERS = {'base-o-i-rt':'Green Rt', 'base-o-i-twins-rt':'Green Lt Slot', 'base-o-strong-i-rt':'Strong Rt', 'base-o-weak-i-rt':'Weak Rt', 'base-o-pro-rt':'Red Rt',
-    'base-o-ace':'Dot Rt', 'base-o-ace-trey-rt':'Trips Rt', 'base-o-ace-doubles':'Double Rt', 'base-o-gun-doubles':'G Double Rt', 'base-o-gun-trey-rt':'G Trips Rt', 'base-o-gun-bunch-rt':'G Bunch Rt'};
-
   /* ---- the situation buckets a game plan sheet reports by ---- */
   function ddBucket(down, dist){
     if (!down) return null;
@@ -3731,7 +3742,7 @@ const PBA = (() => {
     const y = +yl100;
     return y >= 90 ? 'Backed up (G to −10)' : y >= 80 ? 'Coming out (−10 to −20)' : y > 20 ? 'Free wheel (−20 to +20)' : y > 10 ? 'Going in (+20 to +10)' : 'Goal line (+10 to G)';
   }
-  return {FW, offXY, dbXY, DB_KEYS, mirror, techOf, COVS, fits, covPlan, placeDbs, callDef, frontId, roster, setArt, frontArt, designArt, playArt, GLOSS, glossHTML, NINERS, ddBucket, fieldZone};
+  return {FW, offXY, dbXY, DB_KEYS, mirror, techOf, COVS, fits, covPlan, placeDbs, callDef, frontId, roster, setArt, frontArt, designArt, playArt, GLOSS, glossHTML, ddBucket, fieldZone};
 })();
 
 /* ================= 0.9.0: the base book, what the iPad decided, the frames, chalk's frame, the inbox =================
@@ -3829,7 +3840,7 @@ function baseFrRows(act, pre){
 const ADOPT = {bad:new Set(), told:new Set(), log:[]};
 const tagOf = k => (SYNC.ipad.tags || []).find(t => t && t.key === k) || null;
 const addObj = id => { const a = id ? (SYNC.ipad.adds || []).find(x => x && x.id === id) : null; return a ? a.obj : null; };
-const tagSig = t => [t.fcode, t.zid, t.dcode, t.pers, t.fadd, t.dadd, t.zadd].map(x => x == null ? '' : x).join('|');
+const tagSig = t => [t.fcode, t.zid, t.dcode, t.pers, t.fadd, t.dadd, t.zadd].map(x => x == null ? '' : x).join('|') + (t.cid ? '|c:' + t.cid : '');
 function adoptNote(kind, name, key){
   ADOPT.log.unshift({at:isoNow(), kind, name:String(name || '').slice(0, 80), key:key || null});
   ADOPT.log = ADOPT.log.slice(0, 30);
@@ -3959,7 +3970,7 @@ function adoptTags(){
     if (p && p.src !== 'ipad'){
       /* logged here: the iPad only fills a defense that is missing */
       if (!p.def && hasDef){
-        const D = tagDefense(t), def = D ? frontDef(D.d, p.strength, D.name) : null;
+        const D = tagDefense(t), def = D && p.off ? tagDef(t, D, p.strength, {pers:p.off.pers, xol:!!p.off.xol, qb:p.off.qb, tokens:strongRight(p.off.tokens)}) : null;
         if (def && !validateDefense(def).length){ p.def = def; p.tagSig = sig; p.updated = isoNow(); mark(t.key, sig); dbPut('plays', p, 'adopt.tag'); n++; diag('adopt.tag', `play ${p.n}: defense from the iPad, ${def.summary}`); }
       }
       return;
@@ -3998,7 +4009,7 @@ function adoptTags(){
   return n;
 }
 function adoptIpad(){
-  if (EMBED || !SYNC.merged) return;
+  if (EMBED || !SYNC.merged || BASE.state === 'off') return;
   const t0 = performance.now();
   let a = 0, t = 0;
   try { a = adoptAdds(); t = adoptTags(); }
@@ -4081,7 +4092,7 @@ function setCands(q){
   const hist = S.plays.filter(p => p.off && !p._bad && p.formationId && (!pers || p.off.pers === pers) && (!qb || p.off.qb === qb));
   const cnt = new Map();
   hist.forEach(p => cnt.set(p.formationId, (cnt.get(p.formationId) || 0) + 1));
-  [...cnt.entries()].sort((a,b) => b[1] - a[1]).forEach(([id, n]) => push(S.formations.find(o => o.id === id), n, 'log'));
+  [...cnt.entries()].sort((a,b) => b[1] - a[1]).forEach(([id, n]) => push(fmGet(id), n, 'log'));
   S.formations.filter(f => (!qb || f.qb === qb) && (!pers || f.pers === pers)).sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''))).forEach(f => push(f, 0, 'book'));
   BASE.formations.filter(f => !qb || f.qb === qb).slice().sort((a,b) => pers ? (b.pers === pers) - (a.pers === pers) : 0).forEach(f => push(f, 0, 'base'));
   return {list:out, total:hist.length};
@@ -4277,6 +4288,11 @@ function applyCall(cid){
   diag('call.apply', `${plan.name} · ${plan.pressure} · shell ${P.shell}`, {roles:Object.keys(rolesById).length});
   return true;
 }
+/* the shell follows the backs: safeties at 12 are the deep ones (two at most) */
+function reshell(){
+  const all = W.def.deep.concat(W.def.rest), deep = all.filter(o => o.slot && /:(I|T|S|M):d$/.test(o.slot)).slice(0, 2);
+  W.def.deep = deep; W.def.rest = all.filter(o => !deep.includes(o)); W.def.shell = deep.length;
+}
 /* a defender dragged to a new spot keeps his job (jobs key on the spot) */
 function rolesFollow(){
   if (!W || !W.def || !W.droles) return;
@@ -4303,6 +4319,11 @@ function restoreCall(d){
   const front = edFront(), ids = edIds(), plan = PBA.covPlan(front, edOff(), W.strength, d.call);
   if (!plan) return;
   const M = planIds(plan, ids), rolesById = {}, areasById = {};
+  if (!Object.keys(W.droles || {}).length){
+    const keyOf = new Map(defList().map(x => [x.id, x.key]));
+    W.droles = W.droles || {};
+    Object.entries(plan.roles).forEach(([k, r]) => { const key = keyOf.get(M[k]); if (key) W.droles[key] = {job:r.job, on:r.on || null}; });
+  }
   defList().forEach(x => { const j = jobOf(x.key); if (j) rolesById[x.id] = {job:j.job, on:j.on || null}; });
   Object.entries(plan.areas).forEach(([k, a]) => { if (M[k]) areasById[M[k]] = a; });
   W.defCall = {id:d.call, name:(d.cov && d.cov.name) || plan.name, code:(d.cov && d.cov.code) || plan.code, rolesById, areasById};
@@ -4313,8 +4334,8 @@ function restoreCall(d){
 const pol = (act, id, art, title, sub, on, attrs) => `<button class="pol${on ? ' on' : ''}" data-act="${act}" data-id="${esc(id)}"${attrs || ''}><span class="pol-art">${art}</span><b>${esc(title)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</button>`;
 const allSets = () => S.formations.filter(f => !f._bad).slice().sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''))).concat(BASE.formations);
 const allFronts = () => S.fronts.filter(f => !f._bad).slice().sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''))).concat(BASE.fronts);
-function fmSub(f){ return f.base ? [PBA.NINERS[f.id] ? `49ers: ${PBA.NINERS[f.id]}` : '', `${persStr(f.pers, f.xol)} · ${QB_LABEL[f.qb] || f.qb}`, 'NFL base'].filter(Boolean).join(' · ') : `${persStr(f.pers, f.xol)} · ${QB_LABEL[f.qb] || f.qb} · your set`; }
-function frSub(f){ const id = PBA.frontId(f, 'R'); return [id.id + (id.num ? ` · 49ers ${id.num}` : ''), `${f.shell}-high`, id.pkg, f.base ? 'NFL base' : 'your front'].join(' · '); }
+function fmSub(f){ return `${persStr(f.pers, f.xol)} · ${QB_LABEL[f.qb] || f.qb} · ${f.base ? 'NFL base' : 'your set'}`; }
+function frSub(f){ const id = PBA.frontId(f, 'R'); return [id.id, `${f.shell}-high`, id.pkg, f.base ? 'NFL base' : 'your front'].join(' · '); }
 const setPol = (act, f, on) => pol(act, f.id, PBA.setArt(f, fmName(f)), fmName(f), fmSub(f), on);
 const frontPol = (act, f, off, on, pre) => pol(act, (pre || '') + f.id, PBA.frontArt(f, {off, label:frName(f)}), frName(f), frSub(f), on);
 const setGrid = (act, cur) => `<div class="pgrid">${allSets().map(f => setPol(act, f, f.id === cur)).join('')}</div>`;
@@ -4322,7 +4343,7 @@ const frontGrid = (act, off, cur, pre) => `<div class="pgrid">${allFronts().map(
 
 /* ---- the words, explained: what a naming style describes, every word, its opposite ---- */
 function glossSheet(key){
-  const tabs = [['pro','Pro'],['desc','Descriptive'],['niners','49ers'],['defense','Defense']];
+  const tabs = [['pro','Pro · the call'],['desc','Descriptive'],['defense','Defense']];
   showSheet(`<div class="row">${seg('gloss', tabs, key)}</div>${PBA.glossHTML(key)}<button class="btn" data-act="closeSheet">Done</button>`);
 }
 
@@ -4380,7 +4401,7 @@ function cardHTML(q){
   const where = s.yard != null ? spotLabel(yardToSpot(s.yard)) : '';
   const setName = v.set ? (v.set.f.base ? fmFiled(v.set.f, pers || v.set.f.pers, v.c.strength) : v.set.f.name) : '';
   const cov = v.cov ? PBA.COVS.find(c => c.id === v.cov) : null;
-  const facts = [pers ? `${pers} personnel` : 'personnel ?', qb ? QB_LABEL[qb] : 'QB ?', s.down ? PBA.ddBucket(s.down, s.dist) : '', s.yard != null ? PBA.fieldZone(s.yard).replace(/ \(.*/, '') : '', q.fromTag ? 'tagged on the iPad' : ''].filter(Boolean).join(' · ');
+  const facts = [pers ? `${pers} personnel` : 'personnel ?', qb ? QB_LABEL[qb] : 'QB ?', s.down ? PBA.ddBucket(s.down, s.dist) : '', s.yard != null ? (PBA.fieldZone(s.yard) || '').replace(/ \(.*/, '') : '', q.fromTag ? 'tagged on the iPad' : ''].filter(Boolean).join(' · ');
   return `<div class="card" id="card" data-key="${esc(q.key)}">
     <div class="card-h"><b>${esc(sitWord(s))}${where ? ' · ' + esc(where) : ''}</b><span>${s.qtr ? 'Q' + esc(s.qtr) + ' ' : ''}${esc(clockWord(s.clock))}</span></div>
     ${q.desc ? `<div class="card-d">${esc(q.desc)}</div>` : ''}
@@ -5160,14 +5181,15 @@ Object.assign(ACT, {
     const off = edOff(), cur = covNow();
     const list = PBA.COVS.filter(c => PBA.fits(front, c.id)).sort((a,b) => (b.shell === W.def.shell) - (a.shell === W.def.shell));
     const id = PBA.frontId(front, W.strength);
-    showSheet(`<h3>Coverage call</h3><p>${esc(id.id)}${id.num ? ' · 49ers ' + esc(id.num) : ''} · ${W.def.shell}-high now. Tap a call: every man gets his job and his spot. Then drag anyone to match the film — his job goes with him.</p>
+    showSheet(`<h3>Coverage call</h3><p>${esc(id.id)} · ${W.def.shell}-high now. Tap a call: every man gets his job and his spot. Then drag anyone to match the film — his job goes with him.</p>
       <div class="pgrid">${list.map(c => pol('callPick', c.id, PBA.frontArt(front, {off, cid:c.id, strong:W.strength, solid:true, label:c.name}), c.name, `${c.shell === W.def.shell ? 'fits the shell · ' : ''}${c.note}`, cur && cur.call === c.id)).join('')}</div>
       <div class="row"><button class="btn" data-act="gloss" data-v="defense">The words</button><button class="btn" data-act="closeSheet">Set jobs by hand</button></div>`);
   },
   callPick(d){
     hideSheet();
     if (!applyCall(d.id)) return;
-    setStep('djobs'); refresh();
+    if (W.step === 'routes'){ W.side = 'D'; syncBlocks(); } else setStep('djobs');
+    refresh();
     const c = covNow();
     toast(`${esc(c ? c.name : d.id)}${c ? ' · ' + esc(c.pressure) : ''}. Drag anyone to match the film.`);
   },
