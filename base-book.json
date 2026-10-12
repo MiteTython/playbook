@@ -1,0 +1,4725 @@
+{
+ "v": 1,
+ "at": "2026-10-12T05:19:33.043Z",
+ "note": "Base book for chalk and Playbook — strength right; the apps mirror. Sources: Wikipedia, List of formations in American football; NFL staples.",
+ "formations": [
+  {
+   "id": "base-o-i-rt",
+   "name": "I Rt",
+   "pro": "I Rt",
+   "desc": "Under center · 21 personnel · pro right · I backfield · TE inline right",
+   "family": "I formation",
+   "aliases": [
+    "Pro I",
+    "I formation"
+   ],
+   "source": "wiki",
+   "note": null,
+   "pers": "21",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "M:FB"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    }
+   ],
+   "code": "O21U wN B T sI sN'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-i-twins-rt",
+   "name": "I Twins Rt",
+   "pro": "I Twins Rt",
+   "desc": "Under center · 21 personnel · twins right · I backfield · TE inline left",
+   "family": "I formation",
+   "aliases": [
+    "I Twins"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "21",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "T",
+     "slot": "L:I:0"
+    },
+    {
+     "type": "B",
+     "slot": "M:FB"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "W",
+     "slot": "R:S:1"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:0"
+    }
+   ],
+   "code": "O21U wI B T sS' sN",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-strong-i-rt",
+   "name": "Strong I Rt",
+   "pro": "Strong I Rt",
+   "desc": "Under center · 21 personnel · pro right · offset I strong · TE inline right",
+   "family": "I formation",
+   "aliases": [
+    "Offset I strong"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "21",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "R:FB"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    }
+   ],
+   "code": "O21U wN T Bs sI sN'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-weak-i-rt",
+   "name": "Weak I Rt",
+   "pro": "Weak I Rt",
+   "desc": "Under center · 21 personnel · pro right · offset I weak · TE inline right",
+   "family": "I formation",
+   "aliases": [
+    "Offset I weak"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "21",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    }
+   ],
+   "code": "O21U wN Bw T sI sN'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-power-i-rt",
+   "name": "Power I Rt",
+   "pro": "Power I Rt",
+   "desc": "Under center · 31 personnel · balanced · three backs · TE inline right",
+   "family": "I formation",
+   "aliases": [
+    "Power I",
+    "Maryland I (three backs in a line — the third sits beside here)"
+   ],
+   "source": "wiki",
+   "note": null,
+   "pers": "31",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "M:FB"
+    },
+    {
+     "type": "B",
+     "slot": "R:FB"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    }
+   ],
+   "code": "O31U wN B T Bs sI",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-pro-rt",
+   "name": "Pro Rt",
+   "pro": "Pro Rt",
+   "desc": "Under center · 21 personnel · pro right · split backs · TE inline right",
+   "family": "Split backs",
+   "aliases": [
+    "Split backs",
+    "Pro set",
+    "Three-end formation"
+   ],
+   "source": "wiki",
+   "note": null,
+   "pers": "21",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "B",
+     "slot": "R:FB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    }
+   ],
+   "code": "O21U wN Bw Bs sI sN'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-ace",
+   "name": "Ace",
+   "pro": "Ace",
+   "desc": "Under center · 12 personnel · doubles · single back · TE inline left · TE inline right",
+   "family": "Singleback",
+   "aliases": [
+    "Singleback",
+    "Single set back"
+   ],
+   "source": "wiki",
+   "note": null,
+   "pers": "12",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "T",
+     "slot": "L:I:0"
+    },
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    }
+   ],
+   "code": "O12U wN wI T sI sN'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-ace-twins-rt",
+   "name": "Ace Twins Rt",
+   "pro": "Ace Twins Rt",
+   "desc": "Under center · 12 personnel · trey right · single back · TE inline left · TE inline right",
+   "family": "Singleback",
+   "aliases": [
+    "Singleback twins"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "12",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "T",
+     "slot": "L:I:0"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:S:1"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:0"
+    }
+   ],
+   "code": "O12U wI T sI sS' sN",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-ace-trey-rt",
+   "name": "Ace Trey Rt",
+   "pro": "Ace Trey Rt",
+   "desc": "Under center · 11 personnel · trey right · single back · TE inline right",
+   "family": "Singleback",
+   "aliases": [
+    "Singleback trips (TE)"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "11",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:S:1"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    }
+   ],
+   "code": "O11U wN T sI sS' sN'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-ace-trips-rt",
+   "name": "Ace Trips Rt",
+   "pro": "Ace Trips Rt",
+   "desc": "Under center · 11 personnel · trips right · single back · TE flexed right",
+   "family": "Singleback",
+   "aliases": [
+    "Singleback trips, Y flexed"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "11",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:T:1"
+    },
+    {
+     "type": "W",
+     "slot": "R:S:1"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:0"
+    }
+   ],
+   "code": "O11U wN T sT' sS' sN",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-ace-doubles",
+   "name": "Ace Doubles",
+   "pro": "Ace Doubles",
+   "desc": "Under center · 11 personnel · doubles · single back · TE inline right",
+   "family": "Singleback",
+   "aliases": [
+    "Singleback 2x2"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "11",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "W",
+     "slot": "L:S:1"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    }
+   ],
+   "code": "O11U wN wS' T sI sN'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-ace-wing-rt",
+   "name": "Ace Wing Rt",
+   "pro": "Ace Wing Rt",
+   "desc": "Under center · 12 personnel · pro right · single back · TE inline right · H-back right",
+   "family": "Singleback",
+   "aliases": [
+    "Two tight end / H-back set",
+    "Y-Off",
+    "Wing"
+   ],
+   "source": "wiki",
+   "note": null,
+   "pers": "12",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "T",
+     "slot": "R:HB"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    }
+   ],
+   "code": "O12U wN T Hs sI sN'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-ace-spread",
+   "name": "Ace Spread",
+   "pro": "Ace Spread",
+   "desc": "Under center · 10 personnel · doubles · single back",
+   "family": "Singleback",
+   "aliases": [
+    "Spread formation (four wide, no TE)"
+   ],
+   "source": "wiki",
+   "note": null,
+   "pers": "10",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "W",
+     "slot": "L:S:1"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "W",
+     "slot": "R:S:1"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:0"
+    }
+   ],
+   "code": "O10U wN wS' T sS' sN",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-tank-rt",
+   "name": "Tank Rt",
+   "pro": "Tank Rt",
+   "desc": "Under center · 13 personnel · pro right · single back · TE inline left · TE inline right · H-back right",
+   "family": "Heavy",
+   "aliases": [
+    "13 personnel",
+    "Heavy"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "13",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "T",
+     "slot": "L:I:0"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "T",
+     "slot": "R:HB"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:0"
+    }
+   ],
+   "code": "O13U wI T Hs sI sN",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-jumbo",
+   "name": "Jumbo",
+   "pro": "Jumbo",
+   "desc": "Under center · 23 personnel · balanced · I backfield · TE inline left · TE inline right · H-back right",
+   "family": "Goal line",
+   "aliases": [
+    "Goal line",
+    "Heavy",
+    "Jumbo"
+   ],
+   "source": "wiki",
+   "note": null,
+   "pers": "23",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "T",
+     "slot": "L:I:0"
+    },
+    {
+     "type": "B",
+     "slot": "M:FB"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "T",
+     "slot": "R:HB"
+    }
+   ],
+   "code": "O23U wI B T Hs sI",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-full-house",
+   "name": "Full House",
+   "pro": "Full House",
+   "desc": "Under center · 32 personnel · balanced · three backs · TE inline left · TE inline right",
+   "family": "T formation",
+   "aliases": [
+    "T formation",
+    "Power T",
+    "Full house",
+    "Split T (the line splits wide)",
+    "Balanced T"
+   ],
+   "source": "wiki",
+   "note": null,
+   "pers": "32",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "T",
+     "slot": "L:I:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "B",
+     "slot": "M:FB"
+    },
+    {
+     "type": "B",
+     "slot": "R:FB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    }
+   ],
+   "code": "O32U wI Bw B Bs sI",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-t-rt",
+   "name": "T Rt",
+   "pro": "T Rt",
+   "desc": "Under center · 31 personnel · balanced · three backs · TE inline right",
+   "family": "T formation",
+   "aliases": [
+    "T formation (split end)",
+    "Wishbone (the halfbacks sit a step deeper)",
+    "Split T"
+   ],
+   "source": "wiki",
+   "note": null,
+   "pers": "31",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "B",
+     "slot": "M:FB"
+    },
+    {
+     "type": "B",
+     "slot": "R:FB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    }
+   ],
+   "code": "O31U wN Bw B Bs sI",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-unbalanced-t-rt",
+   "name": "Unbalanced T Rt",
+   "pro": "Unbalanced T Rt",
+   "desc": "Under center · 31 personnel · 1x0 · three backs · TE flexed right · unbalanced",
+   "family": "T formation",
+   "aliases": [
+    "Unbalanced T",
+    "Unbalanced line"
+   ],
+   "source": "wiki",
+   "note": "An extra lineman outside the right tackle.",
+   "pers": "31",
+   "xol": true,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "L",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "T",
+     "slot": "R:T:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "B",
+     "slot": "M:FB"
+    },
+    {
+     "type": "B",
+     "slot": "R:FB"
+    }
+   ],
+   "code": "O6/31U Bw B Bs sO sT",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-flexbone",
+   "name": "Flexbone",
+   "pro": "Flexbone",
+   "desc": "Under center · 30 personnel · balanced · fullback · wing left · wing right",
+   "family": "Option",
+   "aliases": [
+    "Flexbone",
+    "Wing-bone"
+   ],
+   "source": "wiki",
+   "note": null,
+   "pers": "30",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:HB"
+    },
+    {
+     "type": "B",
+     "slot": "M:FB"
+    },
+    {
+     "type": "B",
+     "slot": "R:HB"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:0"
+    }
+   ],
+   "code": "O30U wN Hw B Hs sN",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-wing-t-rt",
+   "name": "Wing-T Rt",
+   "pro": "Wing-T Rt",
+   "desc": "Under center · 31 personnel · pro right · 2 backs · TE inline right",
+   "family": "Wing-T",
+   "aliases": [
+    "Delaware Wing-T",
+    "Wing T"
+   ],
+   "source": "wiki",
+   "note": null,
+   "pers": "31",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "B",
+     "slot": "R:T:1"
+    },
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "M:FB"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    }
+   ],
+   "code": "O31U wN Bw B sI sT'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-double-wing",
+   "name": "Double Wing",
+   "pro": "Double Wing",
+   "desc": "Under center · 32 personnel · balanced · fullback · wing left · wing right · TE inline left · TE inline right",
+   "family": "Wing-T",
+   "aliases": [
+    "Double wing (Markham)"
+   ],
+   "source": "wiki",
+   "note": null,
+   "pers": "32",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "T",
+     "slot": "L:I:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:HB"
+    },
+    {
+     "type": "B",
+     "slot": "M:FB"
+    },
+    {
+     "type": "B",
+     "slot": "R:HB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    }
+   ],
+   "code": "O32U wI Hw B Hs sI",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-victory",
+   "name": "Victory",
+   "pro": "Victory",
+   "desc": "Under center · 32 personnel · balanced · three backs · TE inline left · TE inline right",
+   "family": "Victory",
+   "aliases": [
+    "Victory (kneel)",
+    "Herman Edwards play (Eagles)",
+    "V formation (\"three dots and a dash\")"
+   ],
+   "source": "wiki",
+   "note": null,
+   "pers": "32",
+   "xol": false,
+   "qb": "under",
+   "tokens": [
+    {
+     "type": "T",
+     "slot": "L:I:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "B",
+     "slot": "R:FB"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    }
+   ],
+   "code": "O32U wI Bw T Bs sI",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-gun-doubles",
+   "name": "Gun Doubles",
+   "pro": "Gun Doubles",
+   "desc": "Shotgun · 11 personnel · doubles · back beside the QB · TE inline right",
+   "family": "Shotgun",
+   "aliases": [
+    "Shotgun 2x2",
+    "Lonesome Quarterback"
+   ],
+   "source": "wiki",
+   "note": null,
+   "pers": "11",
+   "xol": false,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "W",
+     "slot": "L:S:1"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    }
+   ],
+   "code": "O11G wN wS' Bw sI sN'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-gun-trey-rt",
+   "name": "Gun Trey Rt",
+   "pro": "Gun Trey Rt",
+   "desc": "Shotgun · 11 personnel · trey right · back beside the QB · TE inline right",
+   "family": "Shotgun",
+   "aliases": [
+    "Shotgun trips (TE)",
+    "Trey"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "11",
+   "xol": false,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:S:1"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    }
+   ],
+   "code": "O11G wN Bw sI sS' sN'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-gun-trips-rt",
+   "name": "Gun Trips Rt",
+   "pro": "Gun Trips Rt",
+   "desc": "Shotgun · 11 personnel · trips right · back beside the QB · TE flexed right",
+   "family": "Shotgun",
+   "aliases": [
+    "Shotgun trips, Y flexed",
+    "Trips"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "11",
+   "xol": false,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "T",
+     "slot": "R:T:1"
+    },
+    {
+     "type": "W",
+     "slot": "R:S:1"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:0"
+    }
+   ],
+   "code": "O11G wN Bw sT' sS' sN",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-gun-bunch-rt",
+   "name": "Gun Bunch Rt",
+   "pro": "Gun Bunch Rt",
+   "desc": "Shotgun · 11 personnel · bunch right · back beside the QB · TE flexed right",
+   "family": "Shotgun",
+   "aliases": [
+    "Bunch",
+    "Cluster"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "11",
+   "xol": false,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "T",
+     "slot": "R:T:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:T:3"
+    },
+    {
+     "type": "W",
+     "slot": "R:S:1"
+    }
+   ],
+   "code": "O11G wN Bw sT sT\" sS'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-gun-stack-rt",
+   "name": "Gun Stack Rt",
+   "pro": "Gun Stack Rt",
+   "desc": "Shotgun · 11 personnel · stack right · back beside the QB · TE inline right",
+   "family": "Shotgun",
+   "aliases": [
+    "Stack",
+    "Gun twins stack"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "11",
+   "xol": false,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:3"
+    }
+   ],
+   "code": "O11G wN Bw sI sN sN\"",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-gun-wing-rt",
+   "name": "Gun Wing Rt",
+   "pro": "Gun Wing Rt",
+   "desc": "Shotgun · 12 personnel · pro right · back beside the QB · TE inline right · H-back right",
+   "family": "Shotgun",
+   "aliases": [
+    "Gun 12 wing",
+    "H-back"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "12",
+   "xol": false,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "T",
+     "slot": "R:HB"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    }
+   ],
+   "code": "O12G wN Bw Hs sI sN'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-gun-spread",
+   "name": "Gun Spread",
+   "pro": "Gun Spread",
+   "desc": "Shotgun · 10 personnel · doubles · back beside the QB",
+   "family": "Shotgun",
+   "aliases": [
+    "4 wide",
+    "Spread",
+    "Gun 2x2 open"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "10",
+   "xol": false,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "R:N:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:S:1"
+    },
+    {
+     "type": "B",
+     "slot": "R:FB"
+    },
+    {
+     "type": "W",
+     "slot": "L:S:1"
+    },
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    }
+   ],
+   "code": "O10G wN wS' Bs sS' sN",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-gun-split",
+   "name": "Gun Split",
+   "pro": "Gun Split",
+   "desc": "Shotgun · 20 personnel · twins right · backs both sides of the QB",
+   "family": "Shotgun",
+   "aliases": [
+    "Pony",
+    "Gun split backs"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "20",
+   "xol": false,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "B",
+     "slot": "R:FB"
+    },
+    {
+     "type": "W",
+     "slot": "R:S:1"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:0"
+    }
+   ],
+   "code": "O20G wN Bw Bs sS' sN",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-empty-rt",
+   "name": "Empty Rt",
+   "pro": "Empty Rt",
+   "desc": "Shotgun · 10 personnel · trips right, two backside · empty backfield",
+   "family": "Empty",
+   "aliases": [
+    "Empty backfield",
+    "Five-wide",
+    "Empty 3x2"
+   ],
+   "source": "wiki",
+   "note": null,
+   "pers": "10",
+   "xol": false,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "W",
+     "slot": "L:S:1"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:S:1"
+    },
+    {
+     "type": "B",
+     "slot": "R:T:1"
+    }
+   ],
+   "code": "O10G wN wS' sT' sS' sN",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-empty-quads-rt",
+   "name": "Empty Quads Rt",
+   "pro": "Empty Quads Rt",
+   "desc": "Shotgun · 10 personnel · quads right · empty backfield",
+   "family": "Empty",
+   "aliases": [
+    "Quads",
+    "Empty 4x1"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "10",
+   "xol": false,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:W:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    },
+    {
+     "type": "W",
+     "slot": "R:S:1"
+    },
+    {
+     "type": "B",
+     "slot": "R:T:1"
+    }
+   ],
+   "code": "O10G wN sT' sS' sN' sW",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-pistol-doubles",
+   "name": "Pistol Doubles",
+   "pro": "Pistol Doubles",
+   "desc": "Pistol · 11 personnel · doubles · back behind the QB · TE inline right",
+   "family": "Pistol",
+   "aliases": [
+    "Pistol",
+    "Pistol 2x2"
+   ],
+   "source": "wiki",
+   "note": null,
+   "pers": "11",
+   "xol": false,
+   "qb": "pistol",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "W",
+     "slot": "L:S:1"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    }
+   ],
+   "code": "O11P wN wS' T sI sN'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-pistol-trey-rt",
+   "name": "Pistol Trey Rt",
+   "pro": "Pistol Trey Rt",
+   "desc": "Pistol · 11 personnel · trey right · back behind the QB · TE inline right",
+   "family": "Pistol",
+   "aliases": [
+    "Pistol trips (TE)"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "11",
+   "xol": false,
+   "qb": "pistol",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:S:1"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    }
+   ],
+   "code": "O11P wN T sI sS' sN'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-pistol-wing-rt",
+   "name": "Pistol Wing Rt",
+   "pro": "Pistol Wing Rt",
+   "desc": "Pistol · 12 personnel · pro right · back behind the QB · TE inline right · H-back right",
+   "family": "Pistol",
+   "aliases": [
+    "Pistol Ace wing"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "12",
+   "xol": false,
+   "qb": "pistol",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "T",
+     "slot": "R:HB"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    }
+   ],
+   "code": "O12P wN T Hs sI sN'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-pistol-diamond",
+   "name": "Pistol Diamond",
+   "pro": "Pistol Diamond",
+   "desc": "Pistol · 30 personnel · balanced · three backs",
+   "family": "Pistol",
+   "aliases": [
+    "Diamond",
+    "Pistol full house"
+   ],
+   "source": "nfl",
+   "note": null,
+   "pers": "30",
+   "xol": false,
+   "qb": "pistol",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "B",
+     "slot": "R:FB"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:0"
+    }
+   ],
+   "code": "O30P wN Bw T Bs sN",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-wildcat-rt",
+   "name": "Wildcat Rt",
+   "pro": "Wildcat Rt",
+   "desc": "Shotgun · 11 personnel · doubles · back beside the QB · TE inline right",
+   "family": "Wildcat",
+   "aliases": [
+    "Wildcat",
+    "Wildhog",
+    "Direct snap"
+   ],
+   "source": "wiki",
+   "note": "The back in the quarterback spot takes the snap; the quarterback is split out as a receiver.",
+   "pers": "11",
+   "xol": false,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "W",
+     "slot": "L:S:1"
+    },
+    {
+     "type": "B",
+     "slot": "R:FB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    }
+   ],
+   "code": "O11G wN wS' Bs sI sN'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-single-wing-rt",
+   "name": "Single Wing Rt",
+   "pro": "Single Wing Rt",
+   "desc": "Shotgun · 31 personnel · twins right, nothing backside · offset I strong · TE flexed right · unbalanced",
+   "family": "Single wing",
+   "aliases": [
+    "Single wing",
+    "Single wingback"
+   ],
+   "source": "wiki",
+   "note": "Unbalanced right; the tailback takes the snap. Playbook draws the man in the quarterback spot as the blocking back.",
+   "pers": "31",
+   "xol": true,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "L",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "T",
+     "slot": "R:T:0"
+    },
+    {
+     "type": "B",
+     "slot": "R:S:1"
+    },
+    {
+     "type": "B",
+     "slot": "R:FB"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    }
+   ],
+   "code": "O6/31G T Bs sO sT sS'",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-notre-dame-box-rt",
+   "name": "Notre Dame Box Rt",
+   "pro": "Notre Dame Box Rt",
+   "desc": "Shotgun · 32 personnel · balanced · offset I strong · wing right · TE inline left · TE inline right",
+   "family": "Single wing",
+   "aliases": [
+    "Notre Dame Box",
+    "Box formation"
+   ],
+   "source": "wiki",
+   "note": "A balanced line, the four backs in a square.",
+   "pers": "32",
+   "xol": false,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "T",
+     "slot": "L:I:0"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "B",
+     "slot": "R:FB"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "B",
+     "slot": "R:HB"
+    }
+   ],
+   "code": "O32G wI T Bs Hs sI",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-a-formation",
+   "name": "A Formation",
+   "pro": "A Formation",
+   "desc": "Shotgun · 21 personnel · balanced · offset I weak · TE flexed right · unbalanced",
+   "family": "Single wing",
+   "aliases": [
+    "A formation (Steve Owen)"
+   ],
+   "source": "wiki",
+   "note": "The line unbalanced one way, the backfield the other.",
+   "pers": "21",
+   "xol": true,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "L",
+     "slot": "R:I:0"
+    },
+    {
+     "type": "T",
+     "slot": "R:T:0"
+    },
+    {
+     "type": "W",
+     "slot": "L:N:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    }
+   ],
+   "code": "O6/21G wN Bw T sO sT",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-short-punt",
+   "name": "Short Punt",
+   "pro": "Short Punt",
+   "desc": "Shotgun · 32 personnel · balanced · three backs · TE inline left · TE inline right",
+   "family": "Single wing",
+   "aliases": [
+    "Short punt"
+   ],
+   "source": "wiki",
+   "note": "Balanced, a back each side of the tailback — punt, pass or run.",
+   "pers": "32",
+   "xol": false,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "T",
+     "slot": "L:I:0"
+    },
+    {
+     "type": "B",
+     "slot": "L:FB"
+    },
+    {
+     "type": "B",
+     "slot": "R:FB"
+    },
+    {
+     "type": "B",
+     "slot": "M:TB"
+    },
+    {
+     "type": "T",
+     "slot": "R:I:0"
+    }
+   ],
+   "code": "O32G wI Bw T Bs sI",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-swinging-gate-rt",
+   "name": "Swinging Gate Rt",
+   "pro": "Swinging Gate Rt",
+   "desc": "Shotgun · 11 personnel · quads right, nothing backside · back beside the QB · TE flexed right",
+   "family": "Trick",
+   "aliases": [
+    "Swinging gate"
+   ],
+   "source": "wiki",
+   "note": "In the real thing the line splits away with them; Playbook keeps the line on the ball.",
+   "pers": "11",
+   "xol": false,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "R:W:0"
+    },
+    {
+     "type": "T",
+     "slot": "R:N:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:S:1"
+    },
+    {
+     "type": "W",
+     "slot": "R:T:1"
+    },
+    {
+     "type": "B",
+     "slot": "R:FB"
+    }
+   ],
+   "code": "O11G Bs sT' sS' sN sW",
+   "fmt": 4,
+   "base": true
+  },
+  {
+   "id": "base-o-tackle-spread",
+   "name": "Tackle Spread",
+   "pro": "Tackle Spread",
+   "desc": "Shotgun · 10 personnel · doubles · back beside the QB",
+   "family": "Trick",
+   "aliases": [
+    "Emory and Henry",
+    "Tackle spread",
+    "Star Wars (Bengals)",
+    "Gun Monster",
+    "A-11 offense (two passers)"
+   ],
+   "source": "wiki",
+   "note": "In the real thing the tackles split out to the sidelines; Playbook keeps the line in place.",
+   "pers": "10",
+   "xol": false,
+   "qb": "gun",
+   "tokens": [
+    {
+     "type": "W",
+     "slot": "R:W:0"
+    },
+    {
+     "type": "W",
+     "slot": "R:N:1"
+    },
+    {
+     "type": "W",
+     "slot": "L:N:1"
+    },
+    {
+     "type": "W",
+     "slot": "L:W:0"
+    },
+    {
+     "type": "B",
+     "slot": "R:FB"
+    }
+   ],
+   "code": "O10G wW wN' Bs sN' sW",
+   "fmt": 4,
+   "base": true
+  }
+ ],
+ "fronts": [
+  {
+   "id": "base-d-4-3-over",
+   "name": "4-3 Over",
+   "family": "4-3",
+   "aliases": [
+    "4-3",
+    "Over"
+   ],
+   "source": "wiki",
+   "code": "D wN' w5 w3' w1 0' M\" s3 s6' s9 sS' sN'",
+   "summary": "4 down · 5 1 3 9 · 3 LB · 1-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2.5,
+     "d": 5,
+     "hand": null,
+     "tech": "3",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -0.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "1",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 5,
+     "hand": null,
+     "tech": "0",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 2.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "3",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 6,
+     "d": 5,
+     "hand": null,
+     "tech": "6",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 6.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "9",
+     "label": null,
+     "cat": "DL"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 1
+  },
+  {
+   "id": "base-d-4-3-under",
+   "name": "4-3 Under",
+   "family": "4-3",
+   "aliases": [
+    "Under",
+    "Seattle 4-3"
+   ],
+   "source": "wiki",
+   "code": "D wN' w5 w4' w3 M\" s1 s2' s5 s9^ sS' sN'",
+   "summary": "4 down · 5 3 1 5 9↑ · 2 LB · 1-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "3",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -4,
+     "d": 5,
+     "hand": null,
+     "tech": "4",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 0.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "1",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 6.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "9",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 1
+  },
+  {
+   "id": "base-d-4-3-stack",
+   "name": "4-3 Stack",
+   "family": "4-3",
+   "aliases": [
+    "Stack"
+   ],
+   "source": "nfl",
+   "code": "D wN' w5 w4' w2 0' M\" s2 s4' s5 sS' sN'",
+   "summary": "4 down · 5 2 2 5 · 3 LB · 1-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -4,
+     "d": 5,
+     "hand": null,
+     "tech": "4",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -2,
+     "d": 1,
+     "hand": "down",
+     "tech": "2",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 5,
+     "hand": null,
+     "tech": "0",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 2,
+     "d": 1,
+     "hand": "down",
+     "tech": "2",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4,
+     "d": 5,
+     "hand": null,
+     "tech": "4",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 1
+  },
+  {
+   "id": "base-d-4-3-umbrella",
+   "name": "4-3 Umbrella",
+   "family": "4-3",
+   "aliases": [
+    "Umbrella (two deep)"
+   ],
+   "source": "wiki",
+   "code": "D wN' wS\" w5 w4' w1 0' s1 s4' s5 sS\" sN'",
+   "summary": "4 down · 5 1 1 5 · 3 LB · 2-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -4,
+     "d": 5,
+     "hand": null,
+     "tech": "4",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -0.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "1",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 5,
+     "hand": null,
+     "tech": "0",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 0.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "1",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4,
+     "d": 5,
+     "hand": null,
+     "tech": "4",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "L:S:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "R:S:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 2
+  },
+  {
+   "id": "base-d-4-3-wide-9",
+   "name": "4-3 Wide 9",
+   "family": "4-3",
+   "aliases": [
+    "Wide 9"
+   ],
+   "source": "nfl",
+   "code": "D wN' w9 w3' w1 0' M\" s3 s4' s9 sS' sN'",
+   "summary": "4 down · 9 1 3 9 · 3 LB · 1-high",
+   "base": true,
+   "box": [
+    {
+     "x": -6.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "9",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2.5,
+     "d": 5,
+     "hand": null,
+     "tech": "3",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -0.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "1",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 5,
+     "hand": null,
+     "tech": "0",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 2.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "3",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4,
+     "d": 5,
+     "hand": null,
+     "tech": "4",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 6.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "9",
+     "label": null,
+     "cat": "DL"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 1
+  },
+  {
+   "id": "base-d-4-3-slide",
+   "name": "4-3 Slide",
+   "family": "4-3",
+   "aliases": [
+    "Miami 4-3",
+    "4-3 Slide",
+    "4-3 Swim"
+   ],
+   "source": "wiki",
+   "code": "D wN' w7 w3' w1 0' M\" s3 s5 s6' sS' sN'",
+   "summary": "4 down · 7 1 3 5 · 3 LB · 1-high",
+   "base": true,
+   "box": [
+    {
+     "x": -5.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "7",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -0.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "1",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2.5,
+     "d": 5,
+     "hand": null,
+     "tech": "3",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 0,
+     "d": 5,
+     "hand": null,
+     "tech": "0",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 2.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "3",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 6,
+     "d": 5,
+     "hand": null,
+     "tech": "6",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 1
+  },
+  {
+   "id": "base-d-3-4-okie",
+   "name": "3-4 Okie",
+   "family": "3-4",
+   "aliases": [
+    "3-4",
+    "Okie",
+    "Odd front"
+   ],
+   "source": "wiki",
+   "code": "D wN' wS\" w9^ w5 w2' 0 s2' s5 s9^ sS\" sN'",
+   "summary": "3 down · 9↑ 5 0 5 9↑ · 2 LB · 2-high",
+   "base": true,
+   "box": [
+    {
+     "x": -6.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "9",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 0,
+     "d": 1,
+     "hand": "down",
+     "tech": "0",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 6.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "9",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "L:S:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "R:S:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 2
+  },
+  {
+   "id": "base-d-3-4-under",
+   "name": "3-4 Under",
+   "family": "3-4",
+   "aliases": [
+    "3-4 under (one-gap)"
+   ],
+   "source": "wiki",
+   "code": "D wN' w9^ w5 w3' M\" s1 s4' s5 s9^ sS' sN'",
+   "summary": "3 down · 9↑ 5 1 5 9↑ · 2 LB · 1-high",
+   "base": true,
+   "box": [
+    {
+     "x": -6.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "9",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2.5,
+     "d": 5,
+     "hand": null,
+     "tech": "3",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 0.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "1",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4,
+     "d": 5,
+     "hand": null,
+     "tech": "4",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 6.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "9",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 1
+  },
+  {
+   "id": "base-d-2-5-eagle",
+   "name": "2-5 Eagle",
+   "family": "3-4",
+   "aliases": [
+    "2-5",
+    "3-4 Eagle"
+   ],
+   "source": "wiki",
+   "code": "D wN' w9^ w3 w1' M\" s1' s3 s5' s9^ sS' sN'",
+   "summary": "2 down · 9↑ 3 3 9↑ · 3 LB · 1-high",
+   "base": true,
+   "box": [
+    {
+     "x": -6.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "9",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -2.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "3",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -0.5,
+     "d": 5,
+     "hand": null,
+     "tech": "1",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 0.5,
+     "d": 5,
+     "hand": null,
+     "tech": "1",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 2.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "3",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 5,
+     "hand": null,
+     "tech": "5",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 6.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "9",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 1
+  },
+  {
+   "id": "base-d-4-4",
+   "name": "4-4",
+   "family": "4-4",
+   "aliases": [
+    "Eight in the box"
+   ],
+   "source": "wiki",
+   "code": "D wN' w6' w5 w2' w1 M\" s2' s3 s5 s6' sN'",
+   "summary": "4 down · 5 1 3 5 · 4 LB · 1-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -6,
+     "d": 5,
+     "hand": null,
+     "tech": "6",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -0.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "1",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 2.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "3",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 6,
+     "d": 5,
+     "hand": null,
+     "tech": "6",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 1
+  },
+  {
+   "id": "base-d-5-3",
+   "name": "5-3",
+   "family": "5-3",
+   "aliases": [
+    "5-3"
+   ],
+   "source": "wiki",
+   "code": "D wN' w5 w4' w2 0 0' M\" s2 s4' s5 sN'",
+   "summary": "5 down · 5 2 0 2 5 · 3 LB · 1-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2,
+     "d": 1,
+     "hand": "down",
+     "tech": "2",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 1,
+     "hand": "down",
+     "tech": "0",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 2,
+     "d": 1,
+     "hand": "down",
+     "tech": "2",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -4,
+     "d": 5,
+     "hand": null,
+     "tech": "4",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 0,
+     "d": 5,
+     "hand": null,
+     "tech": "0",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 4,
+     "d": 5,
+     "hand": null,
+     "tech": "4",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 1
+  },
+  {
+   "id": "base-d-6-2",
+   "name": "6-2",
+   "family": "6-2",
+   "aliases": [
+    "Tight six",
+    "Wide tackle 6",
+    "Split 6"
+   ],
+   "source": "wiki",
+   "code": "D wN' w9 w5 w2' w1 M\" s1 s2' s5 s9 sN'",
+   "summary": "6 down · 9 5 1 1 5 9 · 2 LB · 1-high",
+   "base": true,
+   "box": [
+    {
+     "x": -6.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "9",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -0.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "1",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "1",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 6.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "9",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 1
+  },
+  {
+   "id": "base-d-46-bear",
+   "name": "46 Bear",
+   "family": "46",
+   "aliases": [
+    "46 defense",
+    "Bear"
+   ],
+   "source": "wiki",
+   "code": "D wN' w5 w3 w2' 0' M\" s3 s5 s7^ s9^ sN'",
+   "summary": "4 down · 5 3 3 5 7↑ 9↑ · 2 LB · 1-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "3",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 2.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "3",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 5.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "7",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 6.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "9",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 0,
+     "d": 5,
+     "hand": null,
+     "tech": "0",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 1
+  },
+  {
+   "id": "base-d-5-2-oklahoma",
+   "name": "5-2 Oklahoma",
+   "family": "5-2",
+   "aliases": [
+    "Oklahoma 5-2",
+    "5-2"
+   ],
+   "source": "wiki",
+   "code": "D wN' w9^ w4 w2' 0 M\" s2' s4 s9^ sS' sN'",
+   "summary": "3 down · 9↑ 4 0 4 9↑ · 2 LB · 1-high",
+   "base": true,
+   "box": [
+    {
+     "x": -6.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "9",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -4,
+     "d": 1,
+     "hand": "down",
+     "tech": "4",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 1,
+     "hand": "down",
+     "tech": "0",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4,
+     "d": 1,
+     "hand": "down",
+     "tech": "4",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 6.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "9",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 1
+  },
+  {
+   "id": "base-d-5-2-eagle",
+   "name": "5-2 Eagle",
+   "family": "5-2",
+   "aliases": [
+    "Eagle 5-2"
+   ],
+   "source": "wiki",
+   "code": "D wN' w9 w4i w3' 0 M\" s3' s4i s9 sS' sN'",
+   "summary": "5 down · 9 4i 0 4i 9 · 2 LB · 1-high",
+   "base": true,
+   "box": [
+    {
+     "x": -6.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "9",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -3.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "4i",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 1,
+     "hand": "down",
+     "tech": "0",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 3.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "4i",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 6.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "9",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2.5,
+     "d": 5,
+     "hand": null,
+     "tech": "3",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 2.5,
+     "d": 5,
+     "hand": null,
+     "tech": "3",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 1
+  },
+  {
+   "id": "base-d-6-1-umbrella",
+   "name": "6-1 Umbrella",
+   "family": "6-1",
+   "aliases": [
+    "6-1-4",
+    "Umbrella"
+   ],
+   "source": "wiki",
+   "code": "D wN' wS\" w9 w5 w2 0' s2 s5 s9 sS\" sN'",
+   "summary": "6 down · 9 5 2 2 5 9 · 1 LB · 2-high",
+   "base": true,
+   "box": [
+    {
+     "x": -6.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "9",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2,
+     "d": 1,
+     "hand": "down",
+     "tech": "2",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 2,
+     "d": 1,
+     "hand": "down",
+     "tech": "2",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 6.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "9",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 5,
+     "hand": null,
+     "tech": "0",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "L:S:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "R:S:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 2
+  },
+  {
+   "id": "base-d-7-2-2",
+   "name": "7-2-2",
+   "family": "Seven-man line",
+   "aliases": [
+    "Seven-man line"
+   ],
+   "source": "wiki",
+   "code": "D wN w9 w5 w3' w2 0 s2 s3' s5 s9 sN",
+   "summary": "7 down · 9 5 2 0 2 5 9 · 2 LB · 0-high",
+   "base": true,
+   "box": [
+    {
+     "x": -6.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "9",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2,
+     "d": 1,
+     "hand": "down",
+     "tech": "2",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 1,
+     "hand": "down",
+     "tech": "0",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 2,
+     "d": 1,
+     "hand": "down",
+     "tech": "2",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 6.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "9",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2.5,
+     "d": 5,
+     "hand": null,
+     "tech": "3",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 2.5,
+     "d": 5,
+     "hand": null,
+     "tech": "3",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "L:N:p",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:p",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 0
+  },
+  {
+   "id": "base-d-7-1-2-1",
+   "name": "7-1-2-1",
+   "family": "Seven-man line",
+   "aliases": [
+    "Seven-man line"
+   ],
+   "source": "wiki",
+   "code": "D wN' w9 w5 w2 0 0' M\" s2 s5 s9 sN'",
+   "summary": "7 down · 9 5 2 0 2 5 9 · 1 LB · 1-high",
+   "base": true,
+   "box": [
+    {
+     "x": -6.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "9",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2,
+     "d": 1,
+     "hand": "down",
+     "tech": "2",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 1,
+     "hand": "down",
+     "tech": "0",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 2,
+     "d": 1,
+     "hand": "down",
+     "tech": "2",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 6.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "9",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 5,
+     "hand": null,
+     "tech": "0",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 1
+  },
+  {
+   "id": "base-d-nickel-4-2-5",
+   "name": "Nickel 4-2-5",
+   "family": "Nickel",
+   "aliases": [
+    "Nickel",
+    "4-2-5"
+   ],
+   "source": "wiki",
+   "code": "D wN' wT\" w5 w2' w1 s2' s3 s5 sT\" sS' sN'",
+   "summary": "4 down · 5 1 3 5 · 2 LB · 2-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -0.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "1",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 2.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "3",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "L:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "R:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 2
+  },
+  {
+   "id": "base-d-nickel-tite",
+   "name": "Nickel Tite",
+   "family": "Nickel",
+   "aliases": [
+    "Tite",
+    "Mint"
+   ],
+   "source": "nfl",
+   "code": "D wN' wT\" w4i w2' 0 s2' s4i s9^ sT\" sS' sN'",
+   "summary": "3 down · 4i 0 4i 9↑ · 2 LB · 2-high",
+   "base": true,
+   "box": [
+    {
+     "x": -3.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "4i",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 1,
+     "hand": "down",
+     "tech": "0",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 3.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "4i",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 6.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "9",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "L:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "R:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 2
+  },
+  {
+   "id": "base-d-3-3-5-stack",
+   "name": "3-3-5 Stack",
+   "family": "Nickel",
+   "aliases": [
+    "33 stack",
+    "3-3-5"
+   ],
+   "source": "wiki",
+   "code": "D wN' wS' w5 w5' 0 0' M\" s5 s5' sS' sN'",
+   "summary": "3 down · 5 0 5 · 3 LB · 1-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 1,
+     "hand": "down",
+     "tech": "0",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -4.5,
+     "d": 5,
+     "hand": null,
+     "tech": "5",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 0,
+     "d": 5,
+     "hand": null,
+     "tech": "0",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 4.5,
+     "d": 5,
+     "hand": null,
+     "tech": "5",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "L:S:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 1
+  },
+  {
+   "id": "base-d-2-4-5",
+   "name": "2-4-5",
+   "family": "Nickel",
+   "aliases": [
+    "2-4-5"
+   ],
+   "source": "wiki",
+   "code": "D wN' wT\" w5' w3 w1' s1' s3 s5' sT\" sS' sN'",
+   "summary": "2 down · 3 3 · 4 LB · 2-high",
+   "base": true,
+   "box": [
+    {
+     "x": -2.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "3",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 2.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "3",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -4.5,
+     "d": 5,
+     "hand": null,
+     "tech": "5",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -0.5,
+     "d": 5,
+     "hand": null,
+     "tech": "1",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 0.5,
+     "d": 5,
+     "hand": null,
+     "tech": "1",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 4.5,
+     "d": 5,
+     "hand": null,
+     "tech": "5",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "L:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "R:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 2
+  },
+  {
+   "id": "base-d-3-5-3",
+   "name": "3-5-3",
+   "family": "Nickel",
+   "aliases": [
+    "Umbrella",
+    "3-deep"
+   ],
+   "source": "wiki",
+   "code": "D wN\" w6' w5 w2' 0 0' M\" s2' s5 s6' sN\"",
+   "summary": "3 down · 5 0 5 · 5 LB · 2-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 1,
+     "hand": "down",
+     "tech": "0",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -6,
+     "d": 5,
+     "hand": null,
+     "tech": "6",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 0,
+     "d": 5,
+     "hand": null,
+     "tech": "0",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 6,
+     "d": 5,
+     "hand": null,
+     "tech": "6",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "L:N:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "R:N:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 2
+  },
+  {
+   "id": "base-d-dime-4-1-6",
+   "name": "Dime 4-1-6",
+   "family": "Dime",
+   "aliases": [
+    "Dime",
+    "4-1-6"
+   ],
+   "source": "wiki",
+   "code": "D wN' wS' wT\" w5 w1 0' s3 s5 sT\" sS' sN'",
+   "summary": "4 down · 5 1 3 5 · 1 LB · 2-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -0.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "1",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 2.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "3",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 5,
+     "hand": null,
+     "tech": "0",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "L:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "R:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "L:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 2
+  },
+  {
+   "id": "base-d-dime-3-2-6",
+   "name": "Dime 3-2-6",
+   "family": "Dime",
+   "aliases": [
+    "3-2-6"
+   ],
+   "source": "wiki",
+   "code": "D wN' wS' wT\" w5 w2' 0 s2' s5 sT\" sS' sN'",
+   "summary": "3 down · 5 0 5 · 2 LB · 2-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 1,
+     "hand": "down",
+     "tech": "0",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "L:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "R:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "L:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 2
+  },
+  {
+   "id": "base-d-quarter-3-1-7",
+   "name": "Quarter 3-1-7",
+   "family": "Quarter",
+   "aliases": [
+    "Quarter",
+    "3-1-7"
+   ],
+   "source": "wiki",
+   "code": "D wN' wS' wT\" w5 0 0' M\" s5 sT\" sS' sN'",
+   "summary": "3 down · 5 0 5 · 1 LB · 2-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 1,
+     "hand": "down",
+     "tech": "0",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 5,
+     "hand": null,
+     "tech": "0",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "L:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "R:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "L:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 2
+  },
+  {
+   "id": "base-d-quarter-4-0-7",
+   "name": "Quarter 4-0-7",
+   "family": "Quarter",
+   "aliases": [
+    "4-0-7"
+   ],
+   "source": "wiki",
+   "code": "D wN' wS' wT\" w5 w1 M\" s1 s5 sT\" sS' sN'",
+   "summary": "4 down · 5 1 1 5 · 0 LB · 2-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -0.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "1",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "1",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "L:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "R:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "L:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 2
+  },
+  {
+   "id": "base-d-quarter-0-4-7",
+   "name": "Quarter 0-4-7",
+   "family": "Quarter",
+   "aliases": [
+    "0-4-7 (Patriots)"
+   ],
+   "source": "wiki",
+   "code": "D wN' wS' wT\" w5^ w1^ M\" s1^ s5^ sT\" sS' sN'",
+   "summary": "0 down · 5↑ 1↑ 1↑ 5↑ · 0 LB · 2-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "5",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -0.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "1",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 0.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "1",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "5",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "L:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "R:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "L:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 2
+  },
+  {
+   "id": "base-d-half-dollar-3-0-8",
+   "name": "Half Dollar 3-0-8",
+   "family": "Half dollar",
+   "aliases": [
+    "Half dollar",
+    "3-0-8"
+   ],
+   "source": "wiki",
+   "code": "D wW\" wN' wS' wT\" w5 0 M\" s5 sT\" sS' sN'",
+   "summary": "3 down · 5 0 5 · 0 LB · 2-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 1,
+     "hand": "down",
+     "tech": "0",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "L:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "R:T:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "L:S:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "L:W:d",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 2
+  },
+  {
+   "id": "base-d-prevent",
+   "name": "Prevent",
+   "family": "Prevent",
+   "aliases": [
+    "Prevent"
+   ],
+   "source": "wiki",
+   "code": "D wN\" wS\" wT\" w5 0 0' M\" s5 sT\" sS\" sN\"",
+   "summary": "3 down · 5 0 5 · 1 LB · 2-high",
+   "base": true,
+   "box": [
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 1,
+     "hand": "down",
+     "tech": "0",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0,
+     "d": 5,
+     "hand": null,
+     "tech": "0",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "L:N:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "R:N:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:S:d",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:d",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "L:T:d",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:T:d",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 2
+  },
+  {
+   "id": "base-d-goal-line-6-3-2",
+   "name": "Goal Line 6-3-2",
+   "family": "Goal line",
+   "aliases": [
+    "Goal line"
+   ],
+   "source": "nfl",
+   "code": "D wN w9 w5 w3' w1 0' s1 s3' s5 s9 sN",
+   "summary": "6 down · 9 5 1 1 5 9 · 3 LB · 0-high",
+   "base": true,
+   "box": [
+    {
+     "x": -6.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "9",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -0.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "1",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 0.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "1",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "5",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": 6.5,
+     "d": 1,
+     "hand": "down",
+     "tech": "9",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -2.5,
+     "d": 5,
+     "hand": null,
+     "tech": "3",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 0,
+     "d": 5,
+     "hand": null,
+     "tech": "0",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 2.5,
+     "d": 5,
+     "hand": null,
+     "tech": "3",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "L:N:p",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:p",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 0
+  },
+  {
+   "id": "base-d-1-6-4",
+   "name": "1-6-4",
+   "family": "Odd",
+   "aliases": [
+    "Mangini scheme (2007)"
+   ],
+   "source": "wiki",
+   "code": "D wN' w9^ w5^ w2' 0 M\" s2' s5^ s9^ sS' sN'",
+   "summary": "1 down · 9↑ 5↑ 0 5↑ 9↑ · 2 LB · 1-high",
+   "base": true,
+   "box": [
+    {
+     "x": 0,
+     "d": 1,
+     "hand": "down",
+     "tech": "0",
+     "label": null,
+     "cat": "DL"
+    },
+    {
+     "x": -6.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "9",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -4.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "5",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 4.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "5",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 6.5,
+     "d": 1,
+     "hand": "up",
+     "tech": "9",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": -2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    },
+    {
+     "x": 2,
+     "d": 5,
+     "hand": null,
+     "tech": "2",
+     "label": null,
+     "cat": "LB"
+    }
+   ],
+   "dbs": [
+    {
+     "slot": "M:M:d",
+     "label": null,
+     "kind": "deep"
+    },
+    {
+     "slot": "L:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:N:o",
+     "label": null,
+     "kind": "rest"
+    },
+    {
+     "slot": "R:S:o",
+     "label": null,
+     "kind": "rest"
+    }
+   ],
+   "shell": 1
+  }
+ ]
+}
