@@ -309,7 +309,7 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
 <script>
 (() => {
 'use strict';
-const VERSION = '0.10.1';
+const VERSION = '0.10.2';
 const KEYS = {store:'pb.store', diag:'pb.diag', dumps:'pb.dumps', base:'pb.baseline', bad:'pb.store.bad'};
 const LETTER_COLOR = {X:'#FF5A4E', Y:'#FFD23F', Z:'#B78CFF', H:'#4DA3FF', F:'#3DDC84'};
 const PERS = ['11','12','10','13','21','22','20','23','01','02','00','31','30'];
@@ -1826,7 +1826,8 @@ const TXT = (x,y,t,size,fill,w,extra) =>
 function tri(x, y, label, style, sel){
   const s = rad() * 1.02;
   const d = `M${f1(x - s)},${f1(y - s * 0.8)} L${f1(x + s)},${f1(y - s * 0.8)} L${f1(x)},${f1(y + s * 0.95)} Z`;
-  let fill = '#2A3139', stroke = '#C4CCD3', tc = '#F2F4F3', dash = '';
+  let fill = '#4DA3FF', stroke = '#9CCBFF', tc = '#111418', dash = '';   // a backer: blue
+  if (style === 'db'){ const saf = /^(FS|SS|S)$/.test(label); fill = saf ? '#FF5A4E' : '#FFD23F'; stroke = saf ? '#FFB3AB' : '#FFE9A0'; tc = '#111418'; }   // safeties red, corners and nickels yellow
   if (style === 'down'){ fill = DEF_ORANGE; stroke = '#FFC08F'; tc = '#111418'; }
   if (style === 'up'){ fill = '#13241A'; stroke = DEF_ORANGE; tc = DEF_ORANGE; }
   if (style === 'pend'){ fill = '#13241A'; stroke = '#FFFFFF'; tc = '#FFFFFF'; dash = ' stroke-dasharray="3 2"'; }
@@ -3527,7 +3528,7 @@ const PBA = (() => {
   }
 
   /* ---- art: square, field green, the line of scrimmage blue ---- */
-  const COL = {W:'#F2F4F3', T:'#FFD23F', B:'#4DA3FF', L:'#9AA5AE', DL:'#FF8A3D', LB:'#C4CCD3', DB:'#8FA3B5', deep:'77,163,255', under:'255,226,122'};
+  const COL = {W:'#FFD23F', T:'#FF5A4E', B:'#4DA3FF', L:'#9AA5AE', DL:'#FF8A3D', LB:'#4DA3FF', DB:'#FFD23F', S:'#FF5A4E', deep:'77,163,255', under:'255,226,122'};   // receivers and corners yellow, tight ends and safeties red, backs and backers blue, the line orange
   function frame(yTop, body, label){
     const S = 53.4, y0 = -yTop, lines = [];
     for (let Y = Math.ceil((yTop - S) / 5) * 5; Y <= yTop; Y += 5){ if (Y === 0) continue; lines.push(`M-26.7 ${f1(-Y)}H26.7`); }
@@ -3559,7 +3560,8 @@ const PBA = (() => {
     if (!def) return '';
     const out = [];
     (def.box || []).forEach(b => { const dl = b.d === 1; out.push(tri(+b.x, defY(b.d), dl ? COL.DL : COL.LB, dl && b.hand === 'up')); });
-    (def.dbs || []).forEach(o => { const q = dbXY(o.slot); if (q) out.push(tri(q.x, defY(q.d), COL.DB)); });
+    const R = roster(def, 'R'), saf = new Set([R.FS, R.SS].filter(Boolean).map(d => d.k));
+    (def.dbs || []).forEach((o, i) => { const q = dbXY(o.slot); if (q) out.push(tri(q.x, defY(q.d), saf.has('d' + i) ? COL.S : COL.DB)); });
     return out.join('');
   }
   function zoneRect(info, x, sg){
@@ -5114,7 +5116,7 @@ function adoptIpad(){
 
 /* ---- the frames chalk keeps (set, shift, snap, post, end zone): frames-<key>.json in the gist, the iPad's own file ---- */
 const FRM = {files:new Map(), cache:new Map(), busy:new Set(), timer:null};
-const FRAME_NAMES = [['set','SET'],['shift','SHIFT'],['snap','SNAP'],['post','POST'],['ez','END Z']];
+const FRAME_NAMES = [['set','SET'],['shift','SHIFT'],['snap','SNAP'],['post','+1 s'],['post2','+2 s'],['ez','END Z']];
 const okImg = s => typeof s === 'string' && s.length < 2e6 && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s);
 function framesCheck(obj, key, name){
   if (!obj || typeof obj !== 'object' || !obj.img || typeof obj.img !== 'object'){ diag('frames.check', `${name}: expected {img:{…}}, got ${obj ? Object.keys(obj).join(',') : obj}`); return null; }
