@@ -618,12 +618,11 @@ details.game summary span{font-size:12px;color:var(--fg2);font-weight:600}
 .zero{display:flex;flex-direction:column;gap:4px;padding:18px 16px;border-radius:18px;border:1px dashed var(--raise2);margin-bottom:12px}
 .zero b{font-size:18px}
 .zero small{color:var(--fg2);font-size:13px;line-height:18px}
-/* 0.16.0 the strip: a frame every half second from the iPad — scrub it, tap the snap */
+/* 0.16.0 the strip: a frame every half second from the iPad — scrub it, tap the snap (0.16.1: every quarter second, steps of 1 s / ½ / ¼) */
 .strip{display:flex;flex-direction:column;gap:8px}
 .st-main .st-t{position:absolute;left:10px;top:10px;padding:3px 9px;border-radius:9px;background:rgba(20,22,58,.85);color:#fff;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;pointer-events:none}
 .st-row{display:flex;align-items:center;gap:8px}
 .st-row input[type=range]{flex:1;min-width:0;height:34px;margin:0;accent-color:var(--accent)}
-.st-nav{flex:none;width:42px;height:36px;border:0;border-radius:10px;background:var(--raise);color:var(--fg);font-size:20px;font-weight:700;padding:0}
 .st-foot{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .st-q{flex:1;min-width:0;display:flex;gap:4px}
 .st-q button{flex:1;height:30px;border:0;border-radius:8px;background:var(--raise);color:var(--fg2);font-size:11px;font-weight:800;letter-spacing:.04em;padding:0}
@@ -634,9 +633,12 @@ details.game summary span{font-size:12px;color:var(--fg2);font-weight:600}
 .st-ang{display:flex;gap:4px}
 .st-ang button{height:30px;padding:0 10px;border:0;border-radius:8px;background:var(--raise);color:var(--fg2);font-size:12px;font-weight:700}
 .st-ang button.on{background:var(--fg);color:var(--bg)}
+.st-step{display:flex;gap:4px}
+.st-step button{flex:1;min-width:0;height:34px;border:0;border-radius:9px;background:var(--raise);color:var(--fg);font-size:12.5px;font-weight:800;padding:0;font-variant-numeric:tabular-nums;white-space:nowrap}
+.st-step span{flex:0 0 6px}
 .st-note{font-size:12.5px;color:var(--fg2);font-weight:600;padding:2px 0}
 .zst{display:flex;flex-direction:column;gap:8px}
-.zoomBar .st-nav,.zoomBar .st-ang button{background:rgba(255,255,255,.14);color:#fff}
+.zoomBar .st-step button,.zoomBar .st-ang button{background:rgba(255,255,255,.14);color:#fff}
 .zoomBar .st-ang button.on{background:#fff;color:#111}
 .zoomBar .st-snap.on{background:rgba(111,227,154,.2);color:#6FE39A}
 .card-ipad{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;line-height:16px;border-radius:12px;padding:6px 6px 6px 10px;min-height:34px;box-sizing:border-box;background:var(--raise);color:var(--fg2)}
@@ -723,7 +725,7 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
 <script>
 (() => {
 'use strict';
-const VERSION = '0.16.0';
+const VERSION = '0.16.1';
 const KEYS = {store:'pb.store', diag:'pb.diag', dumps:'pb.dumps', base:'pb.baseline', bad:'pb.store.bad'};
 const LETTER_COLOR = {X:'#FF5A4E', Y:'#FFD23F', Z:'#B78CFF', H:'#4DA3FF', F:'#3DDC84'};
 const PERS = ['11','12','10','13','21','22','20','23','01','02','00','31','30'];
@@ -5928,9 +5930,10 @@ function framesBlock(key, cur){
   return `<button class="shot" data-act="zoom" data-key="${esc(key)}" data-v="${pick}" aria-label="See the ${pick} frame up close"><img src="${F.img[pick]}" alt="${pick} frame"></button>
     <div class="shots">${FRAME_NAMES.map(([n,l]) => `<button class="${n === pick ? 'on' : ''}" data-act="shot" data-v="${n}" ${F.img[n] ? '' : 'disabled'}>${l}</button>`).join('')}</div>`;
 }
-/* ---- 0.16.0 the strip: chalk keeps a frame every half second of every play and sends a play you queue, tag or open in its
-   own gist (ipad.json frames{} names it). Scrub it, tap the snap: set (−1.5 s), +1 s and +2 s come off the snap you picked,
-   and the iPad sits on it when it follows you. ---- */
+/* ---- 0.16.0 the strip: chalk keeps a frame every half second of every play (0.16.1: every quarter second, with its read
+   of the snap) and sends a play you queue, tag or open in its own gist (ipad.json frames{} names it). Scrub it, tap the snap:
+   set (−1.5 s), +1 s and +2 s come off the snap you picked, and the iPad sits on it when it follows you. Until you pick one,
+   chalk's read stands in, called SNAP? — Confirm snap makes it yours. Step a second, a half, a quarter. ---- */
 const SNAP = {m:null};
 function snapsMap(){ if (!SNAP.m){ const o = lsGetJSON('pb.snaps', {}); SNAP.m = new Map(o && typeof o === 'object' ? Object.entries(o).filter(([, v]) => typeof v === 'number' && isFinite(v) && v >= 0) : []); } return SNAP.m; }
 function snapOf(key){   // the snap, in seconds into the clip: the one you picked here, else the one marked on the iPad
@@ -5939,6 +5942,12 @@ function snapOf(key){   // the snap, in seconds into the clip: the one you picke
   const q = SYNC.ipad.queue.find(o => o && o.key === key) || tagOf(key), e = SYNC.ipad.frames ? SYNC.ipad.frames[key] : null;
   const v = q && typeof q.snap === 'number' ? q.snap : e && typeof e.snap === 'number' ? e.snap : null;
   return v != null && isFinite(v) && v >= 0 ? v : null;
+}
+function snapRead(key, d){   // 0.16.1: chalk's read of the snap off the strip (the sideline's, else the end zone's) — a guess until you confirm it
+  const ok = g => g && typeof g.t === 'number' && isFinite(g.t) && g.t >= 0 ? g.t : null;
+  for (const a of ['sl', 'ez']){ const t = ok(d.ang[a] && d.ang[a].guess); if (t != null) return t; }
+  const e = SYNC.ipad.frames ? SYNC.ipad.frames[key] : null;
+  return ok(e && e.guess);
 }
 function snapSet(key, t){
   const m = snapsMap(); m.delete(key); if (t != null) m.set(key, t);
@@ -5962,7 +5971,8 @@ function stripCheck(o, key, a){
   if (bad) diag('frames.check', `${name}: ${bad} picture(s) weren't image data — skipped`);
   if (o.key && o.key !== key) diag('frames.check', `${name}: made for ${o.key}, shown for ${key}`);
   if (SYNC.framesCleared && o.at && String(o.at) <= SYNC.framesCleared){ diag('frames.check', `${name}: kept ${o.at}, before the clear at ${SYNC.framesCleared} — not shown`); return null; }
-  return img.some(Boolean) ? {t0, dt, n:img.length, img, at:o.at || null, part:!!o.part} : null;
+  const g = o.guess && typeof o.guess === 'object' && typeof o.guess.t === 'number' && isFinite(o.guess.t) && o.guess.t >= 0 ? {t:o.guess.t, conf:+o.guess.conf || 0} : null;   // 0.16.1: chalk's read of the snap off this angle
+  return img.some(Boolean) ? {t0, dt, n:img.length, img, at:o.at || null, part:!!o.part, guess:g} : null;
 }
 function stripData(key){   // the play's strips from its own gist: one read, the last dozen plays kept in memory
   const e = stripEntry(key); if (!e) return null;
@@ -5978,25 +5988,27 @@ function stripData(key){   // the play's strips from its own gist: one read, the
       STRP.cache.delete(key); STRP.cache.set(key, {sig, data:{key, ang}});
       while (STRP.cache.size > 12) STRP.cache.delete(STRP.cache.keys().next().value);
       STRP.miss.delete(key);
-      diag('frames.strip', `${key}: ${Object.entries(ang).map(([a, v]) => `${a} ${v.img.filter(Boolean).length}/${v.n}`).join(' · ')}`);
+      diag('frames.strip', `${key}: ${Object.entries(ang).map(([a, v]) => `${a} ${v.img.filter(Boolean).length}/${v.n} every ${v.dt} s, ${v.guess ? `snap read at ${v.guess.t} s (${v.guess.conf})` : 'no snap read'}`).join(' · ')}`);
       framesSoon();
     })().catch(err => { STRP.miss.set(key, {sig, at:Date.now(), g:e.g, dead:!!(err && err.status === 404)}); diag('frames.strip', `${key}: ${(err && err.status) || ''} ${(err && (err.msg || err.message)) || err}`); if (err && err.status === 404) framesSoon(); })
       .finally(() => STRP.busy.delete(key));
   }
   return c ? c.data : null;
 }
-function stripView(key, d){   // the strip as frames: the named ones (set, shift, snap, +1 s, +2 s, end zone) once the snap is known
+function stripView(key, d){   // the strip as frames: the named ones (set, shift, snap, +1 s, +2 s, end zone) once the snap is known — yours, the iPad's, or chalk's read
   const angs = ['sl', 'ez'].filter(a => d.ang[a]), main = d.ang[angs[0]];
-  const snap = snapOf(key), idx = (v, t) => clamp(Math.round((t - v.t0) / v.dt), 0, v.n - 1);
+  const mark = snapOf(key), snap = mark != null ? mark : snapRead(key, d), guess = mark == null && snap != null;
+  const idx = (v, t) => clamp(Math.round((t - v.t0) / v.dt), 0, v.n - 1);
   const si = snap != null ? idx(main, snap) : null, img = {};
   if (si != null){
     const put = (n, v, j) => { if (j >= 0 && j < v.n && v.img[j]) img[n] = v.img[j]; };
-    put('set', main, si - 3); put('snap', main, si); put('post', main, si + 2); put('post2', main, si + 4);
+    const at = sec => si + Math.round(sec / main.dt);   // 0.16.1: seconds off the snap, whatever the strip's step
+    put('set', main, at(ST_OFF.set)); put('snap', main, si); put('post', main, at(ST_OFF.post)); put('post2', main, at(ST_OFF.post2));
     const q = SYNC.ipad.queue.find(o => o && o.key === key);
     if (q && typeof q.shift === 'number') put('shift', main, idx(main, q.shift));
     if (d.ang.sl && d.ang.ez) put('ez', d.ang.ez, idx(d.ang.ez, snap));
   }
-  return {key, kind:'strip', d, angs, snap, si, img, t:{}};
+  return {key, kind:'strip', d, angs, snap, guess, si, img, t:{}};
 }
 const STV = {key:null, ang:'sl', i:null};   // the strip on screen: which play, which angle, which frame
 function stView(F){
@@ -6008,42 +6020,53 @@ function stView(F){
 }
 const stSnapI = (F, v) => F.snap == null ? null : clamp(Math.round((F.snap - v.t0) / v.dt), 0, v.n - 1);
 function stImg(v, i){ if (v.img[i]) return v.img[i]; for (let d = 1; d < v.n; d++){ if (v.img[i - d]) return v.img[i - d]; if (v.img[i + d]) return v.img[i + d]; } return ''; }
+const ST_OFF = {set:-1.5, post:1, post2:2};   // 0.16.1: the named frames, in seconds off the snap
+const stOffI = (F, v, sec) => { const si = stSnapI(F, v); if (si == null) return null; const j = si + Math.round(sec / v.dt); return j >= 0 && j < v.n ? j : null; };
+const stNum = x => String(Math.round(Math.abs(x) * 100) / 100);
 function stRel(F, v, i){
-  const t = v.t0 + i * v.dt;
-  if (F.snap == null) return `${t.toFixed(1)} s`;
-  const r = t - v.t0 - (stSnapI(F, v) * v.dt);
-  return Math.abs(r) < 0.01 ? 'SNAP' : `${r > 0 ? '+' : '−'}${Math.abs(r).toFixed(1)} s`;
+  const si = stSnapI(F, v);
+  if (si == null) return `${stNum(v.t0 + i * v.dt)} s`;
+  if (i === si) return F.guess ? 'SNAP?' : 'SNAP';
+  const r = (i - si) * v.dt;
+  return `${r > 0 ? '+' : '−'}${stNum(r)} s`;
+}
+const stSnapWord = (F, on) => on ? (F.guess ? 'Confirm snap' : 'Snap ✓') : 'This is the snap';
+const ST_STEPS = [[1, '1s', 'a second'], [0.5, '½s', 'half a second'], [0.25, '¼s', 'a quarter second']];
+function stSteps(k, v){   // 0.16.1: a second at a time to find it, then a half, then a quarter — the steps this strip holds
+  const s = ST_STEPS.filter(([x]) => x >= v.dt - 1e-6);
+  const b = ([x, l, w], dir) => `<button data-act="stStep" data-key="${k}" data-v="${dir * x}" aria-label="${dir < 0 ? 'Back' : 'Ahead'} ${w}">${dir < 0 ? '‹ ' + l : l + ' ›'}</button>`;
+  return `<div class="st-step">${s.map(x => b(x, -1)).join('')}<span></span>${s.slice().reverse().map(x => b(x, 1)).join('')}</div>`;
 }
 function stripBlock(F){
-  const {v, i, ang} = stView(F), si = stSnapI(F, v), on = si != null && si === i;
+  const {v, i, ang} = stView(F), si = stSnapI(F, v), on = si != null && si === i, k = esc(F.key);
   const quick = si != null
-    ? [['−1.5 s', -3], ['SNAP', 0], ['+1 s', 2], ['+2 s', 4]].map(([l, o]) => `<button class="${si + o === i ? 'on' : ''}" data-act="stGo" data-key="${esc(F.key)}" data-v="${o}" ${si + o < 0 || si + o >= v.n ? 'disabled' : ''}>${l}</button>`).join('')
+    ? [['−1.5 s', ST_OFF.set], [F.guess ? 'SNAP?' : 'SNAP', 0], ['+1 s', ST_OFF.post], ['+2 s', ST_OFF.post2]].map(([l, o]) => { const j = stOffI(F, v, o); return `<button class="${j === i ? 'on' : ''}" data-act="stGo" data-key="${k}" data-v="${o}" ${j == null ? 'disabled' : ''}>${l}</button>`; }).join('')
     : '<small>Scrub to the snap and tap it — set, +1 s and +2 s come off it.</small>';
-  const k = esc(F.key);
   return `<div class="strip" data-noswipe="1" data-key="${k}">
     <button class="shot st-main" data-act="zoom" data-key="${k}" data-v="strip" aria-label="See this frame up close"><img class="st-img" src="${stImg(v, i)}" alt="The play, ${esc(stRel(F, v, i))}"><span class="st-t">${esc(stRel(F, v, i))}</span></button>
-    <div class="st-row"><button class="st-nav" data-act="stStep" data-key="${k}" data-v="-1" aria-label="Back half a second">‹</button><input type="range" data-scrub="1" data-key="${k}" min="0" max="${v.n - 1}" step="1" value="${i}" aria-label="Scrub the play"><button class="st-nav" data-act="stStep" data-key="${k}" data-v="1" aria-label="Ahead half a second">›</button></div>
+    <div class="st-row"><input type="range" data-scrub="1" data-key="${k}" min="0" max="${v.n - 1}" step="1" value="${i}" aria-label="Scrub the play"></div>
+    ${stSteps(k, v)}
     <div class="st-foot">${F.angs.length > 1 ? `<div class="st-ang">${F.angs.map(a => `<button class="${a === ang ? 'on' : ''}" data-act="stAng" data-key="${k}" data-v="${a}">${a === 'sl' ? 'Sideline' : 'End zone'}</button>`).join('')}</div>` : ''}
-      <div class="st-q">${quick}</div><button class="st-snap${on ? ' on' : ''}" data-act="stSnap" data-key="${k}">${on ? 'Snap ✓' : 'This is the snap'}</button></div>
+      <div class="st-q">${quick}</div><button class="st-snap${on && !F.guess ? ' on' : ''}" data-act="stSnap" data-key="${k}">${stSnapWord(F, on)}</button></div>
   </div>`;
 }
 function stPaint(F){   // the frame and its words, in place — the slider under your finger is never rebuilt
-  const {v, i} = stView(F), u = stImg(v, i), rel = stRel(F, v, i), si = stSnapI(F, v), on = si === i;
+  const {v, i} = stView(F), u = stImg(v, i), rel = stRel(F, v, i), on = stSnapI(F, v) === i, word = stSnapWord(F, on), mine = on && !F.guess;
   document.querySelectorAll('.strip').forEach(box => {
     if (box.dataset.key !== F.key) return;
     const im = box.querySelector('.st-img'), tt = box.querySelector('.st-t'), sb = box.querySelector('.st-snap'), rg = box.querySelector('input[data-scrub]');
     if (im && im.getAttribute('src') !== u) im.src = u;
     if (tt) tt.textContent = rel;
-    if (sb){ sb.classList.toggle('on', on); sb.textContent = on ? 'Snap ✓' : 'This is the snap'; }
+    if (sb){ sb.classList.toggle('on', mine); sb.textContent = word; }
     if (rg && +rg.value !== i) rg.value = String(i);
-    box.querySelectorAll('.st-q button[data-v]').forEach(b => b.classList.toggle('on', si != null && si + (+b.dataset.v) === i));
+    box.querySelectorAll('.st-q button[data-v]').forEach(b => b.classList.toggle('on', stOffI(F, v, +b.dataset.v) === i));
   });
   if (!$('#zoomer').hidden && ZM.key === F.key && ZM.strip){
     const zi = $('#zoomImg'), zr = $('#zmRange'), zb = $('#zmSnapB');
     if (zi && zi.getAttribute('src') !== u) zi.src = u;
     $('#zoomTitle').textContent = rel;
     if (zr && +zr.value !== i) zr.value = String(i);
-    if (zb){ zb.classList.toggle('on', on); zb.textContent = on ? 'Snap ✓' : 'This is the snap'; }
+    if (zb){ zb.classList.toggle('on', mine); zb.textContent = word; }
   }
 }
 const SCRUB = {on:false, need:null};   // a finger on the scrubber: redraws from the sync wait for it to lift
@@ -6071,7 +6094,7 @@ function framesClearAsk(){
   if (FRC.busy){ toast('Already clearing the frames.'); return; }
   const n = FRM.files.size;
   const ns = Object.keys(SYNC.ipad.frames || {}).length;
-  showSheet(`<h3>Clear every frame?</h3><p>${ns + n ? `${ns + n} play${ns + n === 1 ? ' has' : 's have'} frames` : 'Every frame'} from the iPad — every half-second strip (each play’s own private gist) and any older frames in the shared file — get deleted, and the iPad forgets the strips it kept. Your plays, sets, tags, snaps and the iPad’s personnel stay. A play gets a fresh strip the next time the iPad shows it. Big clears take a few minutes; GitHub only allows so many deletes an hour. This can’t be undone.</p>
+  showSheet(`<h3>Clear every frame?</h3><p>${ns + n ? `${ns + n} play${ns + n === 1 ? ' has' : 's have'} frames` : 'Every frame'} from the iPad — every strip (each play’s own private gist) and any older frames in the shared file — get deleted, and the iPad forgets the strips it kept. Your plays, sets, tags, snaps and the iPad’s personnel stay. A play gets a fresh strip the next time the iPad shows it. Big clears take a few minutes; GitHub only allows so many deletes an hour. This can’t be undone.</p>
     <div class="row"><button class="btn" data-act="closeSheet">Keep them</button><button class="btn danger" data-act="framesClear">Clear frames</button></div>`);
 }
 async function framesClearAll(){
@@ -6127,7 +6150,7 @@ function zoomOpen(key, shot){
   ZM.key = key; ZM.w = 0; ZM.h = 0; ZM.strip = F.kind === 'strip';
   if (ZM.strip){   // a named frame opens the strip on it
     stView(F);
-    if (shot && shot !== 'strip' && F.img[shot] && F.si != null){ const ez = shot === 'ez', v = F.d.ang[ez ? 'ez' : F.angs[0]]; STV.ang = ez ? 'ez' : F.angs[0]; STV.i = clamp(stSnapI(F, v) + ({set:-3, post:2, post2:4}[shot] || 0), 0, v.n - 1); }
+    if (shot && shot !== 'strip' && F.img[shot] && F.si != null){ const ez = shot === 'ez', v = F.d.ang[ez ? 'ez' : F.angs[0]]; STV.ang = ez ? 'ez' : F.angs[0]; const j = stOffI(F, v, ST_OFF[shot] || 0); STV.i = j != null ? j : stSnapI(F, v); }
   } else ZM.shot = F.img[shot] ? shot : (F.img.snap ? 'snap' : Object.keys(F.img)[0]);
   $('#zoomer').hidden = false; zoomShow();
   diag('zoom', `${key} · ${ZM.shot}`);
@@ -6140,8 +6163,8 @@ function zoomShow(){
     $('#zoomTitle').textContent = stRel(F, v, i); $('#zoomSub').textContent = q && q.sit ? '· ' + sitWord(q.sit) : '';
     const box = $('#zoomShots'); box.className = 'zst';
     const k = esc(F.key);
-    box.innerHTML = `<div class="st-row"><button class="st-nav" data-act="stStep" data-key="${k}" data-v="-1" aria-label="Back half a second">‹</button><input type="range" id="zmRange" data-scrub="1" data-key="${k}" min="0" max="${v.n - 1}" step="1" value="${i}" aria-label="Scrub the play"><button class="st-nav" data-act="stStep" data-key="${k}" data-v="1" aria-label="Ahead half a second">›</button></div>
-      <div class="st-foot">${F.angs.length > 1 ? `<div class="st-ang">${F.angs.map(a => `<button class="${a === ang ? 'on' : ''}" data-act="stAng" data-key="${k}" data-v="${a}">${a === 'sl' ? 'Sideline' : 'End zone'}</button>`).join('')}</div>` : ''}<span style="flex:1"></span><button class="st-snap${on ? ' on' : ''}" id="zmSnapB" data-act="stSnap" data-key="${k}">${on ? 'Snap ✓' : 'This is the snap'}</button></div>`;
+    box.innerHTML = `<div class="st-row"><input type="range" id="zmRange" data-scrub="1" data-key="${k}" min="0" max="${v.n - 1}" step="1" value="${i}" aria-label="Scrub the play"></div>${stSteps(k, v)}
+      <div class="st-foot">${F.angs.length > 1 ? `<div class="st-ang">${F.angs.map(a => `<button class="${a === ang ? 'on' : ''}" data-act="stAng" data-key="${k}" data-v="${a}">${a === 'sl' ? 'Sideline' : 'End zone'}</button>`).join('')}</div>` : ''}<span style="flex:1"></span><button class="st-snap${on && !F.guess ? ' on' : ''}" id="zmSnapB" data-act="stSnap" data-key="${k}">${stSnapWord(F, on)}</button></div>`;
     img.onload = () => { if (img.naturalWidth !== ZM.w || img.naturalHeight !== ZM.h){ ZM.w = img.naturalWidth; ZM.h = img.naturalHeight; zoomFit(); } };   // scrubbing keeps your zoom
     if (img.getAttribute('src') !== u) img.src = u; else if (img.complete && img.naturalWidth) img.onload();
     return;
@@ -7318,7 +7341,7 @@ function enOptArt(k, v){
 }
 function enFilmHTML(){
   const key = EN.q && EN.q.key, F = key ? framesNow(key) : null;
-  if (F && F.kind === 'strip' && !F.img.snap) return `<div style="margin:0 0 12px">${stripBlock(F)}</div>`;   // 0.16.0: pick the snap right here
+  if (F && F.kind === 'strip' && (!F.img.snap || F.guess)) return `<div style="margin:0 0 12px">${stripBlock(F)}</div>`;   // 0.16.0: pick the snap right here (0.16.1: or confirm chalk's read)
   if (F){ const shot = F.img.ez ? 'ez' : F.img.snap ? 'snap' : Object.keys(F.img)[0];
     return `<button class="fl-film" data-act="zoom" data-key="${esc(key)}" data-v="${shot}" aria-label="See the frame up close"><img src="${F.img[shot]}" alt="${shot} frame"><span>${shot === 'ez' ? 'END ZONE' : 'SNAP'} · tap to zoom</span></button>`; }
   return `<span class="fl-art" style="height:104px;margin-bottom:12px">${QZ.set({qb:W.qb, xol:W.xol, tokens:W.tokens.map(t => ({type:t.type, slot:t.slot}))}, {w:358, h:104})}</span>`;
@@ -7949,8 +7972,8 @@ function enSnapHTML(){
   enPostInit();
   const P = EN.post, K = EN.known || {}, key = EN.q && EN.q.key, F = key ? framesNow(key) : null, fr = EN.frame || 'snap', mir = enStrength() === 'L';
   const shots = [['snap','SNAP'],['post','+1 s'],['post2','+2 s']];
-  const photo = F && F.img[fr] ? `<button class="fl-film" data-act="zoom" data-key="${esc(key)}" data-v="${fr}" aria-label="See the frame up close"><img src="${F.img[fr]}" alt="${fr} frame"><span>${fr === 'snap' ? 'SNAP' : fr === 'post' ? '+1 s' : '+2 s'} · from the iPad</span></button>`
-    : F && F.kind === 'strip' && !F.img.snap ? `<div style="margin:0 0 12px">${stripBlock(F)}</div>` : '';   // 0.16.0: no snap yet — pick it on the strip
+  const photo = F && F.kind === 'strip' && (!F.img.snap || F.guess) ? `<div style="margin:0 0 12px">${stripBlock(F)}</div>`   // 0.16.0: no snap yet — pick it on the strip (0.16.1: or confirm chalk's read)
+    : F && F.img[fr] ? `<button class="fl-film" data-act="zoom" data-key="${esc(key)}" data-v="${fr}" aria-label="See the frame up close"><img src="${F.img[fr]}" alt="${fr} frame"><span>${fr === 'snap' ? 'SNAP' : fr === 'post' ? '+1 s' : '+2 s'} · from the iPad</span></button>` : '';
   const cid = enCid();
   const art = QZ.shell(EN.def, enOffNow(), {w:358, h:190, frame:{snap:'snap', post:'p1', post2:'p2'}[fr], cid, mirror:mir});
   const row = (k, q, note, tone, opts, locked) => `<div class="fl-q"><div class="qh"><b>${q}</b><small style="color:${tone}">${esc(note)}</small></div><div class="fl-chips">${opts.map(([v, l]) => `<button class="fc${String(P[k]) === v ? ' on' : ''}${locked ? ' lock' : ''}" data-act="enPost" data-k="${k}" data-v="${v}"${locked ? ' aria-disabled="true"' : ''}>${l}</button>`).join('')}</div></div>`;
@@ -8874,14 +8897,15 @@ Object.assign(ACT, {
   pf(d){ HOMEV.pf = d.v; renderHome(); },
   wipeAsk(){ if (!Object.keys(WIPE).some(k => (S[k] || []).length)){ toast('Nothing to clear — the book is the NFL base alone.'); return; } lsSetRaw('pb.clear0101', ''); clearPrompt(); },
   framesClearAsk(){ framesClearAsk(); },
-  stStep(d){ const F = stNow(d.key); if (!F) return; const {v} = stView(F); STV.i = clamp(STV.i + (+d.v || 0), 0, v.n - 1); stPaint(F); },
-  stGo(d){ const F = stNow(d.key); if (!F) return; const {v} = stView(F), si = stSnapI(F, v); if (si == null) return; STV.i = clamp(si + (+d.v || 0), 0, v.n - 1); stPaint(F); },
+  stStep(d){ const F = stNow(d.key); if (!F) return; const {v} = stView(F), s = +d.v || 0; if (!s) return; STV.i = clamp(STV.i + Math.sign(s) * Math.max(1, Math.round(Math.abs(s) / v.dt)), 0, v.n - 1); stPaint(F); },   // 0.16.1: data-v is seconds
+  stGo(d){ const F = stNow(d.key); if (!F) return; const {v} = stView(F), j = stOffI(F, v, +d.v || 0); if (j == null) return; STV.i = j; stPaint(F); },
   stAng(d){ const F = stNow(d.key); if (!F) return; stView(F); const a = d.v === 'ez' ? 'ez' : 'sl'; if (!F.d.ang[a] || a === STV.ang) return; const t = F.d.ang[STV.ang] ? F.d.ang[STV.ang].t0 + STV.i * F.d.ang[STV.ang].dt : null; STV.ang = a; const v = F.d.ang[a]; STV.i = t == null ? null : clamp(Math.round((t - v.t0) / v.dt), 0, v.n - 1); stRerender(); },
   stSnap(d){
     const F = stNow(d && d.key); if (!F) return;
-    const {v, i} = stView(F); if (stSnapI(F, v) === i){ toast('That’s the snap.'); return; }
+    const {v, i} = stView(F), on = stSnapI(F, v) === i;
+    if (on && !F.guess){ toast('That’s the snap.'); return; }
     const t = +(v.t0 + i * v.dt).toFixed(3); snapSet(F.key, t);
-    diag('frames.snap', `${F.key}: the snap at ${t} s`);
+    diag('frames.snap', `${F.key}: the snap at ${t} s${F.guess ? (on ? ' — chalk’s read, confirmed' : ` — chalk read it at ${F.snap} s`) : ''}`);
     if (SYNC.hold && SYNC.hold.key === F.key) setHold(F.key, SYNC.hold.frame);   // the iPad sits on it too
     stRerender();
   },
