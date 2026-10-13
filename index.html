@@ -618,6 +618,33 @@ details.game summary span{font-size:12px;color:var(--fg2);font-weight:600}
 .zero{display:flex;flex-direction:column;gap:4px;padding:18px 16px;border-radius:18px;border:1px dashed var(--raise2);margin-bottom:12px}
 .zero b{font-size:18px}
 .zero small{color:var(--fg2);font-size:13px;line-height:18px}
+/* 0.16.0 the strip: a frame every half second from the iPad — scrub it, tap the snap */
+.strip{display:flex;flex-direction:column;gap:8px}
+.st-main .st-t{position:absolute;left:10px;top:10px;padding:3px 9px;border-radius:9px;background:rgba(20,22,58,.85);color:#fff;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;pointer-events:none}
+.st-row{display:flex;align-items:center;gap:8px}
+.st-row input[type=range]{flex:1;min-width:0;height:34px;margin:0;accent-color:var(--accent)}
+.st-nav{flex:none;width:42px;height:36px;border:0;border-radius:10px;background:var(--raise);color:var(--fg);font-size:20px;font-weight:700;padding:0}
+.st-foot{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.st-q{flex:1;min-width:0;display:flex;gap:4px}
+.st-q button{flex:1;height:30px;border:0;border-radius:8px;background:var(--raise);color:var(--fg2);font-size:11px;font-weight:800;letter-spacing:.04em;padding:0}
+.st-q button.on{background:var(--fg);color:var(--bg)}
+.st-q small{font-size:12px;color:var(--fg2);line-height:16px}
+.st-snap{flex:none;height:34px;padding:0 14px;border:0;border-radius:17px;background:var(--accent);color:var(--on-accent);font-size:13px;font-weight:800}
+.st-snap.on{background:var(--t-data-bg);color:var(--t-data-fg)}
+.st-ang{display:flex;gap:4px}
+.st-ang button{height:30px;padding:0 10px;border:0;border-radius:8px;background:var(--raise);color:var(--fg2);font-size:12px;font-weight:700}
+.st-ang button.on{background:var(--fg);color:var(--bg)}
+.st-note{font-size:12.5px;color:var(--fg2);font-weight:600;padding:2px 0}
+.zst{display:flex;flex-direction:column;gap:8px}
+.zoomBar .st-nav,.zoomBar .st-ang button{background:rgba(255,255,255,.14);color:#fff}
+.zoomBar .st-ang button.on{background:#fff;color:#111}
+.zoomBar .st-snap.on{background:rgba(111,227,154,.2);color:#6FE39A}
+.card-ipad{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;line-height:16px;border-radius:12px;padding:6px 6px 6px 10px;min-height:34px;box-sizing:border-box;background:var(--raise);color:var(--fg2)}
+.card-ipad span{flex:1;min-width:0}
+.card-ipad.on{background:var(--t-data-bg);color:var(--t-data-fg)}
+.card-ipad.wait{background:var(--t-ipad-bg);color:var(--t-ipad-fg)}
+.card-ipad.bad{background:var(--t-ipad-bg);color:var(--danger)}
+.card-ipad .btn{flex:none;height:30px;padding:0 12px;font-size:12.5px;border-radius:10px;background:var(--panel)}
 .btn.wide{width:100%;flex:none;margin-bottom:6px}
 details.base{background:transparent;border:0;padding:0;margin:0}
 details.base > summary{padding:10px 2px;color:var(--fg2);font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
@@ -696,7 +723,7 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
 <script>
 (() => {
 'use strict';
-const VERSION = '0.15.0';
+const VERSION = '0.16.0';
 const KEYS = {store:'pb.store', diag:'pb.diag', dumps:'pb.dumps', base:'pb.baseline', bad:'pb.store.bad'};
 const LETTER_COLOR = {X:'#FF5A4E', Y:'#FFD23F', Z:'#B78CFF', H:'#4DA3FF', F:'#3DDC84'};
 const PERS = ['11','12','10','13','21','22','20','23','01','02','00','31','30'];
@@ -1149,7 +1176,7 @@ function pushBaseline(kind, obj){
    is open (an unchanged gist answers 304 and costs nothing); writes wait 1.5 s so a burst becomes one save. */
 const GIST_DESC = 'chalk-playbook sync v1';
 const SYNC = {token:null, id:null, etag:null, state:'off', err:null, lastPull:0, lastPush:0, ipad:{queue:[], tags:[], adds:[], at:null},
-  hold:null, timer:null, wtimer:null, writing:false, dirty:false, deleted:[], merged:false, failed:false, framesCleared:null};
+  hold:null, timer:null, wtimer:null, writing:false, dirty:false, deleted:[], merged:false, failed:false, framesCleared:null, backoffUntil:0};
 function syncLoadCfg(){
   SYNC.token = lsGetRaw('pb.gh.token') || null;
   SYNC.id = lsGetRaw('pb.gh.gist') || null;
@@ -1158,19 +1185,38 @@ function syncLoadCfg(){
   const ip = lsGetJSON('pb.ipad', null); if (ip && Array.isArray(ip.queue)) SYNC.ipad = Object.assign({tags:[], adds:[], facts:{}}, ip);
 }
 async function gh(method, path, body, etag){
-  const t0 = performance.now();
+  const wait = (SYNC.backoffUntil || 0) - Date.now();
+  if (wait > 0) throw {status:0, msg:`GitHub asked for a pause — back in ${Math.ceil(wait / 1000)} s`, paused:true};
+  const t0 = performance.now(), lim = method === 'GET' ? 45000 : 30000;   // 0.16.0: a slow GitHub isn't a dead one, but a hung request doesn't wait forever
   const headers = {'Accept':'application/vnd.github+json', 'Authorization':'Bearer ' + SYNC.token, 'X-GitHub-Api-Version':'2022-11-28'};
   if (etag) headers['If-None-Match'] = etag;
-  let res;
-  try { res = await fetch('https://api.github.com' + path, {method, headers, body:body ? JSON.stringify(body) : undefined, cache:'no-store'}); }
-  catch(e){ throw {status:0, msg:'network: ' + String(e && e.message || e)}; }
+  const ctl = typeof AbortController === 'function' ? new AbortController() : null, timer = ctl ? setTimeout(() => ctl.abort(), lim) : null;
+  let res, text = '';
+  try {
+    res = await fetch('https://api.github.com' + path, {method, headers, body:body ? JSON.stringify(body) : undefined, cache:'no-store', signal:ctl ? ctl.signal : undefined});
+    if (res.status !== 304) text = await res.text();
+  }
+  catch(e){ throw {status:0, msg:e && e.name === 'AbortError' ? `GitHub took over ${lim / 1000} s` : 'network: ' + String(e && e.message || e)}; }
+  finally { if (timer) clearTimeout(timer); }
   const ms = (performance.now() - t0).toFixed(0), left = res.headers.get('x-ratelimit-remaining');
   if (res.status === 304) return {status:304};
-  const text = await res.text();
   let json = null; try { json = text ? JSON.parse(text) : null; } catch(_){}
   diag('sync.http', `${method} ${path.replace(/\?.*/, '')} → ${res.status} in ${ms} ms, ${left} calls left this hour`);
-  if (!res.ok) throw {status:res.status, msg:(json && json.message) || text.slice(0, 160), body:text.slice(0, 2000), left};
+  if (!res.ok){
+    const err = {status:res.status, msg:(json && json.message) || text.slice(0, 160), body:text.slice(0, 2000), left, retry:res.headers.get('retry-after'), reset:res.headers.get('x-ratelimit-reset')};
+    ghBackoff(err); throw err;
+  }
   return {status:res.status, json, etag:res.headers.get('ETag')};
+}
+function ghBackoff(e){   // 0.16.0: GitHub said slow down — a secondary limit (403/429, maybe with a wait) or the hour's calls spent: every request waits it out
+  if (!e || !(e.status === 403 || e.status === 429)) return;
+  if (!(/rate limit|abuse|too many|secondary/i.test(String(e.msg || '')) || e.retry != null || String(e.left) === '0')) return;
+  let wait = e.retry != null && isFinite(+e.retry) ? +e.retry * 1000 : 0;
+  if (!wait && String(e.left) === '0' && e.reset != null && isFinite(+e.reset)) wait = +e.reset * 1000 - Date.now();
+  wait = Math.min(3600e3, Math.max(60e3, wait || 60e3));
+  if (Date.now() + wait <= (SYNC.backoffUntil || 0)) return;
+  SYNC.backoffUntil = Date.now() + wait;
+  diag('sync.pause', `GitHub asked for a pause: ${Math.round(wait / 1000)} s (${e.status} ${e.msg})`);
 }
 const strip = (k,v) => (k === '_bad' || k === '_sync' || k === '_conv') ? undefined : v;
 function phoneJSON(){
@@ -1253,10 +1299,18 @@ async function syncPull(){
       const facts = {}; let nf = 0, badf = 0;
       Object.entries(ip.facts || {}).forEach(([k, f]) => { if (f && typeof f === 'object' && /^\d{4}_\d{2}_[A-Z]{2,3}_[A-Z]{2,3}:\d+$/.test(k)){ facts[k] = f; nf++; } else badf++; });
       if (badf) diag('sync.ipad', `facts: ${badf} entries skipped (key not "<game>:<play>" or not an object)`);
-      SYNC.ipad = {queue:ip.queue, tags:ip.tags || [], adds:ip.adds || [], facts, at:ip.at || null};
+      /* 0.16.0: frames{} names each play's strip gist; here is the play on the iPad; ack is where the last hold landed */
+      const frames = {}; let nfr = 0;
+      if (ip.frames && typeof ip.frames === 'object' && !Array.isArray(ip.frames)) Object.entries(ip.frames).forEach(([k, e]) => { if (e && typeof e.g === 'string' && /^[0-9a-f]{8,}$/i.test(e.g) && (e.sl || e.ez)){ frames[k] = e; nfr++; } });
+      const here = ip.here && typeof ip.here === 'object' && (ip.here.key == null || typeof ip.here.key === 'string') ? ip.here : null;
+      const ack = ip.ack && typeof ip.ack === 'object' && typeof ip.ack.key === 'string' ? ip.ack : null;
+      SYNC.ipad = {queue:ip.queue, tags:ip.tags || [], adds:ip.adds || [], facts, frames, here, ack, at:ip.at || null};
       lsSetRaw('pb.ipad', JSON.stringify(SYNC.ipad));
+      if (here && (here.key !== HEREV.key || here.at !== HEREV.at)){ HEREV.key = here.key; HEREV.at = here.at; HEREV.seenAt = Date.now(); diag('sync.here', `the iPad is on ${here.key || 'nothing (chalk off)'}`); }
+      if (ack && ack.at !== HEREV.ackAt){ HEREV.ackAt = ack.at; diag('sync.ack', `${ack.key}: ${ack.ok ? 'the iPad is on it' : 'the iPad couldn’t get there — ' + (ack.why || '?')}${ack.here && !ack.ok ? ' (on ' + ack.here + ')' : ''}`); }
+      qSeenNote(ip.queue);
       pushBaseline('ipad', SYNC.ipad);
-      diag('sync.pull', `iPad: ${ip.queue.length} queued (was ${before}), ${(ip.tags || []).length} tags, ${(ip.adds || []).length} adds, ${nf} plays with facts, ${FRM.files.size} frame files, written ${ip.at}`);
+      diag('sync.pull', `iPad: ${ip.queue.length} queued (was ${before}), ${(ip.tags || []).length} tags, ${(ip.adds || []).length} adds, ${nf} plays with facts, ${nfr} strips, ${FRM.files.size} old frame files, on ${here && here.key ? here.key : '—'}, written ${ip.at}`);
     }
   }
   if (!SYNC.merged){
@@ -1279,6 +1333,7 @@ function syncMark(ms){
 }
 async function syncPush(){
   if (!SYNC.token) return;
+  const wait = (SYNC.backoffUntil || 0) - Date.now(); if (wait > 0){ SYNC.wtimer = setTimeout(syncPush, wait + 500); return; }   // 0.16.0
   if (!SYNC.id || !SYNC.merged || SYNC.writing){ SYNC.wtimer = setTimeout(syncPush, 1500); return; }
   SYNC.writing = true; SYNC.dirty = false;
   const content = phoneJSON();
@@ -1302,11 +1357,11 @@ function syncFail(stage, e){
 }
 async function syncTick(){
   clearTimeout(SYNC.timer);
-  if (SYNC.token && document.visibilityState !== 'hidden'){
+  if (SYNC.token && document.visibilityState !== 'hidden' && Date.now() >= (SYNC.backoffUntil || 0)){
     try { await syncFind(); const changed = await syncPull(); SYNC.lastPull = Date.now(); syncOk(); if (changed && VIEW === 'home') renderHome(); }
     catch(e){ syncFail('pull', e); if (VIEW === 'home') renderHome(); }
   }
-  if (SYNC.token) SYNC.timer = setTimeout(syncTick, SYNC.state === 'on' ? 4000 : 20000);
+  if (SYNC.token) SYNC.timer = setTimeout(syncTick, Math.max(SYNC.state === 'on' ? 4000 : 20000, (SYNC.backoffUntil || 0) - Date.now() + 500));
 }
 function syncStart(){
   syncLoadCfg();
@@ -1317,11 +1372,23 @@ function syncStart(){
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && SYNC.token) syncTick(); });
 /* the iPad follows the phone: while a queued play is open here, chalk holds it on the snap */
 function setHold(key, frame){
-  SYNC.hold = key ? {key, frame:frame || 'snap', at:new Date().toISOString()} : null;
-  diag('sync.hold', key ? `iPad: hold ${key} on the ${SYNC.hold.frame}` : 'iPad: let go');
+  const t = key ? snapOf(key) : null;   // 0.16.0: the snap you picked here — the iPad sits on it
+  SYNC.hold = key ? Object.assign({key, frame:frame || 'snap', at:new Date().toISOString()}, t != null ? {t} : {}) : null;
+  diag('sync.hold', key ? `iPad: hold ${key} on the ${SYNC.hold.frame}${t != null ? ' at ' + t + ' s' : ''}` : 'iPad: let go');
   syncMark(300);
 }
-const queueOpen = () => SYNC.ipad.queue.filter(q => q && q.key && !S.plays.some(p => p.key === q.key)).sort((a,b) => String(a.at || '').localeCompare(String(b.at || '')));
+/* 0.16.0: the inbox keeps its order — when a play was first queued (chalk's qat), else when this phone first saw it — so a
+   snap, a shift or a frame sent later never reshuffles it; the iPad's own play comes to the top when you move there */
+const HEREV = {key:null, at:null, seenAt:0, ackAt:null};
+const QSEEN = {m:null};
+function qSeen(){ if (!QSEEN.m){ const o = lsGetJSON('pb.qseen', {}); QSEEN.m = new Map(o && typeof o === 'object' ? Object.entries(o).filter(([, v]) => typeof v === 'string') : []); } return QSEEN.m; }
+function qSeenNote(queue){
+  const m = qSeen(); let ch = 0;
+  (queue || []).forEach(q => { if (q && q.key && !m.has(q.key)){ m.set(q.key, String(q.qat || q.at || new Date().toISOString())); ch++; } });
+  if (ch){ while (m.size > 3000) m.delete(m.keys().next().value); lsSetRaw('pb.qseen', JSON.stringify(Object.fromEntries(m))); }
+}
+const qOrd = q => String(q.qat || qSeen().get(q.key) || q.at || '');
+const queueOpen = () => SYNC.ipad.queue.filter(q => q && q.key && !S.plays.some(p => p.key === q.key)).sort((a,b) => qOrd(a).localeCompare(qOrd(b)));
 const syncWord = () => ({on:'Synced', connecting:'Connecting…', error:'Sync failing', auth:'Token rejected', off:'Not synced'}[SYNC.state] || SYNC.state);
 
 /* ================= validation at the seams ================= */
@@ -5817,7 +5884,7 @@ function framesCheck(obj, key, name){
   if (bad) diag('frames.check', `${name}: ${bad} picture(s) were not image data, skipped`);
   if (SYNC.framesCleared && obj.at && String(obj.at) <= SYNC.framesCleared){ diag('frames.check', `${name}: kept ${obj.at}, before the clear at ${SYNC.framesCleared} — not shown`); return null; }
   if (obj.key && obj.key !== key) diag('frames.check', `${name}: made for ${obj.key}, shown for ${key}`);
-  return Object.keys(img).length ? {key, img, t:obj.t || {}, at:obj.at || null} : null;
+  return Object.keys(img).length ? {key, kind:'legacy', img, t:obj.t || {}, at:obj.at || null} : null;
 }
 function framesSoon(){
   clearTimeout(FRM.timer);
@@ -5828,8 +5895,13 @@ function framesSoon(){
     if (FILMV.open && !$('#sheet').hidden) ACT.film();
   }, 60);
 }
-function framesNow(key){
+function framesNow(key){   // 0.16.0: the play's strip (its own gist) first, else the old frames file in the sync gist
   if (!key) return null;
+  const d = stripEntry(key) ? stripData(key) : null;
+  if (d) return stripView(key, d);
+  return legacyNow(key);
+}
+function legacyNow(key){
   const q = SYNC.ipad.queue.find(o => o && o.key === key) || tagOf(key);
   const name = (q && typeof q.frames === 'string' && q.frames) || ('frames-' + String(key).replace(/[^A-Za-z0-9_.-]+/g, '-') + '.json');
   const f = FRM.files.get(name);
@@ -5849,11 +5921,135 @@ function framesNow(key){
 }
 function framesBlock(key, cur){
   const F = framesNow(key);
-  if (!F) return '';
+  if (!F) return stripEntry(key) ? '<div class="st-note">The strip is on its way from the iPad…</div>' : '';
+  if (F.kind === 'strip') return stripBlock(F);
   const pick = F.img[cur] ? cur : (F.img.snap ? 'snap' : Object.keys(F.img)[0]);
   return `<button class="shot" data-act="zoom" data-key="${esc(key)}" data-v="${pick}" aria-label="See the ${pick} frame up close"><img src="${F.img[pick]}" alt="${pick} frame"></button>
     <div class="shots">${FRAME_NAMES.map(([n,l]) => `<button class="${n === pick ? 'on' : ''}" data-act="shot" data-v="${n}" ${F.img[n] ? '' : 'disabled'}>${l}</button>`).join('')}</div>`;
 }
+/* ---- 0.16.0 the strip: chalk keeps a frame every half second of every play and sends a play you queue, tag or open in its
+   own gist (ipad.json frames{} names it). Scrub it, tap the snap: set (−1.5 s), +1 s and +2 s come off the snap you picked,
+   and the iPad sits on it when it follows you. ---- */
+const SNAP = {m:null};
+function snapsMap(){ if (!SNAP.m){ const o = lsGetJSON('pb.snaps', {}); SNAP.m = new Map(o && typeof o === 'object' ? Object.entries(o).filter(([, v]) => typeof v === 'number' && isFinite(v) && v >= 0) : []); } return SNAP.m; }
+function snapOf(key){   // the snap, in seconds into the clip: the one you picked here, else the one marked on the iPad
+  if (!key) return null;
+  const m = snapsMap(); if (m.has(key)) return m.get(key);
+  const q = SYNC.ipad.queue.find(o => o && o.key === key) || tagOf(key), e = SYNC.ipad.frames ? SYNC.ipad.frames[key] : null;
+  const v = q && typeof q.snap === 'number' ? q.snap : e && typeof e.snap === 'number' ? e.snap : null;
+  return v != null && isFinite(v) && v >= 0 ? v : null;
+}
+function snapSet(key, t){
+  const m = snapsMap(); m.delete(key); if (t != null) m.set(key, t);
+  while (m.size > 2000) m.delete(m.keys().next().value);
+  lsSetRaw('pb.snaps', JSON.stringify(Object.fromEntries(m)));
+}
+function stripEntry(key){
+  const F = SYNC.ipad.frames, e = F && key ? F[key] : null;
+  if (!e || typeof e.g !== 'string' || !(e.sl || e.ez)) return null;
+  if (SYNC.framesCleared && e.at && String(e.at) <= SYNC.framesCleared) return null;   // from before Clear all frames
+  return e;
+}
+const STRP = {cache:new Map(), busy:new Set(), miss:new Map()};
+function stripCheck(o, key, a){
+  const name = `strip-${a}.json`;
+  if (!o || typeof o !== 'object' || !Array.isArray(o.img)){ diag('frames.check', `${name}: expected {img:[…]}, got ${o ? Object.keys(o).join(',') : o}`); return null; }
+  const dt = +o.dt, t0 = +o.t0 || 0;
+  if (!(dt > 0 && dt <= 5)){ diag('frames.check', `${name}: dt ${o.dt} isn't a step in seconds`); return null; }
+  let bad = 0; const img = o.img.map(x => { if (x == null) return null; if (okImg(x)) return x; bad++; return null; });
+  if (bad) diag('frames.check', `${name}: ${bad} picture(s) weren't image data — skipped`);
+  if (o.key && o.key !== key) diag('frames.check', `${name}: made for ${o.key}, shown for ${key}`);
+  return img.some(Boolean) ? {t0, dt, n:img.length, img, at:o.at || null, part:!!o.part} : null;
+}
+function stripData(key){   // the play's strips from its own gist: one read, the last dozen plays kept in memory
+  const e = stripEntry(key); if (!e) return null;
+  const sig = `${e.g}|${e.sl ? e.sl.at : ''}|${e.ez ? e.ez.at : ''}`, c = STRP.cache.get(key);
+  if (c && c.sig === sig) return c.data;
+  const miss = STRP.miss.get(key);
+  if (!(miss && miss.sig === sig && Date.now() - miss.at < 60000) && !STRP.busy.has(key) && SYNC.token){
+    STRP.busy.add(key);
+    (async () => {
+      const r = await gh('GET', `/gists/${e.g}`), files = (r.json && r.json.files) || {}, ang = {};
+      for (const a of ['sl', 'ez']){ const f = files[`strip-${a}.json`]; if (!f) continue; const v = stripCheck(await readFile(f), key, a); if (v) ang[a] = v; }
+      if (!Object.keys(ang).length) throw {status:0, msg:'no strip in its gist'};
+      STRP.cache.delete(key); STRP.cache.set(key, {sig, data:{key, ang}});
+      while (STRP.cache.size > 12) STRP.cache.delete(STRP.cache.keys().next().value);
+      STRP.miss.delete(key);
+      diag('frames.strip', `${key}: ${Object.entries(ang).map(([a, v]) => `${a} ${v.img.filter(Boolean).length}/${v.n}`).join(' · ')}`);
+      framesSoon();
+    })().catch(err => { STRP.miss.set(key, {sig, at:Date.now()}); diag('frames.strip', `${key}: ${(err && err.status) || ''} ${(err && (err.msg || err.message)) || err}`); })
+      .finally(() => STRP.busy.delete(key));
+  }
+  return c ? c.data : null;
+}
+function stripView(key, d){   // the strip as frames: the named ones (set, shift, snap, +1 s, +2 s, end zone) once the snap is known
+  const angs = ['sl', 'ez'].filter(a => d.ang[a]), main = d.ang[angs[0]];
+  const snap = snapOf(key), idx = (v, t) => clamp(Math.round((t - v.t0) / v.dt), 0, v.n - 1);
+  const si = snap != null ? idx(main, snap) : null, img = {};
+  if (si != null){
+    const put = (n, v, j) => { if (j >= 0 && j < v.n && v.img[j]) img[n] = v.img[j]; };
+    put('set', main, si - 3); put('snap', main, si); put('post', main, si + 2); put('post2', main, si + 4);
+    const q = SYNC.ipad.queue.find(o => o && o.key === key);
+    if (q && typeof q.shift === 'number') put('shift', main, idx(main, q.shift));
+    if (d.ang.sl && d.ang.ez) put('ez', d.ang.ez, idx(d.ang.ez, snap));
+  }
+  return {key, kind:'strip', d, angs, snap, si, img, t:{}};
+}
+const STV = {key:null, ang:'sl', i:null};   // the strip on screen: which play, which angle, which frame
+function stView(F){
+  if (STV.key !== F.key){ STV.key = F.key; STV.ang = F.angs[0]; STV.i = null; }
+  if (!F.d.ang[STV.ang]){ STV.ang = F.angs[0]; STV.i = null; }
+  const v = F.d.ang[STV.ang];
+  if (STV.i == null || STV.i >= v.n) STV.i = F.snap != null ? clamp(Math.round((F.snap - v.t0) / v.dt), 0, v.n - 1) : Math.min(v.n - 1, Math.round(v.n * 0.3));
+  return {v, i:STV.i, ang:STV.ang};
+}
+const stSnapI = (F, v) => F.snap == null ? null : clamp(Math.round((F.snap - v.t0) / v.dt), 0, v.n - 1);
+function stImg(v, i){ if (v.img[i]) return v.img[i]; for (let d = 1; d < v.n; d++){ if (v.img[i - d]) return v.img[i - d]; if (v.img[i + d]) return v.img[i + d]; } return ''; }
+function stRel(F, v, i){
+  const t = v.t0 + i * v.dt;
+  if (F.snap == null) return `${t.toFixed(1)} s`;
+  const r = t - v.t0 - (stSnapI(F, v) * v.dt);
+  return Math.abs(r) < 0.01 ? 'SNAP' : `${r > 0 ? '+' : '−'}${Math.abs(r).toFixed(1)} s`;
+}
+function stripBlock(F){
+  const {v, i, ang} = stView(F), si = stSnapI(F, v), on = si != null && si === i;
+  const quick = si != null
+    ? [['−1.5 s', -3], ['SNAP', 0], ['+1 s', 2], ['+2 s', 4]].map(([l, o]) => `<button class="${si + o === i ? 'on' : ''}" data-act="stGo" data-key="${esc(F.key)}" data-v="${o}" ${si + o < 0 || si + o >= v.n ? 'disabled' : ''}>${l}</button>`).join('')
+    : '<small>Scrub to the snap and tap it — set, +1 s and +2 s come off it.</small>';
+  const k = esc(F.key);
+  return `<div class="strip" data-noswipe="1" data-key="${k}">
+    <button class="shot st-main" data-act="zoom" data-key="${k}" data-v="strip" aria-label="See this frame up close"><img class="st-img" src="${stImg(v, i)}" alt="The play, ${esc(stRel(F, v, i))}"><span class="st-t">${esc(stRel(F, v, i))}</span></button>
+    <div class="st-row"><button class="st-nav" data-act="stStep" data-key="${k}" data-v="-1" aria-label="Back half a second">‹</button><input type="range" data-scrub="1" data-key="${k}" min="0" max="${v.n - 1}" step="1" value="${i}" aria-label="Scrub the play"><button class="st-nav" data-act="stStep" data-key="${k}" data-v="1" aria-label="Ahead half a second">›</button></div>
+    <div class="st-foot">${F.angs.length > 1 ? `<div class="st-ang">${F.angs.map(a => `<button class="${a === ang ? 'on' : ''}" data-act="stAng" data-key="${k}" data-v="${a}">${a === 'sl' ? 'Sideline' : 'End zone'}</button>`).join('')}</div>` : ''}
+      <div class="st-q">${quick}</div><button class="st-snap${on ? ' on' : ''}" data-act="stSnap" data-key="${k}">${on ? 'Snap ✓' : 'This is the snap'}</button></div>
+  </div>`;
+}
+function stPaint(F){   // the frame and its words, in place — the slider under your finger is never rebuilt
+  const {v, i} = stView(F), u = stImg(v, i), rel = stRel(F, v, i), si = stSnapI(F, v), on = si === i;
+  document.querySelectorAll('.strip').forEach(box => {
+    if (box.dataset.key !== F.key) return;
+    const im = box.querySelector('.st-img'), tt = box.querySelector('.st-t'), sb = box.querySelector('.st-snap'), rg = box.querySelector('input[data-scrub]');
+    if (im && im.getAttribute('src') !== u) im.src = u;
+    if (tt) tt.textContent = rel;
+    if (sb){ sb.classList.toggle('on', on); sb.textContent = on ? 'Snap ✓' : 'This is the snap'; }
+    if (rg && +rg.value !== i) rg.value = String(i);
+    box.querySelectorAll('.st-q button[data-v]').forEach(b => b.classList.toggle('on', si != null && si + (+b.dataset.v) === i));
+  });
+  if (!$('#zoomer').hidden && ZM.key === F.key && ZM.strip){
+    const zi = $('#zoomImg'), zr = $('#zmRange'), zb = $('#zmSnapB');
+    if (zi && zi.getAttribute('src') !== u) zi.src = u;
+    $('#zoomTitle').textContent = rel;
+    if (zr && +zr.value !== i) zr.value = String(i);
+    if (zb){ zb.classList.toggle('on', on); zb.textContent = on ? 'Snap ✓' : 'This is the snap'; }
+  }
+}
+const stNow = key => { const k = key || STV.key, F = k ? framesNow(k) : null; return F && F.kind === 'strip' ? F : null; };
+function stRerender(){ framesSoon(); if (!$('#zoomer').hidden && ZM.strip) zoomShow(); }
+document.addEventListener('input', e => {   // the scrub: one frame per notch, painted in place
+  const r = e.target && e.target.closest ? e.target.closest('[data-scrub]') : null; if (!r) return;
+  const F = stNow(r.dataset.key); if (!F) return;
+  const {v} = stView(F); STV.i = clamp(+r.value | 0, 0, v.n - 1); stPaint(F);
+});
 const FILMV = {open:false, shot:'snap'};
 function filmBtnSync(){ const b = $('#filmBtn'); if (b) b.hidden = !(VIEW === 'editor' && W && W.qkey && framesNow(W.qkey)); }
 /* ---- 0.14.1: clear every frame. Every frames-<play>.json leaves the gist (it lists 300 files at most, so: list, delete,
@@ -5866,7 +6062,8 @@ function framesClearAsk(){
   if (!SYNC.token){ toast('Link GitHub first — the frames live in the shared file.', 'err'); return; }
   if (FRC.busy){ toast('Already clearing the frames.'); return; }
   const n = FRM.files.size;
-  showSheet(`<h3>Clear every frame?</h3><p>${n ? `${n} play${n === 1 ? ' has' : 's have'} frames` : 'Every frame'} from the iPad — set, shift, snap, +1 s, +2 s, end zone — get deleted from the shared file, and the iPad forgets the ones it’s holding. Your plays, sets, tags and the iPad’s personnel stay. Fresh frames come the next time you mark a snap. This can’t be undone.</p>
+  const ns = Object.keys(SYNC.ipad.frames || {}).length;
+  showSheet(`<h3>Clear every frame?</h3><p>${ns + n ? `${ns + n} play${ns + n === 1 ? ' has' : 's have'} frames` : 'Every frame'} from the iPad — every half-second strip (each play’s own private gist) and any older frames in the shared file — get deleted, and the iPad forgets the strips it kept. Your plays, sets, tags, snaps and the iPad’s personnel stay. A play gets a fresh strip the next time the iPad shows it. Big clears take a few minutes; GitHub only allows so many deletes an hour. This can’t be undone.</p>
     <div class="row"><button class="btn" data-act="closeSheet">Keep them</button><button class="btn danger" data-act="framesClear">Clear frames</button></div>`);
 }
 async function framesClearAll(){
@@ -5889,7 +6086,25 @@ async function framesClearAll(){
     const r = await gh('GET', `/gists/${SYNC.id}`), files = (r.json && r.json.files) || {}, left = frameNames(files);
     FRM.files = new Map(left.map(n => [n, files[n]])); FRM.cache.clear(); SYNC.etag = null;
     if (left.length) fail('frames.clear', 'no frame files left in the shared file', `${left.length} still there after ${gone} deleted`, {left:left.slice(0, 20)});
-    else { diag('frames.clear', `done: ${gone} frame files deleted, none left · cleared at ${at}`); toast(gone ? `Cleared ${gone} play${gone === 1 ? '’s' : 's’'} frames.` : 'No frames to clear — the shared file had none.'); }
+    /* 0.16.0: the strips — each play's own secret gist, "chalk frames · <play>". Listed first (deleting while paging would
+       skip some), then deleted a little under one a second, at most 300 a run: GitHub allows about 500 writes an hour. */
+    const ids = [];
+    for (let page = 1; page <= 30; page++){
+      const g = await gh('GET', `/gists?per_page=100&page=${page}`), list = Array.isArray(g.json) ? g.json : [];
+      list.forEach(x => { if (x && x.id && typeof x.description === 'string' && x.description.startsWith('chalk frames · ')) ids.push(x.id); });
+      if (list.length < 100) break;
+    }
+    let strips = 0;
+    for (const id of ids.slice(0, 300)){
+      try { await gh('DELETE', `/gists/${id}`); strips++; }
+      catch(e){ if (e && e.status === 404) continue; throw e; }
+      if (strips % 25 === 0) toast(`Clearing the frames… ${strips} of ${Math.min(ids.length, 300)} plays`);
+      await new Promise(res => setTimeout(res, 900));
+    }
+    SYNC.ipad.frames = {}; STRP.cache.clear(); STRP.miss.clear();
+    const more = Math.max(0, ids.length - 300);
+    diag('frames.clear', `done: ${gone} old frame files, ${strips} strip gists deleted${more ? `, ${more} left for another run` : ''} · cleared at ${at}`);
+    toast(gone + strips ? `Cleared ${gone + strips} play${gone + strips === 1 ? '’s' : 's’'} frames.${more ? ` ${more} more — run it again in an hour.` : ''}` : 'No frames to clear.');
   } catch(e){
     fail('frames.clear', 'every frame file deleted from the shared file', `${(e && e.status) || 'no answer'}: ${(e && e.msg) || e}`, {deleted:gone, body:e && e.body});
   } finally {
@@ -5901,12 +6116,29 @@ async function framesClearAll(){
 const ZM = {key:null, shot:'snap', s:1, fit:1, tx:0, ty:0, w:0, h:0, ptrs:new Map(), pinch:null, pan:null, lastTap:0, lastXY:null};
 function zoomOpen(key, shot){
   const F = framesNow(key); if (!F){ toast('That frame has not come down from the iPad yet.'); return; }
-  ZM.key = key; ZM.shot = F.img[shot] ? shot : (F.img.snap ? 'snap' : Object.keys(F.img)[0]);
+  ZM.key = key; ZM.w = 0; ZM.h = 0; ZM.strip = F.kind === 'strip';
+  if (ZM.strip){   // a named frame opens the strip on it
+    stView(F);
+    if (shot && shot !== 'strip' && F.img[shot] && F.si != null){ const ez = shot === 'ez', v = F.d.ang[ez ? 'ez' : F.angs[0]]; STV.ang = ez ? 'ez' : F.angs[0]; STV.i = clamp(stSnapI(F, v) + ({set:-3, post:2, post2:4}[shot] || 0), 0, v.n - 1); }
+  } else ZM.shot = F.img[shot] ? shot : (F.img.snap ? 'snap' : Object.keys(F.img)[0]);
   $('#zoomer').hidden = false; zoomShow();
   diag('zoom', `${key} · ${ZM.shot}`);
 }
 function zoomShow(){
   const F = framesNow(ZM.key); if (!F){ zoomClose(); return; }
+  if (ZM.strip && F.kind === 'strip'){
+    const {v, i, ang} = stView(F), on = stSnapI(F, v) === i, img = $('#zoomImg'), u = stImg(v, i);
+    const q = SYNC.ipad.queue.find(o => o && o.key === ZM.key) || tagOf(ZM.key) || null;
+    $('#zoomTitle').textContent = stRel(F, v, i); $('#zoomSub').textContent = q && q.sit ? '· ' + sitWord(q.sit) : '';
+    const box = $('#zoomShots'); box.className = 'zst';
+    const k = esc(F.key);
+    box.innerHTML = `<div class="st-row"><button class="st-nav" data-act="stStep" data-key="${k}" data-v="-1" aria-label="Back half a second">‹</button><input type="range" id="zmRange" data-scrub="1" data-key="${k}" min="0" max="${v.n - 1}" step="1" value="${i}" aria-label="Scrub the play"><button class="st-nav" data-act="stStep" data-key="${k}" data-v="1" aria-label="Ahead half a second">›</button></div>
+      <div class="st-foot">${F.angs.length > 1 ? `<div class="st-ang">${F.angs.map(a => `<button class="${a === ang ? 'on' : ''}" data-act="stAng" data-key="${k}" data-v="${a}">${a === 'sl' ? 'Sideline' : 'End zone'}</button>`).join('')}</div>` : ''}<span style="flex:1"></span><button class="st-snap${on ? ' on' : ''}" id="zmSnapB" data-act="stSnap" data-key="${k}">${on ? 'Snap ✓' : 'This is the snap'}</button></div>`;
+    img.onload = () => { if (img.naturalWidth !== ZM.w || img.naturalHeight !== ZM.h){ ZM.w = img.naturalWidth; ZM.h = img.naturalHeight; zoomFit(); } };   // scrubbing keeps your zoom
+    if (img.getAttribute('src') !== u) img.src = u; else if (img.complete && img.naturalWidth) img.onload();
+    return;
+  }
+  $('#zoomShots').className = 'shots';
   if (!F.img[ZM.shot]) ZM.shot = F.img.snap ? 'snap' : Object.keys(F.img)[0];
   const img = $('#zoomImg'), lab = (FRAME_NAMES.find(([n]) => n === ZM.shot) || [ZM.shot, ZM.shot])[1];
   const q = SYNC.ipad.queue.find(o => o && o.key === ZM.key) || tagOf(ZM.key) || null;
@@ -5982,7 +6214,7 @@ function zoomClose(){ $('#zoomer').hidden = true; ZM.key = null; ZM.ptrs.clear()
 /* ---- the inbox: the iPad's queue as a stack of cards ---- */
 const PARK = new Set();
 const CARD = new Map();
-const CARDV = {key:null, shot:'snap'};
+const CARDV = {key:null, shot:'snap', pickAt:0};   // 0.16.0: pickAt — when you last moved the card yourself
 function parkSave(){ lsSetRaw('pb.parked', JSON.stringify([...PARK].slice(-300))); }
 function inboxItems(){
   const out = queueOpen(), have = new Set(out.map(q => q.key));
@@ -6055,6 +6287,8 @@ const clockWord = c => c == null ? '' : (typeof c === 'number' && isFinite(c) ? 
 function inboxSplit(){
   const all = inboxItems();
   const live = all.filter(q => !PARK.has(q.key)), parked = all.filter(q => PARK.has(q.key));
+  const H = SYNC.ipad.here;   // 0.16.0: the iPad moved to a play in the inbox after you last moved the card: that's the card
+  if (H && H.key && HEREV.seenAt > CARDV.pickAt && H.key !== CARDV.key && live.some(q => q.key === H.key)){ CARDV.key = H.key; CARDV.shot = 'snap'; CARDV.pickAt = HEREV.seenAt; diag('card.follow', `the iPad is on ${H.key}`); }
   let top = (CARDV.key && live.find(q => q.key === CARDV.key)) || live[0] || null;
   if (top && top.key !== CARDV.key){ CARDV.key = top.key; CARDV.shot = 'snap'; }
   return {all, live, parked, top};
@@ -6142,7 +6376,7 @@ function embedBoot(){
 const SWIPE = {id:null, x0:0, y0:0, dx:0, on:false, block:0, el:null};
 document.addEventListener('pointerdown', e => {
   const c = e.target.closest && e.target.closest('#card');
-  if (!c || VIEW !== 'home' || EMBED) return;
+  if (!c || VIEW !== 'home' || EMBED || e.target.closest('[data-noswipe]')) return;   // 0.16.0: the strip scrubs, it doesn't swipe
   Object.assign(SWIPE, {id:e.pointerId, x0:e.clientX, y0:e.clientY, dx:0, on:false, el:c});
 });
 document.addEventListener('pointermove', e => {
@@ -6307,6 +6541,18 @@ function cardArt(q, v){
   if (front) return PBA.frontArt(front, {off, strong:v.c.strength, cid, solid:true});
   return PBA.setArt(off || {qb:qbOf(q.qb) || 'gun', tokens:[]});
 }
+function ipadWhere(q){   // 0.16.0: the iPad against this card's play
+  if (!SYNC.token || !q || !q.key || String(q.key).startsWith('clip:')) return null;
+  const H = SYNC.ipad.here, A = SYNC.ipad.ack, hold = SYNC.hold;
+  if (H && H.key === q.key) return {cls:'on', t:'On the iPad'};
+  if (hold && hold.key === q.key){
+    if (A && A.key === q.key && A.hold === hold.at && !A.ok) return {cls:'bad', t:`The iPad couldn’t get there: ${A.why || 'no reason given'}`, b:'Try again'};
+    return {cls:'wait', t:'Sending the iPad to this play…'};
+  }
+  const hs = H && H.key && H.sit ? [sitWord(H.sit), H.sit.qtr ? `Q${H.sit.qtr} ${clockWord(H.sit.clock)}` : ''].filter(Boolean).join(' · ') : '';
+  return {cls:'off', t:H && H.key ? `The iPad is on ${hs || 'another play'}` : H ? 'chalk is off on the iPad' : 'The iPad hasn’t said where it is yet', b:'Show it there'};
+}
+function ipadLine(q){ const w = ipadWhere(q); return w ? `<div class="card-ipad ${w.cls}"><span>${esc(w.t)}</span>${w.b ? `<button class="btn slim" data-act="ipadGo">${w.b}</button>` : ''}</div>` : ''; }
 function cardHTML(q){
   const v = cardView(q), s = q.sit || {};
   const pers = persOf(q.pers), qb = qbOf(q.qb);
@@ -6317,6 +6563,7 @@ function cardHTML(q){
   return `<div class="card" id="card" data-key="${esc(q.key)}">
     <div class="card-h"><b>${esc(sitWord(s))}${where ? ' · ' + esc(where) : ''}</b><span>${s.qtr ? 'Q' + esc(s.qtr) + ' ' : ''}${esc(clockWord(s.clock))}</span></div>
     ${q.desc ? `<div class="card-d">${esc(q.desc)}</div>` : ''}
+    ${ipadLine(q)}
     ${framesBlock(q.key, CARDV.shot)}
     ${resLine(resOf(q))}
     <div class="card-f">${esc(facts)}</div>
@@ -7062,6 +7309,7 @@ function enOptArt(k, v){
 }
 function enFilmHTML(){
   const key = EN.q && EN.q.key, F = key ? framesNow(key) : null;
+  if (F && F.kind === 'strip' && !F.img.snap) return `<div style="margin:0 0 12px">${stripBlock(F)}</div>`;   // 0.16.0: pick the snap right here
   if (F){ const shot = F.img.ez ? 'ez' : F.img.snap ? 'snap' : Object.keys(F.img)[0];
     return `<button class="fl-film" data-act="zoom" data-key="${esc(key)}" data-v="${shot}" aria-label="See the frame up close"><img src="${F.img[shot]}" alt="${shot} frame"><span>${shot === 'ez' ? 'END ZONE' : 'SNAP'} · tap to zoom</span></button>`; }
   return `<span class="fl-art" style="height:104px;margin-bottom:12px">${QZ.set({qb:W.qb, xol:W.xol, tokens:W.tokens.map(t => ({type:t.type, slot:t.slot}))}, {w:358, h:104})}</span>`;
@@ -7692,7 +7940,8 @@ function enSnapHTML(){
   enPostInit();
   const P = EN.post, K = EN.known || {}, key = EN.q && EN.q.key, F = key ? framesNow(key) : null, fr = EN.frame || 'snap', mir = enStrength() === 'L';
   const shots = [['snap','SNAP'],['post','+1 s'],['post2','+2 s']];
-  const photo = F && F.img[fr] ? `<button class="fl-film" data-act="zoom" data-key="${esc(key)}" data-v="${fr}" aria-label="See the frame up close"><img src="${F.img[fr]}" alt="${fr} frame"><span>${fr === 'snap' ? 'SNAP' : fr === 'post' ? '+1 s' : '+2 s'} · from the iPad</span></button>` : '';
+  const photo = F && F.img[fr] ? `<button class="fl-film" data-act="zoom" data-key="${esc(key)}" data-v="${fr}" aria-label="See the frame up close"><img src="${F.img[fr]}" alt="${fr} frame"><span>${fr === 'snap' ? 'SNAP' : fr === 'post' ? '+1 s' : '+2 s'} · from the iPad</span></button>`
+    : F && F.kind === 'strip' && !F.img.snap ? `<div style="margin:0 0 12px">${stripBlock(F)}</div>` : '';   // 0.16.0: no snap yet — pick it on the strip
   const cid = enCid();
   const art = QZ.shell(EN.def, enOffNow(), {w:358, h:190, frame:{snap:'snap', post:'p1', post2:'p2'}[fr], cid, mirror:mir});
   const row = (k, q, note, tone, opts, locked) => `<div class="fl-q"><div class="qh"><b>${q}</b><small style="color:${tone}">${esc(note)}</small></div><div class="fl-chips">${opts.map(([v, l]) => `<button class="fc${String(P[k]) === v ? ' on' : ''}${locked ? ' lock' : ''}" data-act="enPost" data-k="${k}" data-v="${v}"${locked ? ' aria-disabled="true"' : ''}>${l}</button>`).join('')}</div></div>`;
@@ -8465,14 +8714,16 @@ const ACT = {
 /* ================= 0.9.0 actions: the inbox cards, the base book, the frames, chalk's frame ================= */
 const topCard = () => gameTop() || inboxSplit().top;   // 0.12.0: on the game page the card is the game's play
 Object.assign(ACT, {
-  cardTo(d){ PARK.delete(d.key); parkSave(); CARDV.key = d.key; CARDV.shot = 'snap'; renderHome(); $('#home').scrollTop = 0; },
-  unparkAll(){ const n = PARK.size; PARK.clear(); parkSave(); diag('card.park', `${n} unparked`); renderHome(); },
+  cardTo(d){ PARK.delete(d.key); parkSave(); if (SYNC.hold && SYNC.hold.key !== d.key && SYNC.hold.key === CARDV.key) setHold(null); CARDV.key = d.key; CARDV.shot = 'snap'; CARDV.pickAt = Date.now(); renderHome(); $('#home').scrollTop = 0; },
+  unparkAll(){ const n = PARK.size; PARK.clear(); parkSave(); CARDV.pickAt = Date.now(); diag('card.park', `${n} unparked`); renderHome(); },
+  ipadGo(){ const q = topCard(); if (!q) return; setHold(q.key, 'snap'); diag('card.ipad', `send the iPad to ${q.key}`); renderHome(); },
   shot(d){ if (FILMV.open && !$('#sheet').hidden){ FILMV.shot = d.v; ACT.film(); } else { FILMV.open = false; CARDV.shot = d.v; renderHome(); } },
   cardStr(d){ const q = topCard(); if (!q) return; cardOf(q.key).strength = d.v === 'L' ? 'L' : 'R'; renderHome(); },
   cardHash(d){ const q = topCard(); if (!q) return; cardOf(q.key).hash = d.v; renderHome(); },
   cardPark(){
     const q = topCard(); if (!q) return;
-    PARK.add(q.key); parkSave(); CARDV.key = null;
+    PARK.add(q.key); parkSave(); CARDV.key = null; CARDV.pickAt = Date.now();
+    if (SYNC.hold && SYNC.hold.key === q.key) setHold(null);
     diag('card.park', q.key); toast(`Parked: ${esc(sitWord(q.sit))}`); renderHome();
   },
   cardEdit(d){   // 0.13.0: the engine on this play — from the card's set when it has one, placing when you asked for a blank field
@@ -8493,7 +8744,8 @@ Object.assign(ACT, {
       spot:q.sit && q.sit.yard != null ? yardToSpot(q.sit.yard) : -35, src:'card', stage:'card.confirm'});
     if (!p){ renderHome(); return; }
     const chart = v.c.chart;
-    CARD.delete(q.key); PARK.delete(q.key); parkSave(); CARDV.key = null; CARDV.shot = 'snap';
+    CARD.delete(q.key); PARK.delete(q.key); parkSave(); CARDV.key = null; CARDV.shot = 'snap'; CARDV.pickAt = Date.now();
+    if (SYNC.hold && SYNC.hold.key === q.key) setHold(null);
     diag('card.confirm', `${q.key} → play ${p.n}: ${playCode(p)}`);
     if (chart){ ACT.openPlay({id:p.id}); ACT.redoDef({id:p.id}); W.chain = null; toast(`Play ${p.n} logged. Now chart the defense.`); return; }
     toast(`Play ${p.n} logged: ${esc(p.name)}${def ? ' vs ' + esc(v.front.name) : ''}`);
@@ -8613,6 +8865,17 @@ Object.assign(ACT, {
   pf(d){ HOMEV.pf = d.v; renderHome(); },
   wipeAsk(){ if (!Object.keys(WIPE).some(k => (S[k] || []).length)){ toast('Nothing to clear — the book is the NFL base alone.'); return; } lsSetRaw('pb.clear0101', ''); clearPrompt(); },
   framesClearAsk(){ framesClearAsk(); },
+  stStep(d){ const F = stNow(d.key); if (!F) return; const {v} = stView(F); STV.i = clamp(STV.i + (+d.v || 0), 0, v.n - 1); stPaint(F); },
+  stGo(d){ const F = stNow(d.key); if (!F) return; const {v} = stView(F), si = stSnapI(F, v); if (si == null) return; STV.i = clamp(si + (+d.v || 0), 0, v.n - 1); stPaint(F); },
+  stAng(d){ const F = stNow(d.key); if (!F) return; stView(F); const a = d.v === 'ez' ? 'ez' : 'sl'; if (!F.d.ang[a] || a === STV.ang) return; const t = F.d.ang[STV.ang] ? F.d.ang[STV.ang].t0 + STV.i * F.d.ang[STV.ang].dt : null; STV.ang = a; const v = F.d.ang[a]; STV.i = t == null ? null : clamp(Math.round((t - v.t0) / v.dt), 0, v.n - 1); stRerender(); },
+  stSnap(d){
+    const F = stNow(d && d.key); if (!F) return;
+    const {v, i} = stView(F); if (stSnapI(F, v) === i){ toast('That’s the snap.'); return; }
+    const t = +(v.t0 + i * v.dt).toFixed(3); snapSet(F.key, t);
+    diag('frames.snap', `${F.key}: the snap at ${t} s`);
+    if (SYNC.hold && SYNC.hold.key === F.key) setHold(F.key, SYNC.hold.frame);   // the iPad sits on it too
+    stRerender();
+  },
   framesClear(){ hideSheet(); framesClearAll(); },
   logNow(){   // 0.11.0: the wizard's one key — the neutral name, the play logged, the defense next (Skip is there)
     const st = offStatus();
@@ -8802,7 +9065,8 @@ Object.assign(ACT, {
       spot:q.sit && q.sit.yard != null ? yardToSpot(q.sit.yard) : -35, src:'card', stage:'card.confirm', extra:res ? {res} : null});
     if (!p){ renderHome(); return; }
     const chart = v.c.chart;
-    CARD.delete(q.key); PARK.delete(q.key); parkSave(); CARDV.key = null; CARDV.shot = 'snap';
+    CARD.delete(q.key); PARK.delete(q.key); parkSave(); CARDV.key = null; CARDV.shot = 'snap'; CARDV.pickAt = Date.now();
+    if (SYNC.hold && SYNC.hold.key === q.key) setHold(null);
     diag('card.confirm', `${q.key} → play ${p.n}: ${playCode(p)}`);
     if (chart){
       ACT.openPlay({id:p.id}); ACT.redoDef({id:p.id}); W.chain = null;
