@@ -5,34 +5,52 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Playbook">
-<meta name="theme-color" content="#0E1114">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0D0F24" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&display=swap">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <title>Playbook Logger</title>
 <style>
 /* layout: one-screen phone app — top bar, real-scale field canvas, bottom control panel */
+/* 0.13.0: the engine's look — white, ink navy, one cobalt, coral for what changed; a navy night version of the same */
 :root{
-  --bg:#0E1114; --panel:#151A1F; --raise:#1F262D; --raise2:#323B44; --line:rgba(255,255,255,.09);
-  --fg:#EEF1F3; --fg2:#98A3AC; --accent:#4DA3FF; --on-accent:#06121F;
-  --danger:#FF6B5E; --warn:#FFB340; --ok:#3DDC84; --toast:#2A323A;
-  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Helvetica Neue",sans-serif;
+  --bg:#FFFFFF; --panel:#FFFFFF; --raise:#EEF1FF; --raise2:#DDE2F5; --line:#DDE2F5;
+  --fg:#14163A; --fg2:#5B5F86; --accent:#2B50FF; --on-accent:#FFFFFF;
+  --danger:#D9480F; --warn:#9A4A00; --ok:#1E7B3A; --toast:#FFFFFF;
+  --soft:#EEF1FF; --coral:#FF6B4A; --coral-bg:#FFF4F1; --run:#D9480F; --pass:#2B50FF;
+  --t-data-bg:#E7F6EC; --t-data-fg:#1E7B3A; --t-ipad-bg:#FFF1E0; --t-ipad-fg:#9A4A00; --t-pick-bg:#EEF1FF; --t-pick-fg:#2B50FF;
+  --t-you-bg:#14163A; --t-you-fg:#FFFFFF; --t-rule-bg:#F3F4FA; --t-rule-fg:#5B5F86; --t-out-bg:#FFE4DC; --t-out-fg:#B23A0E;
+  --qz-bg:#EEF1FF; --qz-line:rgba(43,80,255,.10); --qz-hash:rgba(43,80,255,.22); --qz-los:rgba(43,80,255,.55); --qz-ol:#9DA3C9; --qz-qb:#FFFFFF;
+  --qz-ink:#14163A; --qz-lb:#3A3F75; --qz-sub:#5B5F86; --qz-zone:rgba(43,80,255,.07); --qz-zone2:rgba(43,80,255,.13);
+  --font:"Bricolage Grotesque",-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Helvetica Neue",sans-serif;
   --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  color-scheme:dark;
+  color-scheme:light;
 }
-@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
-  --bg:#EEF1F4; --panel:#FFFFFF; --raise:#E6EAEE; --raise2:#CFD6DD; --line:rgba(0,0,0,.08);
-  --fg:#11161B; --fg2:#56616B; --accent:#0B6BD3; --on-accent:#FFFFFF;
-  --danger:#C93A2C; --warn:#9A5800; --ok:#16864A; --toast:#FFFFFF; color-scheme:light;}}
-:root[data-theme="light"]{
-  --bg:#EEF1F4; --panel:#FFFFFF; --raise:#E6EAEE; --raise2:#CFD6DD; --line:rgba(0,0,0,.08);
-  --fg:#11161B; --fg2:#56616B; --accent:#0B6BD3; --on-accent:#FFFFFF;
-  --danger:#C93A2C; --warn:#9A5800; --ok:#16864A; --toast:#FFFFFF; color-scheme:light;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D0F24; --panel:#14173A; --raise:#1C2050; --raise2:#2A2F66; --line:rgba(201,206,234,.14);
+  --fg:#EEF1FF; --fg2:#9DA3C9; --accent:#5B7BFF; --on-accent:#FFFFFF;
+  --danger:#FF7A5C; --warn:#FFB066; --ok:#4CC27A; --toast:#1C2050;
+  --soft:#1C2050; --coral:#FF6B4A; --coral-bg:rgba(255,107,74,.14); --run:#FF7A45; --pass:#7C95FF;
+  --t-data-bg:rgba(76,194,122,.16); --t-data-fg:#6FE39A; --t-ipad-bg:rgba(255,176,102,.16); --t-ipad-fg:#FFC08A; --t-pick-bg:rgba(91,123,255,.2); --t-pick-fg:#A9B8FF;
+  --t-you-bg:#EEF1FF; --t-you-fg:#14163A; --t-rule-bg:rgba(255,255,255,.06); --t-rule-fg:#9DA3C9; --t-out-bg:rgba(255,107,74,.18); --t-out-fg:#FFAE96;
+  --qz-bg:#171A3A; --qz-line:rgba(157,163,201,.12); --qz-hash:rgba(157,163,201,.25); --qz-los:rgba(124,149,255,.65); --qz-ol:#4A5080; --qz-qb:#EEF1FF;
+  --qz-ink:#EEF1FF; --qz-lb:#9DA3C9; --qz-sub:#9DA3C9; --qz-zone:rgba(124,149,255,.08); --qz-zone2:rgba(124,149,255,.15);
+  color-scheme:dark;}}
 :root[data-theme="dark"]{
-  --bg:#0E1114; --panel:#151A1F; --raise:#1F262D; --raise2:#323B44; --line:rgba(255,255,255,.09);
-  --fg:#EEF1F3; --fg2:#98A3AC; --accent:#4DA3FF; --on-accent:#06121F;
-  --danger:#FF6B5E; --warn:#FFB340; --ok:#3DDC84; --toast:#2A323A; color-scheme:dark;}
+  --bg:#0D0F24; --panel:#14173A; --raise:#1C2050; --raise2:#2A2F66; --line:rgba(201,206,234,.14);
+  --fg:#EEF1FF; --fg2:#9DA3C9; --accent:#5B7BFF; --on-accent:#FFFFFF;
+  --danger:#FF7A5C; --warn:#FFB066; --ok:#4CC27A; --toast:#1C2050;
+  --soft:#1C2050; --coral:#FF6B4A; --coral-bg:rgba(255,107,74,.14); --run:#FF7A45; --pass:#7C95FF;
+  --t-data-bg:rgba(76,194,122,.16); --t-data-fg:#6FE39A; --t-ipad-bg:rgba(255,176,102,.16); --t-ipad-fg:#FFC08A; --t-pick-bg:rgba(91,123,255,.2); --t-pick-fg:#A9B8FF;
+  --t-you-bg:#EEF1FF; --t-you-fg:#14163A; --t-rule-bg:rgba(255,255,255,.06); --t-rule-fg:#9DA3C9; --t-out-bg:rgba(255,107,74,.18); --t-out-fg:#FFAE96;
+  --qz-bg:#171A3A; --qz-line:rgba(157,163,201,.12); --qz-hash:rgba(157,163,201,.25); --qz-los:rgba(124,149,255,.65); --qz-ol:#4A5080; --qz-qb:#EEF1FF;
+  --qz-ink:#EEF1FF; --qz-lb:#9DA3C9; --qz-sub:#9DA3C9; --qz-zone:rgba(124,149,255,.08); --qz-zone2:rgba(124,149,255,.15);
+  color-scheme:dark;}
 [hidden]{display:none!important}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;overflow:hidden;
@@ -107,6 +125,255 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .li.on{background:var(--raise)}
 .li.done .li-n{color:var(--ok)}
 .li.np{opacity:.6}
+/* 0.13.0 the engine: one question a screen */
+.flow{padding:0 16px calc(28px + env(safe-area-inset-bottom,0px));background:var(--bg)}
+.fl-top{position:sticky;top:0;z-index:5;background:var(--bg);display:flex;align-items:center;gap:10px;margin:0 -16px 6px;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 8px}
+.fl-segs{display:flex;gap:4px;flex:none}
+.fl-segs i{display:block;width:16px;height:6px;border-radius:3px;background:var(--raise2)}
+.fl-segs i.on{background:var(--accent);width:22px}
+.fl-segs i.cur{background:var(--accent);width:34px}
+.fl-segs.def i.on,.fl-segs.def i.cur{background:var(--coral)}
+.fl-ctx{flex:1;min-width:0;font-size:13px;font-weight:500;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fl-x{width:44px;height:44px;border-radius:22px;border:0;background:var(--soft);color:var(--fg);display:flex;align-items:center;justify-content:center;padding:0;flex:none}
+.fl-x svg{width:18px;height:18px}
+.fl-link{height:36px;border:0;background:transparent;color:var(--accent);font-size:14px;font-weight:700;padding:0 4px;flex:none}
+.fl-badge{padding:3px 9px;border-radius:9px;font-size:12px;font-weight:800;flex:none}
+.fl-k{font-size:13px;font-weight:500;color:var(--fg2);margin:2px 0 8px;line-height:18px}
+.fl-lead{font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--fg2);margin:2px 0 2px}
+.fl-h{font-size:32px;font-weight:800;line-height:1.05;letter-spacing:-.02em;margin:2px 0 6px}
+.fl-sub{font-size:14px;color:var(--fg2);margin:0 0 14px;line-height:19px}
+.known{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}
+.kc{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:14px;font-size:13px;font-weight:700;white-space:nowrap}
+.kc svg{width:12px;height:12px;flex:none}
+.src-data{background:var(--t-data-bg);color:var(--t-data-fg)}
+.src-ipad{background:var(--t-ipad-bg);color:var(--t-ipad-fg)}
+.src-pick{background:var(--t-pick-bg);color:var(--t-pick-fg)}
+.src-you{background:var(--t-you-bg);color:var(--t-you-fg)}
+.src-rule{background:var(--t-rule-bg);color:var(--t-rule-fg)}
+.src-out{background:var(--t-out-bg);color:var(--t-out-fg)}
+.fl-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 14px}
+.fl-set{position:relative;display:flex;flex-direction:column;gap:4px;padding:8px;border-radius:18px;border:2px solid var(--line);background:var(--bg);text-align:left;color:var(--fg);min-width:0}
+.fl-set.on{border:3px solid var(--accent);background:var(--soft);padding:7px}
+.fl-set b{font-size:17px;line-height:1.15;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fl-set small{font-size:12px;color:var(--fg2)}
+.fl-art{display:block;border-radius:11px;overflow:hidden;background:var(--qz-bg)}
+.fl-art svg{display:block;width:100%;height:100%}
+.fl-tag{position:absolute;right:8px;top:8px;padding:3px 8px;border-radius:9px;background:var(--coral);color:#14163A;font-size:11px;font-weight:800}
+.fl-big{width:100%;height:56px;border-radius:18px;border:2px solid var(--accent);background:var(--bg);color:var(--accent);display:flex;align-items:center;justify-content:center;gap:10px;font-size:16px;font-weight:800;margin:2px 0 12px}
+.fl-big svg{width:20px;height:20px}
+.fl-sw{display:flex;align-items:center;gap:12px;padding:2px 4px 10px}
+.fl-sw span{flex:1;display:flex;flex-direction:column;gap:1px}.fl-sw b{font-size:14px}.fl-sw small{font-size:12px;color:var(--fg2)}
+.sw{width:50px;height:30px;border-radius:15px;background:var(--raise2);position:relative;border:0;padding:0;flex:none}
+.sw::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(20,22,58,.3);transition:left .15s}
+.sw.on{background:var(--accent)}.sw.on::after{left:23px}
+.fl-note{font-size:13px;color:var(--fg2);text-align:center;margin:6px 0 10px;line-height:18px}
+.fl-q{display:flex;flex-direction:column;gap:6px;margin:0 0 14px}
+.fl-q .lab{font-size:13px;font-weight:700}
+.fl-q .qh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.fl-q .qh b{font-size:15px;font-weight:800}.fl-q .qh small{font-size:12px;font-weight:700;text-align:right}
+.fl-chips{display:flex;gap:6px;flex-wrap:wrap}
+.fc{height:34px;min-width:40px;padding:0 12px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--fg);font-size:14px;font-weight:800}
+.fc.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.fc.lock{border-color:var(--soft);color:var(--raise2)}
+.fc.lock.on{background:var(--t-data-bg);color:var(--t-data-fg);border-color:transparent}
+.fl-film{position:relative;display:block;width:100%;border:0;padding:0;border-radius:16px;overflow:hidden;background:#000;aspect-ratio:16/9;margin:0 0 12px}
+.fl-film img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.fl-film span{position:absolute;left:10px;top:10px;padding:3px 9px;border-radius:9px;background:rgba(20,22,58,.85);color:#fff;font-size:12px;font-weight:700}
+.fl-opts{display:flex;flex-direction:column;gap:10px;margin:0 0 14px}
+.fl-opt{display:flex;align-items:center;gap:12px;min-height:86px;padding:7px;border-radius:18px;border:2px solid var(--line);background:var(--bg);color:var(--fg);text-align:left;width:100%}
+.fl-opt.on{border:3px solid var(--accent);background:var(--soft);padding:6px}
+.fl-opt .fl-art{width:136px;height:68px;flex:none}
+.fl-opt > span:last-child{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.fl-opt b{font-size:19px;font-weight:800}
+.fl-opt small{font-size:12px;line-height:16px;color:var(--fg2)}
+.fl-opt em{font-style:normal;font-size:11px;font-weight:800;color:var(--t-pick-fg)}
+.fl-next{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.fl-next span{height:28px;padding:0 10px;border-radius:14px;border:1.5px dashed var(--fg2);display:flex;align-items:center;font-size:13px;font-weight:700;color:var(--fg2)}
+.fl-row{display:flex;gap:10px;margin:8px 0}
+.fb{flex:1;height:54px;border-radius:18px;border:0;background:var(--soft);color:var(--fg);font-size:15px;font-weight:700;min-width:0;padding:0 10px}
+.fb.pri{flex:2;background:var(--accent);color:#fff;font-size:16px;font-weight:800}
+.fb.out{background:var(--bg);border:2px solid var(--accent);color:var(--accent);font-weight:800}
+.fb:disabled{opacity:.4}
+.fseg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;height:36px;border-radius:18px;background:var(--soft);padding:3px;box-sizing:border-box;margin:0 0 10px}
+.fseg button{border:0;border-radius:15px;background:transparent;color:var(--fg2);font-size:13px;font-weight:700;padding:0}
+.fseg button.on{background:var(--bg);color:var(--fg);font-weight:800;box-shadow:0 1px 3px rgba(20,22,58,.15)}
+.tray{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:0 0 10px}
+.tray.six{grid-template-columns:repeat(6,minmax(0,1fr))}
+.tm{height:52px;border-radius:14px;border:2px solid var(--line);background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--fg);padding:0}
+.tm small{font-size:11px;font-weight:700;color:var(--fg2)}
+.tm i{width:22px;height:22px;border-radius:11px;background:var(--fg);color:var(--bg);font-style:normal;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
+.tm.open i{background:transparent;border:2px dashed var(--raise2)}
+.tm.cur{border-color:var(--coral);background:var(--coral-bg)}
+.tm.cur i{background:var(--bg);border:2px solid var(--coral);color:var(--run)}
+.cgrid{display:grid;grid-template-columns:66px repeat(5,minmax(0,1fr));border-radius:12px;overflow:hidden;border:1px solid var(--line);margin:0 0 12px}
+.cgrid .ch{height:30px;display:flex;align-items:center;justify-content:center;text-align:center;background:var(--soft);font-size:9px;font-weight:800;letter-spacing:.04em;line-height:1.1;color:var(--fg2)}
+.cgrid .rh{height:48px;display:flex;align-items:center;padding-left:8px;border-top:1px solid var(--line);font-size:10px;font-weight:800;letter-spacing:.04em;line-height:1.2;color:var(--fg2)}
+.cc{height:48px;padding:0;border:0;border-top:1px solid var(--line);border-left:1px solid var(--line);background:var(--bg);display:flex;align-items:center;justify-content:center}
+.cc i{width:28px;height:28px;border-radius:14px;box-sizing:border-box;border:2px solid var(--raise2);font-style:normal;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;color:var(--fg)}
+.cc.taken i{background:var(--fg);border:0;color:var(--bg);opacity:.35}
+.cc.me{background:var(--soft)}.cc.me i{background:var(--accent);border:0;color:#fff}
+.cc.grey{background:var(--t-rule-bg)}.cc.grey i{border-style:dashed}
+.backs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 12px}
+.backs button{height:36px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--fg);font-size:12px;font-weight:700;padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.backs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.backs button.taken{color:var(--fg2)}
+.reads{padding:10px 14px;border-radius:14px;background:var(--soft);display:flex;flex-direction:column;gap:2px;margin:0 0 10px}
+.reads b{font-size:15px;font-weight:800}.reads small{font-size:12px;color:var(--fg2)}
+.was{text-decoration:line-through;text-decoration-color:var(--coral);text-decoration-thickness:2px}
+.fl-name{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px}
+.fl-name b{font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.05;min-width:0;overflow-wrap:anywhere}
+.pillb{height:32px;padding:0 12px;border-radius:16px;border:2px solid var(--line);background:var(--bg);color:var(--accent);font-size:13px;font-weight:700;flex:none}
+.why{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.why span{height:26px;padding:0 9px;border-radius:13px;background:var(--soft);display:flex;align-items:center;gap:5px;font-size:12px;color:var(--fg2);white-space:nowrap}
+.why b{color:var(--fg)}
+.ck{display:flex;flex-direction:column;margin:10px 0 12px}
+.ck-h{display:flex;justify-content:space-between;padding-bottom:6px;border-bottom:2px solid var(--fg);font-size:12px;font-weight:800;letter-spacing:.08em}
+.ck-h span:last-child{font-weight:500;letter-spacing:0;color:var(--fg2)}
+.ckr{display:flex;align-items:center;gap:8px;min-height:36px;padding:0 4px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--fg);text-align:left;width:100%}
+.ckr.chg{background:var(--coral-bg)}
+.ckr .k{width:86px;flex:none;font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--fg2)}
+.ckr .v{flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ckr .v .was{color:var(--run)}
+.ckr .t{flex:none;width:46px;padding:2px 0;border-radius:7px;font-size:10px;font-weight:800;text-align:center}
+.lets{display:flex;align-items:center;gap:5px;margin:0 0 12px}
+.lets > b{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--fg2);width:46px;line-height:1.2;flex:none}
+.lets span{flex:1;min-width:0;height:28px;border-radius:14px;background:var(--soft);display:flex;align-items:center;gap:4px;padding:0 4px;font-size:11px;color:var(--fg2);white-space:nowrap;overflow:hidden}
+.lets i{width:20px;height:20px;flex:none;border-radius:10px;background:var(--fg);color:var(--bg);font-style:normal;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.frs{display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px 10px;padding:0 16px}
+.frs::-webkit-scrollbar{display:none}
+.frs > b{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--fg2);flex:none}
+.frs button{height:30px;padding:0 10px;border-radius:15px;border:2px solid var(--line);background:var(--bg);color:var(--fg);font-size:12px;font-weight:700;white-space:nowrap;flex:none}
+.frs button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.tt-h{display:flex;gap:6px;padding-bottom:6px;border-bottom:2px solid var(--fg);font-size:11px;font-weight:800;letter-spacing:.06em}
+.tr{display:flex;align-items:center;gap:6px;min-height:52px;border-bottom:1px solid var(--line)}
+.tr.chg{box-shadow:inset 3px 0 0 var(--coral)}
+.tr .who{width:54px;flex:none;display:flex;flex-direction:column;align-items:flex-start;padding:0 0 0 6px;box-sizing:border-box;border:0;background:transparent;color:var(--fg);text-align:left;height:48px;justify-content:center}
+.tr .who b{font-size:16px;font-weight:800}.tr .who small{font-size:10px;color:var(--fg2);white-space:nowrap}
+.tr.chg .who small{color:var(--run);font-weight:800}
+.tr.sel .who b{color:var(--accent)}
+.tr .sc{flex:1;min-width:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+.tr .sc button{height:34px;border-radius:9px;border:2px solid var(--line);background:var(--bg);color:var(--fg);font-size:14px;font-weight:800;padding:0}
+.tr .sc button.on{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.tr .hd{width:64px;flex:none;height:34px;border-radius:9px;border:2px solid var(--line);background:var(--bg);color:var(--fg2);font-size:12px;font-weight:700;padding:0}
+.tr .hd.hot{border-color:transparent;background:var(--coral-bg);color:var(--run)}
+.done-h{display:flex;align-items:center;gap:14px;margin:calc(env(safe-area-inset-top,0px) + 18px) 0 16px}
+.done-h > i{width:56px;height:56px;border-radius:28px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}
+.done-h > i svg{width:28px;height:28px}
+.done-h b{display:block;font-size:28px;font-weight:800;letter-spacing:-.02em}
+.done-h small{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--t-data-fg)}
+.done-h small.off{color:var(--fg2)}
+.done-h small::before{content:"";width:8px;height:8px;border-radius:4px;background:currentColor}
+.sum{border-radius:18px;border:2px solid var(--line);overflow:hidden;margin:0 0 16px}
+.sum .fl-art{border-radius:0;height:92px}
+.sum-r{display:flex;align-items:baseline;gap:10px;padding:7px 12px;border-bottom:1px solid var(--line)}
+.sum-r:last-child{border-bottom:0}
+.sum-r .k{width:72px;flex:none;font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--fg2)}
+.sum-r span:last-child{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.sum-r b{font-size:14px}.sum-r small{font-size:12px;color:var(--fg2)}
+.prog{display:flex;flex-direction:column;gap:6px;margin:0 0 14px}
+.prog > div:first-child{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.prog b{font-size:14px;font-weight:800}.prog small{font-size:12px;color:var(--fg2)}
+.prog .bar{height:8px;border-radius:4px;background:var(--soft)}.prog .bar i{height:8px;border-radius:4px}
+.nextup{padding:14px 16px;border-radius:20px;background:var(--t-you-bg);color:var(--t-you-fg);display:flex;flex-direction:column;gap:8px;margin:0 0 14px}
+.nextup .k{font-size:11px;font-weight:800;letter-spacing:.1em;opacity:.7}
+.nextup .t{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.nextup .t b{font-size:22px;font-weight:800}.nextup .t small{font-size:13px;opacity:.75}
+.nextup .s{font-size:13px;opacity:.85;line-height:18px}
+.nextup .fb{height:48px;flex:none;background:var(--accent);color:#fff}
+/* 0.13.0 the call sheet, one set, the wristband, the question bank */
+.sh-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 10px}
+.sh-head b{display:block;font-size:22px;font-weight:800;letter-spacing:.02em}
+.sh-head small{display:block;font-size:12px;letter-spacing:.08em;color:var(--fg2)}
+.sh-cnt{display:flex;align-items:center;gap:6px;flex:none}
+.sh-cnt i{width:40px;height:40px;box-sizing:border-box;border:2.5px solid var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:20px;font-weight:800;color:var(--accent);transform:rotate(-6deg)}
+.sh-cnt small{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--accent)}
+.sh-next{display:flex;gap:10px;align-items:center;width:100%;padding:10px 12px;background:var(--accent);color:#fff;border-radius:14px;border:0;text-align:left;margin:0 0 14px}
+.sh-next span{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
+.sh-next b{font-size:14px}.sh-next small{font-size:13px}.sh-next em{font-style:normal;font-size:14px;font-weight:800}
+.sh-tbl{border-top:2px solid var(--fg);border-bottom:2px solid var(--fg);margin:0 -8px 10px}
+.sh-tr{display:grid;grid-template-columns:118px minmax(0,1fr);min-height:40px;border-bottom:1px solid var(--line)}
+.sh-tr:last-child{border-bottom:0}
+.sh-tr .nm{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:0 0 0 6px;border:0;background:transparent;color:var(--fg);text-align:left;font-size:13px;font-weight:700;line-height:1.1;min-width:0}
+.sh-tr .nm span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sh-tr .nm small{font-size:9px;letter-spacing:.1em;color:var(--run);font-weight:800}
+.sh-tr .cells{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:0;padding:0;background:transparent;color:var(--fg);min-height:40px}
+.sh-tr .cells:disabled{opacity:1}
+.sh-tr .c{display:flex;align-items:center;justify-content:center;gap:3px;border-left:1px solid var(--line)}
+.sh-tr .c.hl{background:rgba(43,80,255,.08)}
+.sh-th{height:30px;font-size:11px;font-weight:700;letter-spacing:.04em;border-bottom:1.5px solid var(--fg)}
+.sh-th > span:first-child{display:flex;align-items:center;padding-left:6px}
+.sh-th .cells{min-height:30px}
+.sh-th .c.hl{background:var(--accent);color:#fff}
+.sh-grp{height:24px;display:flex;align-items:center;padding-left:6px;background:var(--soft);border-bottom:1px solid var(--line);font-weight:700;font-size:11px;letter-spacing:.12em}
+.mk{font-size:16px;font-weight:800;line-height:1;font-style:normal}
+.mk.r{color:var(--run)}.mk.p{color:var(--pass)}.mk.u{color:var(--fg2)}
+.qm{width:22px;height:22px;box-sizing:border-box;border:2px dashed var(--run);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--run);font-style:normal}
+.sh-leg{font-size:11px;line-height:16px;color:var(--fg2);margin:0 0 12px}
+.sh-btns{display:flex;gap:10px;margin:0 0 12px}
+.sh-btns button{flex:1;height:46px;background:var(--bg);border:2px solid var(--line);color:var(--fg);font-weight:700;font-size:13px;letter-spacing:.04em;border-radius:12px}
+.sh-btns button.solid{background:var(--accent);border-color:var(--accent);color:#fff}
+.st-top{display:flex;align-items:center;justify-content:space-between;margin:0 -6px 6px}
+.st-top button{height:40px;padding:0 8px;border:0;background:transparent;color:var(--fg);font-weight:700;font-size:14px;letter-spacing:.06em}
+.st-top button.box{height:36px;padding:0 14px;border:2px solid var(--line);border-radius:10px;font-size:13px}
+.st-name{font-size:40px;font-weight:800;line-height:1.02;letter-spacing:-.02em;margin:0 0 4px;overflow-wrap:anywhere}
+.st-sub{font-size:12px;letter-spacing:.06em;color:var(--fg2);margin:0 0 12px}
+.st-art{border:2px solid var(--fg);padding:4px;margin:0 0 14px;border-radius:6px}
+.st-art .fl-art{height:178px;border-radius:3px}
+.st-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 14px}
+.st-2 h5{margin:0 0 6px;font-size:12px;letter-spacing:.1em}
+.st-l{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:0 0 4px;margin:0 0 6px;font-size:13px}
+.st-bar{display:flex;align-items:center;gap:8px;font-size:13px;margin:0 0 6px}
+.st-bar > span:first-child{width:52px;flex:none}
+.st-bar i{display:block;height:12px;box-sizing:border-box;background:repeating-linear-gradient(135deg,var(--fg) 0 2px,transparent 2px 6px);border:1.5px solid var(--fg)}
+.st-plays{border-top:2px solid var(--fg);margin:0 0 12px}
+.st-p{display:grid;grid-template-columns:76px 60px 22px minmax(0,1fr) 66px;align-items:center;min-height:34px;border-bottom:1px solid var(--line);font-size:13px;gap:2px}
+.st-p > span:first-child{font-weight:700}.st-p > span:last-child{text-align:right;font-weight:700}
+.st-p > span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-also{display:flex;align-items:center;gap:10px;margin:0 0 14px}
+.st-also div{flex:1;font-size:13px;line-height:18px}.st-also b{font-size:11px;letter-spacing:.08em}
+.st-also button{height:40px;padding:0 12px;border:2px solid var(--line);background:var(--bg);color:var(--fg);font-weight:700;font-size:12px;letter-spacing:.06em;border-radius:10px;flex:none}
+.band-h{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:2px 0 10px}
+.band-h b{display:block;font-size:34px;font-weight:800;line-height:1.05}
+.band-h small{display:block;font-size:12px;letter-spacing:.06em;color:var(--fg2)}
+.band-h button{height:36px;padding:0 10px;border:2px solid var(--line);background:var(--bg);color:var(--fg);font-weight:700;font-size:12px;letter-spacing:.06em;border-radius:10px;flex:none}
+.band-sec{display:flex;justify-content:space-between;align-items:center;height:26px;padding:0 8px;background:var(--t-you-bg);color:var(--t-you-fg);font-weight:700;font-size:12px;letter-spacing:.1em;margin:10px 0 6px;border-radius:4px}
+.band-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.band-b{display:flex;align-items:center;gap:8px;min-height:54px;box-sizing:border-box;padding:0 8px;border:1.5px solid var(--line);border-radius:6px}
+.band-b > b{width:26px;font-size:22px;text-align:center;flex:none}
+.band-b > span{display:flex;flex-direction:column;gap:1px;min-width:0}
+.band-b > span > b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.band-b > span > span{display:flex;gap:5px}
+.bk-leg{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px}
+.bk-leg span{padding:2px 8px;border-radius:8px;font-size:11px;font-weight:800}
+.bk-sec{display:flex;align-items:baseline;justify-content:space-between;padding:18px 4px 8px;border-bottom:2px solid var(--fg)}
+.bk-sec b{font-size:20px;font-weight:800}.bk-sec small{font-size:12px;color:var(--fg2)}
+.bk-q{display:flex;align-items:center;gap:10px;min-height:50px;padding:4px 0;border-bottom:1px solid var(--line)}
+.bk-q > i{width:24px;height:24px;flex:none;border-radius:12px;background:var(--soft);font-style:normal;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.bk-q > i.out{background:var(--run);color:#fff}
+.bk-q > span{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}.bk-q b{font-size:15px;line-height:1.2}.bk-q small{font-size:12px;color:var(--fg2);line-height:1.3}
+.bk-q > em{flex:none;max-width:92px;padding:2px 7px;border-radius:8px;font-style:normal;font-size:10px;font-weight:800;line-height:1.3;text-align:center}
+.bk-foot{margin:16px 0 0;padding:12px 14px;border-radius:14px;background:var(--soft);font-size:13px;line-height:18px}
+/* the art: one look everywhere in the engine */
+.qz .bg{fill:var(--qz-bg)}.qz .ln{stroke:var(--qz-line);stroke-width:.12;fill:none}.qz .hs{stroke:var(--qz-hash);stroke-width:.14;fill:none}.qz .los{stroke:var(--qz-los);stroke-width:.22;fill:none}
+.qz .ol{fill:var(--qz-ol)}.qz .qb{fill:var(--qz-qb);stroke:var(--qz-ink);stroke-width:.18}
+.qz .man{fill:var(--qz-ink)}.qz .man.hi{fill:var(--accent)}.qz .man.ghost{fill:none;stroke:var(--qz-ink);stroke-width:.16;stroke-dasharray:.4 .3;opacity:.6}
+.qz .ring{fill:none;stroke:var(--coral);stroke-width:.3}
+.qz text{font-family:var(--font);font-weight:800;text-anchor:middle}
+.qz .mt{fill:var(--qz-bg)}.qz .dt{fill:var(--qz-bg)}.qz .tl{fill:var(--qz-sub);font-weight:700}
+.qz .tri.dl{fill:var(--qz-ink)}.qz .tri.lb{fill:var(--qz-lb)}.qz .tri.db{fill:var(--accent)}
+.qz .tri.up{fill:var(--qz-bg);stroke:var(--qz-ink);stroke-width:.2}.qz .tri.up + .dt{fill:var(--qz-ink)}
+.qz .tri.hi{fill:var(--coral)}.qz .tri.ghost{fill:var(--qz-ink);opacity:.16}
+.qz .mv{stroke:var(--coral);stroke-width:.18;stroke-dasharray:.5 .4;fill:none}
+.qz .faint{opacity:.42}
+.qz .zn{fill:var(--qz-zone);stroke:var(--accent);stroke-width:.12;stroke-dasharray:.6 .45}.qz .zn.deep{fill:var(--qz-zone2)}
+.qz .ar{stroke:var(--qz-ink);stroke-width:.2;stroke-dasharray:.6 .5;fill:none}.qz .ah{fill:var(--qz-ink)}
+.qz .ar.hot{stroke:var(--coral);stroke-dasharray:none}.qz .ah.hot{fill:var(--coral)}
+@media print{
+  html,body{height:auto;overflow:visible;background:#fff;color:#000}
+  #app{display:block;height:auto}
+  #top,.tabs,#flow,#editor,#diag,#sheet,#toast,#zoomer,.no-print{display:none!important}
+  #home{overflow:visible;padding:0}
+  .band-b{break-inside:avoid}
+}
 /* designer */
 .pick{flex:1;min-width:0;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--raise);color:var(--fg);font-size:13.5px;font-weight:600;padding:0 10px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
@@ -354,7 +621,7 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
 
 
 <div id="app">
-  <header class="top">
+  <header class="top" id="top">
     <button id="topL" class="icon-btn" data-act="topL" aria-label="Back" hidden>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path id="topLIcon" d="M15 5l-7 7 7 7"></path></svg>
     </button>
@@ -364,6 +631,7 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
     </button>
   </header>
   <main id="home" class="view scroll home"></main>
+  <main id="flow" class="view scroll flow" hidden></main>
   <section id="editor" class="view editor" hidden>
     <div id="fieldWrap"><svg id="field" role="img" aria-label="Football field"></svg><button id="fitBtn" data-act="fit" hidden>Fit field</button><button id="filmBtn" data-act="film" hidden>Film</button></div>
     <div id="panel" class="panel"></div>
@@ -371,9 +639,9 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
   <section id="diag" class="view scroll diag" hidden></section>
   <nav id="tabs" class="tabs" hidden aria-label="Sections">
     <button data-act="tab" data-v="home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>Home<span class="bdg" id="tabBadge" hidden></span></button>
-    <button data-act="tab" data-v="plays" aria-label="Plays"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>Plays</button>
+    <button data-act="tab" data-v="sheet" aria-label="Call sheet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16"/></svg>Sheet</button>
+    <button data-act="tab" data-v="band" aria-label="Wristband"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M5 9h14M5 15h14M12 9v12"/></svg>Band</button>
     <button data-act="tab" data-v="book" aria-label="Book"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg>Book</button>
-    <button data-act="tab" data-v="more" aria-label="More"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>More</button>
   </nav>
 </div>
 <div id="sheet" class="sheet-back" data-act="closeSheet" hidden><div class="sheet" id="sheetBody"></div></div>
@@ -387,7 +655,7 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
 <script>
 (() => {
 'use strict';
-const VERSION = '0.12.0';
+const VERSION = '0.13.0';
 const KEYS = {store:'pb.store', diag:'pb.diag', dumps:'pb.dumps', base:'pb.baseline', bad:'pb.store.bad'};
 const LETTER_COLOR = {X:'#FF5A4E', Y:'#FFD23F', Z:'#B78CFF', H:'#4DA3FF', F:'#3DDC84'};
 const PERS = ['11','12','10','13','21','22','20','23','01','02','00','31','30'];
@@ -843,7 +1111,7 @@ function syncLoadCfg(){
   SYNC.token = lsGetRaw('pb.gh.token') || null;
   SYNC.id = lsGetRaw('pb.gh.gist') || null;
   const d = lsGetJSON('pb.deleted', []); SYNC.deleted = Array.isArray(d) ? d : [];
-  const ip = lsGetJSON('pb.ipad', null); if (ip && Array.isArray(ip.queue)) SYNC.ipad = Object.assign({tags:[], adds:[]}, ip);
+  const ip = lsGetJSON('pb.ipad', null); if (ip && Array.isArray(ip.queue)) SYNC.ipad = Object.assign({tags:[], adds:[], facts:{}}, ip);
 }
 async function gh(method, path, body, etag){
   const t0 = performance.now();
@@ -927,13 +1195,18 @@ async function syncPull(){
     if (!Array.isArray(ip.queue)) bad.push(`queue: expected array, got ${typeof ip.queue}`);
     if (ip.tags != null && !Array.isArray(ip.tags)) bad.push(`tags: expected array, got ${typeof ip.tags}`);
     if (ip.adds != null && !Array.isArray(ip.adds)) bad.push(`adds: expected array, got ${typeof ip.adds}`);
-    if (bad.length) fail('sync.ipad', 'ipad.json with queue[] and tags[]', bad.join('; '), JSON.stringify(ip).slice(0, 400));
+    if (ip.facts != null && (typeof ip.facts !== 'object' || Array.isArray(ip.facts))) bad.push(`facts: expected an object keyed by play, got ${Array.isArray(ip.facts) ? 'array' : typeof ip.facts}`);
+    if (bad.length) fail('sync.ipad', 'ipad.json with queue[], tags[] and facts{}', bad.join('; '), JSON.stringify(ip).slice(0, 400));
     else {
       const before = SYNC.ipad.queue.length;
-      SYNC.ipad = {queue:ip.queue, tags:ip.tags || [], adds:ip.adds || [], at:ip.at || null};
+      /* 0.13.0: facts — what chalk read off NFL's 22 for every play it showed: personnel, package, QB spot, backs, box, rush */
+      const facts = {}; let nf = 0, badf = 0;
+      Object.entries(ip.facts || {}).forEach(([k, f]) => { if (f && typeof f === 'object' && /^\d{4}_\d{2}_[A-Z]{2,3}_[A-Z]{2,3}:\d+$/.test(k)){ facts[k] = f; nf++; } else badf++; });
+      if (badf) diag('sync.ipad', `facts: ${badf} entries skipped (key not "<game>:<play>" or not an object)`);
+      SYNC.ipad = {queue:ip.queue, tags:ip.tags || [], adds:ip.adds || [], facts, at:ip.at || null};
       lsSetRaw('pb.ipad', JSON.stringify(SYNC.ipad));
       pushBaseline('ipad', SYNC.ipad);
-      diag('sync.pull', `iPad: ${ip.queue.length} queued (was ${before}), ${(ip.tags || []).length} tags, ${(ip.adds || []).length} adds, ${FRM.files.size} frame files, written ${ip.at}`);
+      diag('sync.pull', `iPad: ${ip.queue.length} queued (was ${before}), ${(ip.tags || []).length} tags, ${(ip.adds || []).length} adds, ${nf} plays with facts, ${FRM.files.size} frame files, written ${ip.at}`);
     }
   }
   if (!SYNC.merged){
@@ -2925,12 +3198,15 @@ function setView(v){
   if (v !== VIEW) PREV_VIEW = VIEW;
   VIEW = v;
   $('#home').hidden = v !== 'home';
+  $('#flow').hidden = v !== 'flow';
   $('#editor').hidden = v !== 'editor';
   $('#diag').hidden = v !== 'diag';
+  $('#top').hidden = v === 'flow';
   $('#tabs').hidden = v !== 'home' || !!EMBED;
 }
 function setStep(step){ W.step = step; viewForStep(); }
 function refresh(){
+  if (VIEW === 'flow'){ renderFlow(); return; }
   renderTop();
   if (VIEW === 'home') renderHome();
   else if (VIEW === 'diag') renderDiag();
@@ -2948,6 +3224,12 @@ function renderTop(){
       sub = pg === 'doors' ? `${inboxSplit().live.length} waiting · ${syncWord()}` : pg === 'watch' ? `${inboxSplit().live.length} waiting · ${syncWord()}`
         : pg === 'games' ? (GAMES.state === 'on' ? `${GAMES.index.games.length} games · ${S.plays.length} logged` : 'loading…') : row ? `Week ${row.week} · ${row.date}` : '';
     }
+    else if (HOMEV.tab === 'sheet' || HOMEV.tab === 'band'){
+      const tm = shTeam(); L.hidden = !(HOMEV.tab === 'sheet' && SHV.set); icon.setAttribute('d', 'M15 5l-7 7 7 7'); L.setAttribute('aria-label', 'Back to the sheet');
+      title = TAB_NAME[HOMEV.tab]; sub = tm ? `${tm} offense · ${shScope(tm) === 'game' && GAMEV.gid && gameRow(GAMEV.gid) ? 'this game' : 'the season'}` : 'Nothing logged yet';
+    }
+    else if (HOMEV.tab === 'plays' || HOMEV.tab === 'more' || HOMEV.tab === 'bank'){ L.hidden = false; icon.setAttribute('d', 'M15 5l-7 7 7 7'); L.setAttribute('aria-label', 'Back');
+      title = TAB_NAME[HOMEV.tab]; sub = HOMEV.tab === 'plays' ? `${S.plays.length} logged · ${S.plays.filter(p => !p.def && !p._bad).length} without a defense` : HOMEV.tab === 'more' ? `v${VERSION} · ${syncWord()}` : 'Worded by role, never by letter'; }
     else { title = TAB_NAME[HOMEV.tab] || 'Playbook'; sub = HOMEV.tab === 'plays' ? `${S.plays.length} logged · ${S.plays.filter(p => !p.def && !p._bad).length} without a defense` : HOMEV.tab === 'book' ? `${allSets().length} sets · ${allFronts().length} fronts · ${S.designs.length} drawn` : `v${VERSION} · ${syncWord()}`; }
   }
   else if (VIEW === 'diag'){ L.hidden = false; icon.setAttribute('d', 'M15 5l-7 7 7 7'); L.setAttribute('aria-label','Back'); title = 'Diagnostics'; sub = `v${VERSION}`; }
@@ -5381,6 +5663,7 @@ function framesSoon(){
   clearTimeout(FRM.timer);
   FRM.timer = setTimeout(() => {
     if (VIEW === 'home') renderHome();
+    else if (VIEW === 'flow') renderFlow();
     else if (VIEW === 'editor') filmBtnSync();
     if (FILMV.open && !$('#sheet').hidden) ACT.film();
   }, 60);
@@ -5848,7 +6131,7 @@ function cardHTML(q){
     <div class="row"><span class="lbl cl">Strong</span>${seg('cardStr', [['L','Left'],['R','Right']], v.c.strength)}<span class="lbl" style="flex:none;width:auto">Hash</span>${seg('cardHash', [['L','L'],['M','M'],['R','R']], v.c.hash)}</div>
     <div class="row">
       <button class="btn slim" data-act="cardPark">Park</button>
-      <button class="btn slim" data-act="cardEdit">Wizard</button>
+      <button class="btn slim" data-act="cardEdit">Step by step</button>
       <button class="btn pri" data-act="cardOk" ${v.set ? '' : 'disabled'}>Confirm</button>
     </div>
     <div class="card-hint">Swipe right to confirm · left to park · tap a line to fix it</div>
@@ -5921,7 +6204,9 @@ async function gameLoad(gid){
   if (VIEW === 'home') renderHome();
   return g;
 }
-const gameQ = p => ({key:p.key, sit:{down:p.down, dist:p.dist, yard:p.yard, qtr:p.q, clock:p.clock, pos:p.pos}, desc:p.desc || '', pers:null, qb:p.gun ? 'gun' : 'under', res:p.res || null, at:null, fromGame:true, np:!!p.np});
+const gameQ = p => { const fx = ipadFact(p.key); return {key:p.key, sit:{down:p.down, dist:p.dist, yard:p.yard, qtr:p.q, clock:p.clock, pos:p.pos, def:p.def}, desc:p.desc || '',
+  pers:(p.pp && p.pp.pers) || (fx && fx.pers) || null, qb:p.f && QL_QB[p.f.ql] ? QL_QB[p.f.ql] : fx && QL_QB[fx.ql] ? QL_QB[fx.ql] : (p.gun ? 'gun' : 'under'),
+  res:p.res || null, f:p.f || null, pp:p.pp || null, at:null, fromGame:true, np:!!p.np}; };
 const gameDrives = (g, side) => g.drives.filter(d => d.pos === side);
 const gamePlays = (g, side) => gameDrives(g, side).flatMap(d => d.plays);
 const loggedKey = key => S.plays.some(p => p.key === key && !p._bad);
@@ -5993,7 +6278,7 @@ function doorsHTML(){
     <div class="door two"><span class="door-k">2 · Log a game</span>${d2}</div>
     <div class="door"><span class="door-k">3 · Just build</span>
       <span class="door-s">A formation or a front for the book. No play needed.</span>
-      <div class="row"><button class="btn" data-act="tplNew">Formation</button><button class="btn" data-act="frontNew">Front</button></div></div>
+      <div class="row"><button class="btn" data-act="enNewSet">Formation</button><button class="btn" data-act="enNewFront">Front</button></div></div>
     ${lately.length ? `<span class="lbl" style="display:block;margin:4px 0 8px">Lately</span><div class="lately">${lately.map(p => `<button class="chip" data-act="openPlay" data-id="${esc(p.id)}">${esc(callLine(p, 'pro'))}${p.def && p.def.front ? ' vs ' + esc(p.def.front) : ''}</button>`).join('')}</div>` : ''}`;
 }
 /* ---- door 2: the games by week, then one game drive by drive ---- */
@@ -6041,8 +6326,9 @@ function gameHTML(){
 }
 
 /* ---- home: the three doors, then plays and the book ---- */
-const HOMEV = {allPlays:false, tab:(['home','plays','book','more'].includes(lsGetRaw('pb.tab')) ? lsGetRaw('pb.tab') : 'home'), page:'doors', pf:'all'};
-const TAB_NAME = {home:'Home', plays:'Plays', book:'Book', more:'More'};
+const HOMEV = {allPlays:false, tab:(['home','sheet','band','book'].includes(lsGetRaw('pb.tab')) ? lsGetRaw('pb.tab') : 'home'), page:'doors', pf:'all'};
+const TAB_NAME = {home:'Home', sheet:'Call sheet', band:'Wristband', book:'Book', plays:'Every play', more:'More', bank:'Every question'};
+const TAB_HL = {plays:'sheet', more:'home', bank:'home'};
 const PAGE_NAME = {doors:'Playbook', watch:'Watching', games:'Games', game:'Game'};
 function homeNav(page){ HOMEV.tab = 'home'; HOMEV.page = page; diag('home', page); refresh(); $('#home').scrollTop = 0; }
 /* ---- 0.11.0 what happened on the snap, from the play's own words when the iPad sent no result ---- */
@@ -6080,10 +6366,11 @@ const gameOf = key => { const g = String(key || '').split(':')[0], p = g.split('
 function renderHome(){
   if (EMBED){ renderEmbedHome(); return; }
   const tab = HOMEV.tab, page = HOMEV.page;
-  const html = tab === 'plays' ? playsTabHTML() : tab === 'book' ? bookTabHTML() : tab === 'more' ? moreTabHTML()
+  const html = tab === 'plays' ? playsTabHTML() : tab === 'book' ? bookTabHTML() : tab === 'more' ? moreTabHTML() : tab === 'sheet' ? sheetHTML() : tab === 'band' ? bandHTML() : tab === 'bank' ? bankHTML()
     : page === 'watch' ? inboxTabHTML() : page === 'games' ? gamesHTML() : page === 'game' ? gameHTML() : doorsHTML();
   $('#home').innerHTML = html;
-  $('#tabs').querySelectorAll('button[data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === tab));
+  const hl = TAB_HL[tab] || tab;
+  $('#tabs').querySelectorAll('button[data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === hl));
   const live = inboxSplit().live.length, bd = $('#tabBadge'); bd.hidden = !live; bd.textContent = live > 99 ? '99+' : String(live);
 }
 /* ---- Inbox: the iPad's plays as cards, one at a time; log by hand underneath ---- */
@@ -6133,7 +6420,10 @@ function bookTabHTML(){
 function moreTabHTML(){
   const li = (act, t, sub, v) => `<button class="li" data-act="${act}" ${v ? `data-v="${esc(v)}"` : ''}><span class="li-main"><span class="li-t">${t}</span><span class="li-s">${esc(sub)}</span></span><span class="chev">›</span></button>`;
   return `<div class="list more" style="margin-top:6px">
-      ${li('syncSheet', 'Sync with the iPad', `${syncWord()}${SYNC.state === 'on' && SYNC.lastPull ? ' · checked ' + new Date(SYNC.lastPull).toTimeString().slice(0, 5) : ''}`)}
+      ${li('syncSheet', 'Sync with the iPad', `${syncWord()}${SYNC.state === 'on' && SYNC.lastPull ? ' · checked ' + new Date(SYNC.lastPull).toTimeString().slice(0, 5) : ''}${SYNC.ipad && SYNC.ipad.facts ? ' · personnel for ' + Object.keys(SYNC.ipad.facts).length + ' plays' : ''}`)}
+      ${li('tab', 'Every play', `${S.plays.length} logged · filters, Log defense, by game`, 'plays')}
+      ${li('bank', 'Every question it can ask', 'Worded by role, and what lets it skip each one')}
+      ${li('enPlacePref', 'Always go straight to placing', enPlacePref() ? 'On — the questions are one tap away' : 'Off — start from the closest set, then the questions')}
       ${li('namesSheet', 'Names', `${NAMING === 'desc' ? 'Plain English' : 'Neutral calls'} · settings, My words`)}
       ${li('gloss', 'What the words mean', 'The glossary: sets, fronts, coverages', NAMING)}
       ${li('tend', 'Tendencies', 'Run/pass and strong/weak by down & distance, field zone, personnel, set')}
@@ -6155,12 +6445,1007 @@ function clearPrompt(){
     <div class="row"><button class="btn" data-act="wipeNo">Keep everything</button><button class="btn danger" data-act="wipeYes">Clear</button></div>`);
 }
 
+/* ================= 0.13.0 THE ENGINE — start from the closest, ask in role words, place by role, the card, the box, after the snap =================
+   One screen at a time in #flow. The offense lives in W, the same work object the field editor uses, so the rules, names and
+   letters are the editor's own: wizRows/wizBuild ask and draw, slotOK/offStatus keep the line legal, ENG/NAMES read and name.
+   The defense lives in EN.def with the strength to the right; the screens mirror it when the tight end is on the left.
+   Every line says where it came from: data (play-by-play, FTN, NGS), iPad (chalk read NFL's 22), pick (the set you started
+   from), you, rule. Nothing the data or the iPad answers is asked. Letters are never asked. */
+const enClone = o => o == null ? o : JSON.parse(JSON.stringify(o));
+const SRC_WORD = {data:'data', ipad:'iPad', pick:'pick', you:'you', rule:'rule'};
+const QB_WORD = {gun:'Shotgun', under:'Under center', pistol:'Pistol'};
+const QL_QB = {S:'gun', U:'under', P:'pistol'};
+const EN_PLACE_LS = 'pb.en.place';
+const enPlacePref = () => lsGetRaw(EN_PLACE_LS) === '1';
+const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
+const X_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const BACK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>';
+const HAND_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11V5a2 2 0 0 1 4 0v6"/><path d="M13 10V8a2 2 0 0 1 4 0v4"/><path d="M17 11a2 2 0 0 1 4 0v3a7 7 0 0 1-7 7h-1a7 7 0 0 1-6-3.4L4.5 14a2 2 0 0 1 3.4-2L9 13.5"/></svg>';
+const ipadFact = key => (key && SYNC.ipad && SYNC.ipad.facts && typeof SYNC.ipad.facts === 'object' && SYNC.ipad.facts[key]) || null;
+let EN = null;
+function enFresh(){
+  return {mode:'log', q:null, known:{}, step:'start', start:null, qs:[], qk:null, kept:0, changed:{}, place:null, placed:false,
+    def:null, defStart:null, defName:'', defCode:null, defSrc:null, fronts:null, sel:null, post:null, frame:'snap', logged:null, chain:null, from:null,
+    persYou:false, qbYou:false, askKeys:{}, askAll:false};
+}
+
+/* ---- the art: quiz look, one renderer for sets, the box and the shell (SVG in yards; y down = into the offense's backfield) ---- */
+const QZ = (() => {
+  const f1 = v => (Math.round(v * 10) / 10).toString();
+  const QBY = {under:1.75, pistol:4.6, gun:5.6};
+  const FWD = 160 / 3;
+  function lettersOf(off){
+    try {
+      if (!off || !Array.isArray(off.tokens) || !off.tokens.some(t => t && t.slot)) return {};
+      return ENG.analyze({qb:off.qb || 'gun', xol:!!off.xol, tokens:off.tokens}, {tb:NAMES.st().tb, families:false}).letters || {};
+    } catch(e){ return {}; }
+  }
+  function offMen(off){
+    const out = [];
+    ((off && off.tokens) || []).forEach((t, i) => { if (!t || !t.slot) return; const q = PBA.offXY(t.slot, off.qb); if (q) out.push({i, x:q.x, y:q.r + 0.9, type:t.type}); });
+    return out;
+  }
+  function frame(bx, w, h, body, label){
+    const pad = 1.3;
+    let x0 = bx.x0 - pad, x1 = bx.x1 + pad, y0 = bx.y0 - pad, y1 = bx.y1 + pad;
+    const want = w / h, have = (x1 - x0) / (y1 - y0);
+    if (have < want){ const add = ((y1 - y0) * want - (x1 - x0)) / 2; x0 -= add; x1 += add; }
+    else { const add = ((x1 - x0) / want - (y1 - y0)) / 2; y0 -= add; y1 += add; }
+    const lines = [], ticks = [];
+    for (let y = Math.ceil(y0 / 5) * 5; y <= y1; y += 5) if (y !== 0) lines.push(`M${f1(x0)} ${y}H${f1(x1)}`);
+    for (let y = Math.ceil(y0); y <= y1; y++) if (y % 5) ticks.push(`M-3.4 ${y}h0.65M2.75 ${y}h0.65`);
+    return `<svg class="qz" viewBox="${f1(x0)} ${f1(y0)} ${f1(x1 - x0)} ${f1(y1 - y0)}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(label || 'Play art')}">`
+      + `<rect class="bg" x="${f1(x0)}" y="${f1(y0)}" width="${f1(x1 - x0)}" height="${f1(y1 - y0)}"/><path class="ln" d="${lines.join('')}"/><path class="hs" d="${ticks.join('')}"/>`
+      + `<path class="los" d="M${f1(x0)} 0H${f1(x1)}"/>${body}</svg>`;
+  }
+  function offBody(off, o){
+    o = o || {};
+    const L = o.letters === false ? {} : lettersOf(off), out = [];
+    [-4, -2, 0, 2, 4].forEach(x => out.push(`<rect class="ol" x="${f1(x - 0.62)}" y="0.3" width="1.24" height="1.24" rx="0.25"/>`));
+    out.push(`<circle class="qb" cx="0" cy="${QBY[(off && off.qb) || 'gun'] || 5.6}" r="0.7"/>`);
+    (o.ghost || []).forEach(g => out.push(`<circle class="man ghost" cx="${f1(g.x)}" cy="${f1(g.y)}" r="0.92"/>`));
+    offMen(off).forEach(m => {
+      if (m.type === 'L'){ out.push(`<rect class="ol" x="${f1(m.x - 0.62)}" y="${f1(m.y - 0.62)}" width="1.24" height="1.24" rx="0.25"/>`); return; }
+      const hi = o.hi === m.i;
+      if (hi) out.push(`<circle class="ring" cx="${f1(m.x)}" cy="${f1(m.y)}" r="1.6"/>`);
+      out.push(`<circle class="man${hi ? ' hi' : ''}" cx="${f1(m.x)}" cy="${f1(m.y)}" r="0.92"/>`);
+      const t = L[m.i]; if (t) out.push(`<text class="mt" x="${f1(m.x)}" y="${f1(m.y + 0.37)}" font-size="1.05">${esc(t)}</text>`);
+    });
+    return out.join('');
+  }
+  function set(off, o){
+    o = o || {};
+    const M = offMen(off), qy = QBY[(off && off.qb) || 'gun'] || 5.6;
+    const hx = Math.max(6.5, ...M.map(m => Math.abs(m.x)));
+    const y1 = Math.max(qy, 2, ...M.map(m => m.y));
+    return frame({x0:-hx, x1:hx, y0:-1.4, y1}, o.w || 358, o.h || 120, offBody(off, o), o.label || 'The set');
+  }
+  const tri = (x, y) => { const s = 0.95; return `M${f1(x - s)} ${f1(y - s * 0.75)}L${f1(x + s)} ${f1(y - s * 0.75)}L${f1(x)} ${f1(y + s * 0.85)}Z`; };
+  const defXY = b => b.d === 1 ? {x:+b.x, y:-1.05} : {x:+b.x, y:-(b.dep || 5) + 0.35};
+  /* who is who: E T N on the line, W B M S behind it, C $ S F in the secondary (strength right) */
+  function defRoles(def){
+    const out = {};
+    let R = null; try { R = PBA.roster(def, 'R'); } catch(e){ R = null; }
+    const dl = (def.box || []).map((b, i) => ({b, i})).filter(o => o.b.d === 1).sort((a, b) => a.b.x - b.b.x);
+    dl.forEach((o, k) => { const outer = k === 0 || k === dl.length - 1; out['b' + o.i] = Math.abs(o.b.x) <= 0.5 && dl.length > 2 ? 'N' : (outer && dl.length >= 3) || Math.abs(o.b.x) >= 4.5 ? 'E' : 'T'; });
+    const lb = (def.box || []).map((b, i) => ({b, i})).filter(o => o.b.d !== 1).sort((a, b) => a.b.x - b.b.x);
+    const LBN = lb.length === 1 ? ['M'] : lb.length === 2 ? ['W','M'] : lb.length === 3 ? ['W','M','S'] : ['W','B','M','S','L','L'];
+    lb.forEach((o, k) => { out['b' + o.i] = LBN[k] || 'B'; });
+    (def.dbs || []).forEach((o, i) => { const k = 'd' + i; out[k] = R && R.FS && R.FS.k === k ? 'F' : R && R.SS && R.SS.k === k ? 'S' : R && ((R.cS && R.cS.k === k) || (R.cW && R.cW.k === k)) ? 'C' : '$'; });
+    return out;
+  }
+  /* the box: the line, the tight ends and wings, every man in the box with his technique; a ghost where he started */
+  function box(def, off, o){
+    o = o || {};
+    const sg = o.mirror ? -1 : 1, roles = defRoles(def), out = [];
+    const keep = (off && Array.isArray(off.tokens) ? off.tokens : []).map(t => t && t.slot && (/:(I|T):[01]$/.test(t.slot) || /:HB$/.test(t.slot)) ? t : {type:t ? t.type : 'W', slot:null});
+    out.push(offBody({qb:(off && off.qb) || 'gun', xol:!!(off && off.xol), tokens:keep}, {letters:true}));
+    (def.box || []).forEach((b, i) => {
+      const w = o.was && o.was.box ? o.was.box[i] : null;
+      if (w && (w.x !== b.x || (w.dep || 5) !== (b.dep || 5))){ const p = defXY(w), q = defXY(b); out.push(`<path class="tri ghost" d="${tri(p.x * sg, p.y)}"/><path class="mv" d="M${f1(p.x * sg)} ${f1(p.y)}L${f1(q.x * sg)} ${f1(q.y)}"/>`); }
+    });
+    (def.box || []).forEach((b, i) => {
+      const p = defXY(b), x = p.x * sg, sel = o.sel === i, dl = b.d === 1;
+      if (sel) out.push(`<circle class="ring" cx="${f1(x)}" cy="${f1(p.y - 0.1)}" r="1.65"/>`);
+      out.push(`<path class="tri ${dl ? 'dl' : 'lb'}${dl && b.hand === 'up' ? ' up' : ''}${sel ? ' hi' : ''}" d="${tri(x, p.y)}"/><text class="dt" x="${f1(x)}" y="${f1(p.y + 0.02)}" font-size="0.82">${esc(roles['b' + i] || '')}</text>`);
+      out.push(`<text class="tl" x="${f1(x)}" y="${f1(p.y - 1.25)}" font-size="0.66">${dl ? techOf(b.x) : String(Math.round(Math.abs(b.x)) * 10)}</text>`);
+    });
+    return frame({x0:-8.6, x1:8.6, y0:-7.4, y1:2.4}, o.w || 358, o.h || 118, out.join(''), o.label || 'The box');
+  }
+  function zoneOf(info, x){
+    const Lx = -FWD / 2, Rx = FWD / 2, s = Math.sign(x) || 1;
+    if (info.deep){ const n = Math.max(1, info.n || 1), w = FWD / n; return {cx:Lx + w * ((info.i || 0) + 0.5), cy:16, w:w - 1.6, h:9}; }
+    const k = info.kind || '';
+    if (k === 'Flat') return {cx:s < 0 ? Lx + 6.5 : Rx - 6.5, cy:3.6, w:11, h:6};
+    if (k === 'Curl-flat' || k === 'Seam-flat') return {cx:s < 0 ? Lx + 11 : Rx - 11, cy:6.5, w:12, h:7};
+    if (k === 'Curl' || k === 'Curl-hook') return {cx:s < 0 ? Lx + 15.5 : Rx - 15.5, cy:8, w:8.5, h:6};
+    if (k === 'Hook') return {cx:s * 4.5, cy:8, w:7.5, h:6};
+    return {cx:0, cy:9.5, w:8, h:6};
+  }
+  function arrow(A, B, hot){
+    const dx = B[0] - A[0], dy = B[1] - A[1], L = Math.hypot(dx, dy); if (L < 2.2) return '';
+    const ux = dx / L, uy = dy / L, s0 = [A[0] + ux * 0.9, A[1] + uy * 0.9], tip = [B[0] - ux * 1.05, B[1] - uy * 1.05];
+    const hl = 0.9, hw = 0.55, bx = tip[0] - ux * hl, by = tip[1] - uy * hl;
+    return `<path class="ar${hot ? ' hot' : ''}" d="M${f1(s0[0])} ${f1(s0[1])}L${f1(bx)} ${f1(by)}"/><path class="ah${hot ? ' hot' : ''}" d="M${f1(tip[0])} ${f1(tip[1])}L${f1(bx - hw * uy)} ${f1(by + hw * ux)}L${f1(bx + hw * uy)} ${f1(by - hw * ux)}Z"/>`;
+  }
+  /* the shell: the eleven at the snap; +1 s, where the call takes them (arrows); +2 s, the zones they own */
+  function shell(def, off, o){
+    o = o || {};
+    const sg = o.mirror ? -1 : 1, roles = defRoles(def), under = [], top = [];
+    const offR = off ? (o.mirror ? mirrorOff(off) : off) : null;
+    let plan = null, after = null;
+    if (o.cid){ try { plan = PBA.covPlan(def, offR, 'R', o.cid); if (plan) after = PBA.placeDbs(def, plan).dbs; } catch(e){ plan = null; } }
+    top.push(`<g class="faint">${offBody(off, {letters:false})}</g>`);
+    const pos = [];
+    (def.box || []).forEach((b, i) => { const p = defXY(b); pos.push({k:'b' + i, lvl:b.d === 1 ? 'dl' : 'lb', up:b.d === 1 && b.hand === 'up', a:[p.x, p.y], b:[p.x, p.y]}); });
+    (def.dbs || []).forEach((d, i) => { const q = PBA.dbXY(d.slot); if (!q) return; const r = after && after[i] ? PBA.dbXY(after[i].slot) : null; pos.push({k:'d' + i, lvl:'db', a:[q.x, -q.d], b:r ? [r.x, -r.d] : [q.x, -q.d]}); });
+    const frm = o.frame || 'snap';
+    if (plan && frm !== 'snap'){
+      Object.entries(plan.roles || {}).forEach(([k, r]) => { const p = pos.find(z => z.k === k); if (p && r.job === 'Rush'){ p.b = [p.a[0] * 0.55, -0.3]; p.rush = true; } });
+      Object.entries(plan.areas || {}).forEach(([k, a]) => {
+        const p = pos.find(z => z.k === k); if (!p) return;
+        const z = zoneOf(a, p.b[0]);
+        if (p.lvl !== 'db') p.b = [z.cx, -Math.min(z.cy, 7)];
+        if (frm === 'p2') under.push(`<rect class="zn${a.deep ? ' deep' : ''}" x="${f1(sg < 0 ? -(z.cx + z.w / 2) : z.cx - z.w / 2)}" y="${f1(-(z.cy + z.h / 2))}" width="${f1(z.w)}" height="${f1(z.h)}" rx="1.2"/>`);
+      });
+    }
+    pos.forEach(p => {
+      const A = [p.a[0] * sg, p.a[1]], B = frm === 'snap' || !plan ? A : [p.b[0] * sg, p.b[1]], moved = Math.hypot(A[0] - B[0], A[1] - B[1]) > 0.8;
+      if (moved){ under.push(`<path class="tri ghost" d="${tri(A[0], A[1])}"/>`); top.push(arrow(A, B, p.rush)); }
+      top.push(`<path class="tri ${p.lvl}${p.up && !moved ? ' up' : ''}" d="${tri(B[0], B[1])}"/><text class="dt" x="${f1(B[0])}" y="${f1(B[1] + 0.02)}" font-size="0.82">${esc(roles[p.k] || '')}</text>`);
+    });
+    return frame({x0:-24, x1:24, y0:-20.5, y1:6.2}, o.w || 358, o.h || 190, under.join('') + top.join(''), o.label || 'After the snap');
+  }
+  return {set, box, shell, lettersOf, defRoles};
+})();
+
+/* ---- what's known before a question: the play-by-play, FTN, NGS, and what chalk read off NFL's 22 ---- */
+function enKnown(q){
+  const K = {}; if (!q) return K;
+  const key = q.key, fx = ipadFact(key), f = q.f, pp = q.pp;
+  if (pp && persOf(pp.pers)) K.pers = {v:pp.pers, src:'data', how:'NGS participation'};
+  else if (fx && persOf(fx.pers)) K.pers = {v:String(fx.pers), src:'ipad', how:'NFL’s 22, read on the iPad'};
+  else if (persOf(q.pers)) K.pers = {v:String(q.pers), src:'ipad', how:'NFL’s 22, read on the iPad'};
+  if (f && QL_QB[f.ql]) K.qb = {v:QL_QB[f.ql], src:'data', how:'FTN charting'};
+  else if (fx && QL_QB[fx.ql]) K.qb = {v:QL_QB[fx.ql], src:'ipad', how:'FTN, on the iPad'};
+  else if (qbOf(q.qb)) K.qb = {v:qbOf(q.qb), src:q.fromGame ? 'data' : 'ipad', how:q.fromGame ? 'the play-by-play: shotgun or not' : 'the iPad'};
+  if (f && f.nb != null) K.nb = {v:+f.nb, src:'data'}; else if (fx && fx.nb != null) K.nb = {v:+fx.nb, src:'ipad'};
+  if (f){
+    K.mo = {v:!!f.mo, src:'data'};
+    if (f.pa) K.pa = {v:true, src:'data'}; if (f.rpo) K.rpo = {v:true, src:'data'}; if (f.scr) K.scr = {v:true, src:'data'};
+    if (f.box) K.box = {v:+f.box, src:'data'}; if (f.rush) K.rush = {v:+f.rush, src:'data'}; if (f.bl != null) K.bl = {v:+f.bl, src:'data'};
+    if (f.hash) K.hash = {v:f.hash, src:'data'};
+  } else if (fx){
+    if (fx.mo != null) K.mo = {v:!!fx.mo, src:'ipad'};
+    if (fx.box) K.box = {v:+fx.box, src:'ipad'}; if (fx.rush) K.rush = {v:+fx.rush, src:'ipad'}; if (fx.bl != null) K.bl = {v:+fx.bl, src:'ipad'};
+  }
+  if (pp){
+    if (!K.box && pp.box) K.box = {v:+pp.box, src:'data'};
+    if (!K.rush && pp.rush) K.rush = {v:+pp.rush, src:'data'};
+    if (pp.pkg) K.pkg = {v:pp.pkg, src:'data'};
+    if (pp.cov) K.cov = {v:pp.cov, mz:pp.mz || null, src:'data'};
+  } else if (fx && fx.pkg) K.pkg = {v:fx.pkg, src:'ipad'};
+  const r = resOf(q); if (r) K.res = {v:r, src:r.from === 'desc' ? 'data' : (q.fromGame ? 'data' : 'ipad')};
+  if (q.shift != null) K.shift = {v:+q.shift, snap:q.snap == null ? null : +q.snap, src:'ipad'};
+  const t = key ? tagOf(key) : null; if (t) K.tag = t;
+  return K;
+}
+const kchip = (t, src) => `<span class="kc src-${src}">${CHECK_SVG}${esc(t)}</span>`;
+const resShort = r => r ? `${r.ptype === 'run' ? 'Run' : 'Pass'}${r.yds != null ? ' · ' + (r.yds > 0 ? '+' : '') + r.yds : ''}` : '';
+function spotTeam(s){
+  if (!s || s.yard == null) return '';
+  const y = Math.round(+s.yard);
+  if (y === 50) return 'Midfield';
+  return y > 50 ? `${s.pos || 'Own'} ${100 - y}` : `${s.def || 'Opp'} ${y}`;
+}
+function enCtx(){
+  const q = EN && EN.q, s = q && q.sit;
+  if (!s) return q ? 'This play' : '';
+  return [s.down ? sitWord(s) : '', spotTeam(s), s.qtr ? `Q${s.qtr} ${clockWord(s.clock)}` : ''].filter(Boolean).join(' · ');
+}
+/* the flow's own top: progress or back on the left, the play in the middle, close or a link on the right */
+function enTop(o){
+  o = o || {};
+  let left = '';
+  if (o.segList) left = `<div class="fl-segs${o.def ? ' def' : ''}">${o.segList.map(c => `<i class="${c}"></i>`).join('')}</div>`;
+  else if (o.segs != null){ const n = o.n || 5; left = `<div class="fl-segs${o.def ? ' def' : ''}">${Array.from({length:n}, (_, i) => `<i class="${i < o.segs ? 'on' : i === o.segs ? 'cur' : ''}"></i>`).join('')}</div>`; }
+  if (o.back) left = `<button class="fl-x" data-act="enBack" aria-label="Back">${BACK_SVG}</button>` + left;
+  let right = '';
+  if (o.right === 'close') right = `<button class="fl-x" data-act="enClose" aria-label="Close">${X_SVG}</button>`;
+  else if (o.right === 'back') right = `<button class="fl-x" data-act="enBack" aria-label="Back a step">${BACK_SVG}</button>`;
+  else if (o.right === 'ask') right = `<button class="fl-link" data-act="enAskGo">Ask me instead</button>`;
+  else if (o.right === 'offok') right = `<span class="fl-badge src-data">Offense ✓</span>`;
+  else if (o.right) right = o.right;
+  return `<div class="fl-top">${left}<span class="fl-ctx">${esc(o.ctx || '')}</span>${right}</div>`;
+}
+function renderFlow(){
+  const el = $('#flow'); if (!el) return;
+  if (!EN || !W){ el.innerHTML = ''; return; }
+  let html = '';
+  try {
+    html = EN.step === 'start' ? enStartHTML() : EN.step === 'ask' ? enAskHTML() : EN.step === 'place' ? enPlaceHTML() : EN.step === 'card' ? enCardHTML()
+      : EN.step === 'techs' ? enTechsHTML() : EN.step === 'snap' ? enSnapHTML() : EN.step === 'done' ? enDoneHTML() : '';
+  } catch(e){
+    fail('engine.render', `the ${EN.step} screen drawn`, String(e && e.message), String(e && e.stack || '').slice(0, 1500));
+    html = enTop({right:'close', ctx:'Something broke'}) + `<div class="zero"><b>This screen broke</b><small>${esc(String(e && e.message))} — Diagnostics has the details and the dump.</small></div>`;
+  }
+  el.innerHTML = html;
+}
+
+/* ---- open, leave ---- */
+function enOpen(q, o){
+  o = o || {};
+  if (EMBED){ toast('The engine runs in the phone app.'); return; }
+  hideSheet();
+  EN = enFresh(); EN.mode = o.mode || 'log'; EN.q = q || null; EN.chain = o.chain || null; EN.from = o.from || null;
+  W = newWork(EN.mode === 'set' ? 'template' : 'log'); W.wizOn = true; W.engine = true;
+  if (q){
+    W.qkey = q.key || null; W.qsit = q.sit || null; W.qdesc = q.desc || ''; W.qres = resOf(q); W.fromGame = !!q.fromGame;
+    const K = EN.known = enKnown(q);
+    if (K.pers){ W.pers = K.pers.v; W.tokens = buildTokens(W.pers, false, []); }
+    if (K.qb) W.qb = K.qb.v;
+    if (K.hash && BALL_X[K.hash.v] != null) W.hash = K.hash.v;
+    if (q.sit && q.sit.yard != null) W.spot = yardToSpot(q.sit.yard);
+    if (q.key && !String(q.key).startsWith('clip:')) setHold(q.key, 'snap');
+  }
+  diag('engine', `open ${(q && q.key) || EN.mode} · from ${EN.from || '?'} · ${W.pers}${EN.known.pers ? ' (' + EN.known.pers.src + ')' : ''} · ${W.qb}${EN.known.qb ? ' (' + EN.known.qb.src + ')' : ''}`);
+  setView('flow');
+  if (EN.mode === 'front'){ EN.step = 'techs'; enDefInit(); }
+  else if (o.set){ enPick(o.set); return; }
+  else if (EN.mode === 'set' || o.place || enPlacePref()) enPlaceInit(true);
+  else EN.step = 'start';
+  renderFlow(); $('#flow').scrollTop = 0;
+}
+function enExit(to){
+  const key = EN && EN.q && EN.q.key;
+  if (SYNC.hold && key && SYNC.hold.key === key) setHold(null);
+  EN = null; W = null; drag = null; bubble = null;
+  setView('home');
+  if (to === 'book') ACT.tab({v:'book'});
+  else if (to === 'sheet') ACT.tab({v:'sheet'});
+  else if (to === 'game' && GAMEV.gid){ HOMEV.tab = 'home'; HOMEV.page = 'game'; refresh(); }
+  else if (to === 'watch'){ HOMEV.tab = 'home'; HOMEV.page = 'watch'; refresh(); }
+  else if (to === 'doors'){ HOMEV.tab = 'home'; HOMEV.page = 'doors'; refresh(); }
+  else refresh();
+  $('#home').scrollTop = 0;
+}
+const enHome = () => !EN ? 'doors' : EN.from === 'sheet' ? 'sheet' : EN.q && EN.q.fromGame ? 'game' : EN.mode !== 'log' ? 'book' : EN.from === 'watch' ? 'watch' : 'doors';
+
+/* ---- E01: start from the closest ---- */
+function enCands(){
+  const K = (EN && EN.known) || {}, q = (EN && EN.q) || {};
+  const sc = setCands({key:q.key, sit:q.sit, pers:W.pers, qb:W.qb});
+  const gid = q.key ? String(q.key).split(':')[0] : null, inGame = new Map();
+  if (gid) S.plays.forEach(p => { if (!p._bad && p.formationId && String(p.key || '').split(':')[0] === gid) inGame.set(p.formationId, (inGame.get(p.formationId) || 0) + 1); });
+  const nb = K.nb ? K.nb.v : null;
+  const backsIn = f => (f.tokens || []).filter(t => /:(FB|TB)$/.test(t.slot || '')).length;
+  const takes = f => f.pers === W.pers || !!retype({pers:f.pers, xol:!!f.xol, qb:f.qb, tokens:(f.tokens || []).map(t => ({type:t.type, slot:t.slot}))}, W.pers);
+  return sc.list.filter(x => x.f && !x.f._bad && x.f.qb === W.qb && Array.isArray(x.f.tokens) && takes(x.f))
+    .map(x => { const g = inGame.get(x.f.id) || 0; return Object.assign({}, x, {g, s:g * 10 + (x.n || 0) * 2 + (nb != null && backsIn(x.f) === nb ? 6 : 0) + (x.src === 'book' ? 1 : 0)}); })
+    .sort((a, b) => b.s - a.s);
+}
+const candSub = x => x.g ? `${x.g}× this game` : x.n ? `${x.n}× logged` : x.src === 'base' ? 'NFL base' : 'your book';
+function enStartHTML(){
+  const K = EN.known || {}, q = EN.q || {};
+  const chips = [];
+  if (K.pers) chips.push([`${K.pers.v} personnel`, K.pers.src]);
+  if (K.qb) chips.push([QB_WORD[K.qb.v], K.qb.src]);
+  if (K.nb && (!K.pers || +K.pers.v[0] !== K.nb.v)) chips.push([`${K.nb.v} in the backfield`, K.nb.src]);
+  if (K.res) chips.push([resShort(K.res.v), K.res.src]);
+  if (K.mo) chips.push([K.mo.v ? 'Motion' : 'No motion', K.mo.src]);
+  if (K.pa) chips.push(['Play action', K.pa.src]);
+  if (K.rpo) chips.push(['RPO', K.rpo.src]);
+  if (K.scr) chips.push(['Screen', K.scr.src]);
+  let head = '';
+  if (chips.length) head = `<p class="fl-k">Known from the ${chips.some(c => c[1] === 'ipad') ? 'data and the iPad' : 'data'} — never asked</p><div class="known">${chips.map(([t, s]) => kchip(t, s)).join('')}</div>`;
+  else if (q.key) head = `<p class="fl-k">Nothing in the data for this snap yet. FTN charts a day or two after a game; the iPad fills personnel once it shows the play.</p>`;
+  const ask = [];
+  if (!K.pers) ask.push(`<div class="fl-q"><span class="lab">Personnel?</span><div class="fl-chips">${['11','12','21','10','13','22','20','01'].map(p => `<button class="fc ${W.pers === p && EN.persYou ? 'on' : ''}" data-act="enPers" data-v="${p}">${p}</button>`).join('')}</div></div>`);
+  if (!K.qb) ask.push(`<div class="fl-q"><span class="lab">Where’s the QB?</span><div class="fl-chips">${[['under','Under'],['pistol','Pistol'],['gun','Gun']].map(([v, l]) => `<button class="fc ${W.qb === v && EN.qbYou ? 'on' : ''}" data-act="enQb" data-v="${v}">${l}</button>`).join('')}</div></div>`);
+  const all = enCands(), C = all.slice(0, 4);
+  const dd = q.sit && q.sit.down ? PBA.ddBucket(q.sit.down, q.sit.dist) : '';
+  const sub = `Closest sets for ${W.pers} · ${QB_LABEL[W.qb]}${dd ? ' on ' + String(dd).replace(/ \(.*\)$/, '').toLowerCase() : ''}${q.sit && q.sit.pos ? ` — ${q.sit.pos} first` : ''}.`;
+  const grid = C.length ? `<div class="fl-grid">${C.map((x, i) => `<button class="fl-set${i === 0 ? ' on' : ''}" data-act="enPick" data-id="${esc(x.f.id)}"><span class="fl-art" style="height:78px">${QZ.set(offFromSet(x.f, W.pers), {w:147, h:78, letters:false})}</span><b>${esc(fmFiled(x.f, W.pers))}</b><small>${esc(candSub(x))}</small>${i === 0 ? '<span class="fl-tag">Closest</span>' : ''}</button>`).join('')}</div>`
+    : `<div class="zero"><b>No sets for ${esc(W.pers)} · ${esc(QB_LABEL[W.qb])} yet</b><small>Place them. It names the set and keeps it in the book.</small></div>`;
+  return enTop({segs:0, ctx:enCtx() || 'A play by hand', right:'close'}) + head + ask.join('')
+    + `<h1 class="fl-h">What should we start with?</h1><p class="fl-sub">${esc(sub)}</p>${grid}`
+    + (all.length > 4 ? `<button class="fl-link" data-act="enMoreSets" style="margin:-6px 0 10px">Every set for ${esc(W.pers)} · ${all.length} ›</button>` : '')
+    + `<button class="fl-big" data-act="enPlaceGo">${HAND_SVG}Skip the questions — place them</button>
+    <div class="fl-sw"><span><b>Always go straight to placing</b><small>You can still ask for the questions</small></span><button class="sw${enPlacePref() ? ' on' : ''}" role="switch" aria-checked="${enPlacePref()}" aria-label="Always go straight to placing" data-act="enPlacePref"></button></div>
+    <p class="fl-note">Pick a set → only what it can’t tell gets asked</p>`;
+}
+function enPick(id){
+  const f = fmGet(id); if (!f){ toast('That set is not in the book any more.'); return; }
+  const want = (EN.known && EN.known.pers) ? EN.known.pers.v : EN.persYou ? W.pers : null;   // unknown personnel: the set's own
+  const off = offFromSet(f, want || f.pers);
+  loadOffInto(W, off, false);
+  if (EN.known.pers && W.pers !== EN.known.pers.v) diag('engine', `${f.name || f.code} does not take ${EN.known.pers.v} personnel — kept ${W.pers}`);
+  W.wiz = {}; wizInfer();
+  EN.start = {id:f.id, name:fmFiled(f, W.pers), base:!!f.base, off:enClone({pers:W.pers, xol:W.xol, qb:W.qb, tokens:W.tokens.map(t => ({type:t.type, slot:t.slot}))}), wiz:enClone(W.wiz), fit:W.wizFit};
+  EN.kept = 0; EN.changed = {}; EN.placed = false; EN.place = null; EN.askAll = false;
+  EN.askKeys = enUnsure(f);
+  EN.qs = enWalk(); EN.qk = EN.qs.length ? EN.qs[0].k : null;
+  EN.step = EN.qs.length ? 'ask' : 'card';
+  diag('engine', `start from "${EN.start.name}" ${f.code || ''} · asks ${EN.qs.map(q => q.k).join(' ') || 'nothing'} · wizard fit ${W.wizFit}`);
+  renderFlow(); $('#flow').scrollTop = 0;
+}
+
+/* ---- E02: one question, in role words; the pick's answer is marked; nothing about letters ----
+   The pick can't tell the strength (every set in the book is filed strong right), and it can't tell what the closest
+   sets disagree on — those get asked. Everything the pick and its neighbours agree on is kept without a tap. */
+function enUnsure(f){
+  const keys = {str:true}, mine = enClone(W.wiz);
+  const save = {tokens:W.tokens, wiz:W.wiz, fit:W.wizFit, pers:W.pers, xol:W.xol, qb:W.qb};
+  const alts = enCands().filter(x => x.f.id !== f.id).slice(0, 5);
+  alts.forEach(x => {
+    try {
+      const o = offFromSet(x.f, save.pers);
+      if (o.pers !== save.pers || o.qb !== save.qb || !!o.xol !== !!save.xol) return;
+      loadOffInto(W, o, false); W.pers = save.pers; W.wiz = {}; wizInfer();
+      Object.keys(Object.assign({}, mine, W.wiz)).forEach(k => { if (k !== 'str' && W.wiz[k] !== mine[k]) keys[k] = true; });
+    } catch(e){ diag('engine', `reading a neighbour set failed: ${e && e.message}`); }
+  });
+  W.tokens = save.tokens; W.wiz = save.wiz; W.wizFit = save.fit; W.pers = save.pers; W.xol = save.xol; W.qb = save.qb;
+  return keys;
+}
+function enWalk(){ const all = enQuestions(); return EN.askAll ? all : all.filter(q => EN.askKeys && EN.askKeys[q.k]); }
+function enQuestions(){
+  const rows = wizRows(), te = W.tokens.filter(t => t.type === 'T').length, out = [];
+  rows.forEach(r => {
+    let opts = r.opts;
+    if (r.k === 'te0' && te >= 1) opts = opts.filter(([v]) => v[0] === 's' || v === 'bf');
+    if (opts.length < 2) return;
+    out.push({k:r.k, opts});
+  });
+  return out;
+}
+const sideWordOf = s => s === 'L' ? 'left' : 'right';
+const strongSide = () => W.wiz.str === 'L' ? 'L' : 'R';
+const weakSide = () => strongSide() === 'R' ? 'L' : 'R';
+function enSplit(){ const [a, b] = String(W.wiz.sp || '').split('-').map(Number); return {a:a || 0, b:b || 0}; }
+const NUMW = ['no', 'one', 'two', 'three', 'four', 'five'];
+function enQText(k){
+  const te = W.tokens.filter(t => t.type === 'T').length, rb = W.tokens.filter(t => t.type === 'B').length, sp = enSplit();
+  if (k === 'str') return te ? 'Which side is the tight end on?' : 'Which side has more receivers?';
+  if (k === 'bk') return rb === 1 ? 'Where’s the back?' : 'Where are the backs?';
+  if (k === 'te0') return te === 1 ? 'Where’s the tight end?' : 'Where’s the first tight end?';
+  if (k === 'te1') return 'Where’s the second tight end?';
+  if (k === 'te2') return 'And the third tight end?';
+  if (k === 'sp') return 'How many receivers each side?';
+  if (k === 'as') return `How are the ${NUMW[sp.a] || sp.a} on the ${sideWordOf(strongSide())} set?`;
+  if (k === 'aw') return `How are the ${NUMW[sp.b] || sp.b} on the ${sideWordOf(weakSide())} set?`;
+  return 'Which is it?';
+}
+function enQShort(k){
+  return {str:'Which side?', bk:'Where’s the back?', te0:'Where’s the TE?', te1:'The second TE?', te2:'The third TE?', sp:'How many each side?', as:'How the strong side sets', aw:'How the weak side sets'}[k] || k;
+}
+const BK_SUB = {wfb:'beside the QB, away from the TE', sfb:'beside the QB, on the TE’s side', tb:'straight behind the QB', fb:'fullback depth, right behind the QB',
+  i:'one behind the other', si:'I with the fullback offset to the TE', wi:'I with the fullback offset away', split:'one on each side', house:'three across',
+  spi:'power I, the extra back to the TE', wpi:'power I, the extra back away', stb:'deep back + one offset to the TE', wtb:'deep back + one offset away', diamond:'one each side + one deep'};
+const TE_WORD = {a:['On the line', 'attached to the tackle, on the ball'], o:['A step off', 'beside the tackle, off the ball'], h:['Wing', 'just outside the tackle, a yard back'],
+  s:['In the slot', 'between the tackle and the numbers'], w:['Split wide', 'out by the numbers'], f:['In the backfield', 'lined up as a back']};
+const ARR_WORD = {N:['Wide', 'out by the numbers'], S:['Slot', 'between the tackle and the numbers'], T:['Tight', 'close to the line'],
+  NS:['Spread out', 'one wide, one in the slot'], NT:['Wide & tight', 'one wide, one tight'], ST:['Reduced', 'both inside the numbers'], stack:['Stacked', 'one lined up behind the other'],
+  NST:['Spread out', 'spaced across the side'], bunch:['Bunched', 'all within a few yards, someone off the ball'], stackS:['Stack & slot', 'two stacked wide, one in the slot'], tight:['Tight', 'all three close to the line'],
+  NSTI:['Spread out', 'four across the side'], bunchN:['Wide & bunch', 'one wide, three bunched inside'], all:['Five out', 'every receiver to one side']};
+function enOpt(k, v, label){
+  if (k === 'str') return {t:v === 'L' ? 'Left' : 'Right', s:W.tokens.some(t => t.type === 'T') ? 'the tight end’s side — the strength' : 'the side with more receivers — the strength'};
+  if (k === 'bk') return {t:label, s:BK_SUB[v] || ''};
+  if (/^te\d$/.test(k)){ const w = v === 'bf' ? TE_WORD.f : TE_WORD[v[1]] || [label, '']; return {t:w[0] + (k !== 'te0' && v !== 'bf' ? (v[0] === 's' ? ' · TE side' : ' · away') : ''), s:w[1]}; }
+  if (k === 'sp'){ const [a, b] = String(v).split('-').map(Number), S0 = strongSide(); return {t:`${a} ${sideWordOf(S0)} · ${b} ${sideWordOf(S0 === 'R' ? 'L' : 'R')}`, s:a === b ? 'balanced' : a > b ? 'more to the strength' : 'more away from the strength'}; }
+  if (k === 'as' || k === 'aw'){ const w = ARR_WORD[v] || [label, '']; return {t:w[0], s:w[1]}; }
+  return {t:label, s:''};
+}
+function enOptArt(k, v){
+  let tokens;
+  if (W.wiz[k] === v) tokens = W.tokens.map(t => ({type:t.type, slot:t.slot}));
+  else {
+    const A = Object.assign({}, W.wiz, {[k]:v});
+    const slots = wizBuild(A);
+    tokens = W.tokens.map((t, i) => ({type:t.type, slot:slots[i] && slotOK(slots[i], t.type, W.qb) ? slots[i] : null}));
+  }
+  return QZ.set({qb:W.qb, xol:W.xol, tokens}, {w:136, h:68, letters:false});
+}
+function enFilmHTML(){
+  const key = EN.q && EN.q.key, F = key ? framesNow(key) : null;
+  if (F){ const shot = F.img.ez ? 'ez' : F.img.snap ? 'snap' : Object.keys(F.img)[0];
+    return `<button class="fl-film" data-act="zoom" data-key="${esc(key)}" data-v="${shot}" aria-label="See the frame up close"><img src="${F.img[shot]}" alt="${shot} frame"><span>${shot === 'ez' ? 'END ZONE' : 'SNAP'} · tap to zoom</span></button>`; }
+  return `<span class="fl-art" style="height:104px;margin-bottom:12px">${QZ.set({qb:W.qb, xol:W.xol, tokens:W.tokens.map(t => ({type:t.type, slot:t.slot}))}, {w:358, h:104})}</span>`;
+}
+function enAskHTML(){
+  const all = enQuestions(), qs = EN.qs = enWalk();
+  let i = qs.findIndex(x => x.k === EN.qk);
+  if (i < 0){ i = 0; EN.qk = qs[0] ? qs[0].k : null; }
+  const Q = qs[i];
+  if (!Q){ EN.step = 'card'; return enCardHTML(); }
+  const changedBefore = Object.keys(EN.changed).filter(k => { const j = qs.findIndex(x => x.k === k); return j >= 0 && j < i; }).length;
+  const kept = Math.max(0, all.length - qs.length + i - changedBefore);
+  const lead = EN.start ? `Started from ${EN.start.name}${kept ? ` · ${kept} answer${kept === 1 ? '' : 's'} kept` : ''}` : 'Drawn from the answers so far';
+  const opts = Q.opts.map(([v, l]) => {
+    const on = W.wiz[Q.k] === v, said = EN.start && EN.start.wiz && EN.start.wiz[Q.k] === v, O = enOpt(Q.k, v, l);
+    return `<button class="fl-opt${on ? ' on' : ''}" data-act="enAns" data-k="${Q.k}" data-v="${esc(v)}" aria-pressed="${on}"><span class="fl-art">${enOptArt(Q.k, v)}</span><span><b>${esc(O.t)}</b><small>${esc(O.s)}</small>${said ? '<em>what the pick said</em>' : ''}</span></button>`;
+  }).join('');
+  const rest = qs.slice(i + 1).map(x => enQShort(x.k));
+  return enTop({segList:qs.map((x, j) => j < i ? 'on' : j === i ? 'cur' : ''), ctx:`${i + 1} of ${qs.length}`, right:'back'})
+    + `<p class="fl-k">${esc(lead)}</p><h1 class="fl-h">${esc(enQText(Q.k))}</h1>${enFilmHTML()}<div class="fl-opts">${opts}</div>`
+    + (rest.length ? `<p class="fl-k">Still to ask — only because the pick can’t tell</p><div class="fl-next">${rest.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : '')
+    + `<div class="fl-row"><button class="fb out" data-act="enPlaceGo">Skip to placing</button><button class="fb" data-act="enSkipQ">Not sure — skip</button></div>
+    <p class="fl-note">No letters asked — they come from where each man lines up</p>`;
+}
+function enNextQ(k){
+  const qs = enWalk(), i = qs.findIndex(x => x.k === k), nx = i >= 0 ? qs[i + 1] : qs[0];
+  EN.qs = qs;
+  if (nx && i >= 0){ EN.qk = nx.k; }
+  else { EN.step = 'card'; }
+  renderFlow(); $('#flow').scrollTop = 0;
+}
+
+/* ---- E03: place by role — the app gives the letters ---- */
+const TYPE_ROLE = {B:'Back', T:'TE', W:'WR', L:'OL'};
+const PL_COLS = [['I','TIGHT'],['T','WIDE OF TE'],['S','SLOT'],['N','NUMBERS'],['W','WIDE']];
+const PL_ROWS = [[0,'ON THE BALL'],[1,'OFF THE BALL'],[3,'STACKED']];
+function enOrderIdx(){ const R = {B:0, T:1, W:2, L:3}; return W.tokens.map((t, i) => i).sort((a, b) => R[W.tokens[a].type] - R[W.tokens[b].type] || a - b); }
+function enFirstOpen(){ const i = enOrderIdx().find(j => !W.tokens[j].slot); return i == null ? null : i; }
+function enPlaceInit(fresh){
+  if (fresh){ W.tokens.forEach(t => { t.slot = null; }); W.wiz = {}; }
+  EN.place = {side:W.wiz && W.wiz.str === 'L' ? 'L' : 'R', cur:enFirstOpen(), hist:[], last:null};
+  EN.step = 'place';
+}
+function enBackSpots(side){
+  return W.qb === 'under' ? [[`${side}:HB`, 'Wing'], [`${side}:FB`, 'Offset'], ['M:FB', 'Fullback'], ['M:TB', 'Tailback']]
+    : [[`${side}:HB`, 'Wing'], [`${side}:FB`, 'Beside QB'], ['M:TB', W.qb === 'pistol' ? 'Behind QB' : 'Deep behind']];
+}
+const enOffNow = () => ({pers:W.pers, xol:W.xol, qb:W.qb, tokens:W.tokens.map(t => ({type:t.type, slot:t.slot}))});
+function enNameNow(){
+  if (W.myName) return W.myName;
+  const x = {qb:W.qb, xol:W.xol, tokens:W.tokens.filter(t => t.slot).map(t => ({type:t.type, slot:t.slot}))};
+  if (!x.tokens.length) return '—';
+  try { return NAMES.setText(x, NAMING === 'desc' ? 'plain' : 'pro', {field:strengthOf(x.tokens), neutral:true}) || '—'; } catch(e){ return '—'; }
+}
+function enThisGame(){
+  const k = EN.q && EN.q.key; if (!k) return '';
+  const gid = String(k).split(':')[0], st = offStatus(); if (!st.legal) return '';
+  let code; try { code = formationCodeOf(offObject()); } catch(e){ return ''; }
+  const n = S.plays.filter(p => !p._bad && p.fcode === code && String(p.key || '').split(':')[0] === gid).length;
+  return n ? ` · ${n}× this game` : ' · new this game';
+}
+function enBuildChips(){
+  return `<div class="fl-q"><span class="lab">Personnel</span><div class="fl-chips">${['10','11','12','13','21','22','20','01'].map(p => `<button class="fc${W.pers === p ? ' on' : ''}" data-act="enPers" data-v="${p}">${p}</button>`).join('')}</div>
+    <span class="lab">QB</span><div class="fl-chips">${[['under','Under'],['pistol','Pistol'],['gun','Gun']].map(([v, l]) => `<button class="fc${W.qb === v ? ' on' : ''}" data-act="enQb" data-v="${v}">${l}</button>`).join('')}</div></div>`;
+}
+function enPlaceHTML(){
+  const P = EN.place || (EN.place = {side:'R', cur:enFirstOpen(), hist:[], last:null});
+  const off = enOffNow(), Lt = QZ.lettersOf(off), order = enOrderIdx(), cur = P.cur, ct = cur != null ? W.tokens[cur] : null;
+  let title = 'Everyone’s placed';
+  if (ct){
+    if (ct.slot) title = `Move ${Lt[cur] || 'him'} where?`;
+    else if (ct.type === 'W'){
+      const wr = order.filter(i => W.tokens[i].type === 'W'), open = wr.filter(i => !W.tokens[i].slot).length;
+      title = open <= 1 && wr.length > 1 ? 'Where’s the last receiver?' : open === wr.length ? 'Where’s the first receiver?' : 'Where’s the next receiver?';
+    } else title = ct.type === 'B' ? (order.filter(i => W.tokens[i].type === 'B').length > 1 ? 'Where’s this back?' : 'Where’s the back?') : ct.type === 'T' ? 'Where’s the tight end?' : 'Where’s the extra lineman?';
+  }
+  const tray = order.map(i => {
+    const t = W.tokens[i], l = t.slot ? (Lt[i] || '•') : (i === cur ? '?' : '');
+    return `<button class="tm${t.slot ? '' : ' open'}${i === cur ? ' cur' : ''}" data-act="enTray" data-i="${i}" aria-label="${TYPE_ROLE[t.type]}${t.slot ? ', ' + (Lt[i] || 'placed') : ', not placed'}"><small>${TYPE_ROLE[t.type]}</small><i>${esc(l)}</i></button>`;
+  }).join('');
+  const side = P.side;
+  const onBall = W.tokens.filter((t, i) => i !== cur && t.slot && t.slot[0] === side && /:[ITSNW]:0$/.test(t.slot) && t.type !== 'L');
+  const cells = PL_ROWS.map(([r, lab]) => `<span class="rh">${lab}</span>` + PL_COLS.map(([c, cl]) => {
+    const key = `${side}:${c}:${r}`, j = W.tokens.findIndex(t => t.slot === key), me = j >= 0 && j === cur, taken = j >= 0 && !me;
+    const grey = !taken && !me && r === 0 && onBall.length > 0;
+    return `<button class="cc${me ? ' me' : taken ? ' taken' : grey ? ' grey' : ''}" data-act="enCell" data-k="${key}" aria-label="${cl.toLowerCase()}, ${lab.toLowerCase()}${taken ? ', ' + (Lt[j] || 'a man') + ' is here' : ''}${grey ? ', would cover the man on the ball' : ''}"><i>${esc(me || taken ? (Lt[j] || '') : '')}</i></button>`;
+  }).join('')).join('');
+  const bks = enBackSpots(side).map(([k, l]) => { const j = W.tokens.findIndex(t => t.slot === k);
+    return `<button class="${j >= 0 && j === cur ? 'on' : j >= 0 ? 'taken' : ''}" data-act="enCell" data-k="${k}">${esc(l)}${j >= 0 && j !== cur ? ' · ' + esc(Lt[j] || '') : ''}</button>`; }).join('');
+  const st = offStatus();
+  let read;
+  if (!st.left){
+    const nm = enNameNow(), who = P.last != null && Lt[P.last] ? `He’s ${Lt[P.last]} — and that reads ` : 'That reads ';
+    read = `<div class="reads"><b>${esc(who + nm)}</b><small>${esc(st.legal ? (enWhy(off).map(w => w.b).filter(Boolean).slice(0, 2).join(', ') + enThisGame()).replace(/^, /, '') : (st.issues[0] || {}).msg || '')}</small></div>`;
+  } else read = `<div class="reads"><b>${st.left} to place</b><small>${esc(st.placed ? 'The name comes when everyone’s down.' : 'The back first, then the tight end, then the receivers.')}</small></div>`;
+  return enTop({back:true, ctx:`Placing · ${persStr(W.pers, W.xol)} personnel`, right:EN.mode === 'set' ? '' : 'ask'})
+    + (EN.mode === 'set' ? enBuildChips() : '')
+    + `<h1 class="fl-h">${esc(title)}</h1><p class="fl-sub">Tap his spot. You never pick a letter — we do.</p>
+    <div class="tray${order.length > 5 ? ' six' : ''}">${tray}</div>
+    <span class="fl-art" style="height:106px;margin-bottom:10px">${QZ.set(off, {w:358, h:106, hi:cur})}</span>
+    <div class="fseg">${[['L','Left side'],['R','Right side']].map(([v, l]) => `<button class="${side === v ? 'on' : ''}" data-act="enSide" data-v="${v}">${l}</button>`).join('')}</div>
+    <div class="cgrid"><span class="ch"></span>${PL_COLS.map(([, l]) => `<span class="ch">${l}</span>`).join('')}${cells}</div>
+    <p class="fl-k" style="margin:0 0 6px">Or in the backfield${onBall.length ? ' · grey spots would cover the man on the ball' : ''}</p><div class="backs">${bks}</div>
+    ${read}
+    <div class="fl-row"><button class="fb pri" data-act="enDonePlace"${st.legal ? '' : ' disabled'}>${EN.mode === 'set' ? 'Done — name it' : 'Done — name it'}</button><button class="fb" data-act="enUndo"${P.hist.length ? '' : ' disabled'}>Undo</button></div>`;
+}
+
+/* ---- E04: the card — the name, why, every line with where it came from, was → now, the letters ---- */
+const WORD_SHORT = {Trey:'TE + 2 out one side', Trips:'3 out one side', Bunch:'3 close together', Doubles:'2 and 2', '2x2':'2 and 2', Pro:'TE and flanker one side', Twins:'2 out one side',
+  Slot:'slot + wide one side', Nub:'TE alone', Quads:'4 one side', Spread:'2 and 2', Wing:'a wing off the tackle', Stack:'one behind another', Tight:'tight splits', Empty:'no back',
+  Ace:'one back deep', I:'two backs stacked', Flex:'TE split out', Off:'TE a step off', Nasty:'tight split', Close:'reduced split', Wide:'wide split', Heavy:'extra TE', Jumbo:'heavy, no WR', Unbalanced:'line overloaded'};
+function enWhy(off){
+  try {
+    const x = {qb:off.qb, xol:!!off.xol, tokens:off.tokens.filter(t => t.slot)};
+    if (!x.tokens.length) return [];
+    const r = NAMES.setChips(x, {field:strengthOf(x.tokens)}), A = r.A;
+    return r.chips.filter(c => !c.hidden).slice(0, 4).map(c => {
+      if (c.kind === 'backfield') return {a:c.show, b:off.qb === 'gun' ? 'QB at 5' : off.qb === 'pistol' ? 'QB at 4' : 'QB under'};
+      if (c.kind === 'dir') return {a:c.show, b:A && A.P && A.P.all.some(m => m.type === 'T') ? 'the TE side' : 'more receivers'};
+      const k = String(c.neutral || c.show);
+      return {a:c.show, b:WORD_SHORT[k] || WORD_SHORT[k.split(' ')[0]] || (c.why ? String(c.why).split(/[.—;]/)[0].slice(0, 30).toLowerCase() : '')};
+    });
+  } catch(e){ return []; }
+}
+function enFacets(off){
+  const toks = (off.tokens || []).map((t, i) => ({t, i})).filter(o => o.t && o.t.slot);
+  const st = toks.length ? strengthOf(toks.map(o => o.t)) : 'R', Lt = QZ.lettersOf(off), SW = s => s === 'R' ? 'right' : 'left';
+  const word = slot => {
+    const [s, c, r] = slot.split(':');
+    if (c === 'FB') return s === 'M' ? 'fullback depth' : (s === st ? 'strong' : 'weak') + (off.qb === 'under' ? ' offset' : ' hip');
+    if (c === 'TB') return 'deep behind the QB';
+    if (c === 'HB') return 'wing ' + SW(s);
+    return `${SW(s)} · ${r === '0' ? 'on the ball' : r === '1' ? 'off the ball' : 'stacked'} · ${{I:'tight', T:'wide of the TE', S:'slot', N:'numbers', W:'wide'}[c]}`;
+  };
+  const isBack = o => /:(FB|TB)$/.test(o.t.slot);
+  const out = {strength:st, te:toks.filter(o => o.t.type === 'T').map(o => word(o.t.slot)), backs:toks.filter(isBack).map(o => word(o.t.slot)), sides:{}};
+  ['R', 'L'].forEach(s => { out.sides[s] = toks.filter(o => !isBack(o) && o.t.type !== 'L' && o.t.slot[0] === s).sort((a, b) => Math.abs(PBA.offXY(b.t.slot, off.qb).x) - Math.abs(PBA.offXY(a.t.slot, off.qb).x)); });
+  out.nR = out.sides.R.length; out.nL = out.sides.L.length;
+  out.sideWords = s => out.sides[s].map(o => { const [, c, r] = o.t.slot.split(':'); return `${Lt[o.i] || ''} ${c === 'HB' ? 'wing' : {I:'tight', T:'wide of TE', S:'slot', N:'numbers', W:'wide'}[c]}${c === 'HB' ? '' : r === '0' ? ' on' : r === '1' ? ' off' : ' stacked'}`.trim(); }).join(' · ');
+  try { const A = ENG.analyze({qb:off.qb, xol:!!off.xol, tokens:off.tokens}, {tb:NAMES.st().tb}); out.word = A.word ? A.word.w : ''; out.bf = A.bf ? A.bf.w : ''; } catch(e){ out.word = ''; out.bf = ''; }
+  return out;
+}
+function enCardRows(){
+  const K = EN.known || {}, off = enOffNow(), F = enFacets(off), F0 = EN.start ? enFacets(EN.start.off) : null, ch = k => !!EN.changed[k];
+  const by = (k, alt) => EN.placed ? 'you' : ch(k) || (alt && ch(alt)) ? 'you' : EN.start ? 'pick' : 'you';
+  const pr = ENG.analyze({qb:off.qb, xol:!!off.xol, tokens:off.tokens}, {}).pers;
+  const rows = [];
+  rows.push({k:'PERSONNEL', v:`${persStr(W.pers, W.xol)} — ${pr.backs} back${pr.backs === 1 ? '' : 's'}, ${pr.te} TE, ${pr.wr} WR`, src:K.pers ? K.pers.src : EN.persYou ? 'you' : EN.start ? 'pick' : 'you', fix:'pers'});
+  rows.push({k:'QB', v:QB_WORD[W.qb], src:K.qb ? K.qb.src : EN.qbYou ? 'you' : EN.start ? 'pick' : 'you', fix:'qb'});
+  const hasTE = W.tokens.some(t => t.type === 'T');
+  const stV = s => `${s === 'R' ? 'Right' : 'Left'} — ${hasTE ? 'the TE side' : 'more receivers'}`;
+  rows.push({k:'STRENGTH', v:stV(F.strength), was:F0 && F0.strength !== F.strength ? stV(F0.strength).split(' —')[0] : '', src:by('str'), fix:'str'});
+  F.te.forEach((w, j) => rows.push({k:F.te.length > 1 ? `TE ${j + 1}` : 'TE', v:w, was:F0 && F0.te[j] && F0.te[j] !== w ? F0.te[j] : '', src:by('te' + j), fix:'te' + j}));
+  const splitV = f => `${f.word ? f.word + ' · ' : ''}${f.nR} rt · ${f.nL} lt`;
+  rows.push({k:'SPLIT', v:splitV(F), was:F0 && splitV(F0) !== splitV(F) ? splitV(F0) : '', src:by('sp', 'as'), fix:'sp'});
+  const bkV = f => f.backs.length ? f.backs.join(' + ') : 'none — empty';
+  rows.push({k:F.backs.length > 1 ? 'BACKS' : 'BACK', v:bkV(F), was:F0 && bkV(F0) !== bkV(F) ? bkV(F0) : '', src:by('bk'), fix:'bk'});
+  ['R', 'L'].forEach(s => {
+    if (!F.sides[s].length) return;
+    const lone = F.sides[s].length === 1 && F.sides[s][0].t.type === 'W';
+    const v = F.sideWords(s), was = F0 ? F0.sideWords(s) : '';
+    rows.push({k:lone ? 'LONE WR' : `${s === 'R' ? 'RIGHT' : 'LEFT'} SIDE`, v:(lone ? (s === 'R' ? 'Right · ' : 'Left · ') : '') + v, was:F0 && was && was !== v ? was : '', src:by(s === strongSide() ? 'as' : 'aw', 'sp'), fix:s === strongSide() ? 'as' : 'aw'});
+  });
+  const st = offStatus(), Lt = QZ.lettersOf(off);
+  const onB = W.tokens.map((t, i) => ({t, i})).filter(o => o.t.slot && /:[ITSNW]:0$/.test(o.t.slot) && o.t.type !== 'L').map(o => Lt[o.i] || TYPE_ROLE[o.t.type]);
+  rows.push({k:'ON THE BALL', v:`${onB.join(' + ') || 'nobody'} · ${st.onLine} on, ${st.legal ? 'legal' : 'not legal'}`, src:'rule', fix:'place'});
+  if (EN.mode === 'log'){
+    rows.push({k:'MOTION', v:K.mo ? (K.mo.v ? 'Yes — the data saw motion' : 'None') : 'Not charted yet', src:K.mo ? K.mo.src : 'rule', fix:''});
+    const sh = K.shift;
+    rows.push({k:'SHIFT', v:sh ? (sh.snap != null ? `Marked ${Math.abs(sh.snap - sh.v).toFixed(1)} s before the snap` : 'Marked on the iPad') : (EN.q && EN.q.key ? 'None — no shift mark' : '—'), src:'ipad', fix:''});
+  }
+  return rows;
+}
+function enLegend(off, Lt){
+  const F = enFacets(off), out = [];
+  (off.tokens || []).forEach((t, i) => {
+    if (!t || !t.slot || t.type === 'L' || !Lt[i]) return;
+    let r;
+    if (t.type === 'T') r = 'TE';
+    else if (/:(FB|TB)$/.test(t.slot)) r = 'back';
+    else if (/:HB$/.test(t.slot)) r = 'wing';
+    else { const s = t.slot[0], list = F.sides[s] || [], k = list.findIndex(o => o.i === i); r = list.length === 1 ? 'lone' : k === 0 ? 'out' : 'in'; }
+    out.push({l:Lt[i], r});
+  });
+  const ORDERL = 'XYZHAUBWTRF';
+  return out.sort((a, b) => (ORDERL.indexOf(a.l) + 1 || 99) - (ORDERL.indexOf(b.l) + 1 || 99));
+}
+function enBookLine(off){
+  let code; try { code = formationCodeOf(offObject()); } catch(e){ return ''; }
+  const f = S.formations.find(x => x.code === code), n = S.plays.filter(p => !p._bad && p.fcode === code).length;
+  return `<p class="fl-k">${f ? `Already in your book as ${esc(fmName(f))}` : 'New to your book'}${n ? ` · logged ${n}×` : ''}</p>`;
+}
+function enCardHTML(){
+  const st = offStatus();
+  if (!st.legal){ if (!EN.place) enPlaceInit(false); EN.step = 'place'; return enPlaceHTML(); }
+  const off = enOffNow(), nm = enNameNow(), Lt = QZ.lettersOf(off), rows = enCardRows(), moved = EN.start && EN.start.name !== nm;
+  const lead = EN.start ? `STARTED FROM <span class="${moved ? 'was' : ''}">${esc(EN.start.name.toUpperCase())}</span>${moved ? ' · NOW' : ' · KEPT'}` : EN.mode === 'set' ? 'WE’D CALL IT' : 'PLACED BY HAND · IT READS';
+  const why = enWhy(off).map(w => `<span><b>${esc(w.a)}</b>${esc(w.b)}</span>`).join('');
+  const ck = rows.map(r => `<button class="ckr${r.was ? ' chg' : ''}" data-act="enFix" data-k="${r.fix || ''}"><span class="k">${esc(r.k)}</span><span class="v">${r.was ? `<span class="was">${esc(r.was)}</span> ` : ''}<span style="font-weight:${r.was ? 800 : 500}">${esc(r.v)}</span></span><span class="t src-${r.src}">${SRC_WORD[r.src] || r.src}</span></button>`).join('');
+  const lets = enLegend(off, Lt).map(l => `<span><i>${esc(l.l)}</i>${esc(l.r)}</span>`).join('');
+  const btns = EN.mode === 'set' ? `<div class="fl-row"><button class="fb pri" data-act="enSaveSet">Save to the book</button><button class="fb" data-act="enPlaceGo">Move men</button></div>`
+    : `<div class="fl-row"><button class="fb pri" data-act="enDefGo">Next: the defense</button><button class="fb" data-act="enLogOff">Log it</button></div>`;
+  return enTop({back:true, ctx:EN.mode === 'set' ? 'New formation' : enCtx() || 'A play by hand', right:EN.mode === 'set' ? '' : 'offok'})
+    + `<p class="fl-lead">${lead}</p><div class="fl-name"><b>${esc(nm)}</b><button class="pillb" data-act="enRename">Rename</button></div>
+    <div class="why">${why}</div>
+    <span class="fl-art" style="height:118px;margin-bottom:10px">${QZ.set(off, {w:358, h:118})}</span>${EN.mode === 'set' ? enBookLine(off) : ''}
+    <div class="ck"><div class="ck-h"><span>EVERY LINE · TAP ONE TO FIX IT</span><span>where it came from</span></div>${ck}</div>
+    <div class="lets"><b>OUR LETTERS</b>${lets}</div>${btns}`;
+}
+
+/* ---- E05: the box, man by man — a front to start from, then each man's technique, hand and depth ---- */
+const DL_ORDER = ['0','1','2i','2','3','4i','4','5','7','6','9'];
+const DEPS = [3.5, 4.5, 5, 6, 7];
+const fmtDep = v => (v % 1 ? Math.floor(v) + '½' : String(v));
+function enFronts(){
+  const q = Object.assign({}, (EN && EN.q) || {}, {pers:W ? W.pers : null});
+  const fc = frontCands(q), K = (EN && EN.known) || {}, bx = K.box ? K.box.v : null;
+  return fc.list.map(x => Object.assign({}, x, {fit:bx != null && x.d.box.length === bx ? 1 : 0}))
+    .sort((a, b) => (b.src === 'ipad') - (a.src === 'ipad') || b.fit - a.fit || (b.n || 0) - (a.n || 0) || (a.src === 'base') - (b.src === 'base'));
+}
+function enSetFront(x){
+  EN.def = {box:x.d.box.map(b => ({x:+b.x, d:b.d === 1 ? 1 : 5, hand:b.d === 1 ? (b.hand === 'up' ? 'up' : 'down') : null, dep:b.d === 1 ? undefined : (b.dep || 5)})),
+    dbs:x.d.dbs.map(o => ({slot:o.slot, kind:o.kind === 'deep' ? 'deep' : 'rest'})), shell:x.d.shell};
+  EN.defStart = enClone(EN.def); EN.defName = x.name || 'Front'; EN.defCode = x.code; EN.defSrc = x.src; EN.sel = null; EN.post = null;
+  diag('engine', `front: ${EN.defName} (${x.src}) ${x.code}`);
+}
+function enDefInit(){
+  EN.fronts = enFronts();
+  if (EN.fronts.length) enSetFront(EN.fronts[0]);
+  else { EN.def = null; diag('engine', 'no fronts to start from — the base book has not loaded'); }
+}
+function enFrontOff(){
+  const f = BASE.formations.find(x => x.id === 'base-o-ace-doubles') || BASE.formations.find(x => x.qb === 'under') || BASE.formations[0];
+  return f ? offFromSet(f, f.pers) : {qb:'under', xol:false, tokens:[]};
+}
+function enBoxRows(D){
+  const box = D.box.map((b, i) => Object.assign({i}, b));
+  const dl = box.filter(b => b.d === 1).sort((a, b) => a.x - b.x), lb = box.filter(b => b.d !== 1).sort((a, b) => a.x - b.x);
+  const names = {};
+  dl.forEach((b, k) => { const outer = k === 0 || k === dl.length - 1;
+    const n = Math.abs(b.x) <= 0.5 && dl.length > 2 ? 'N' : (outer && dl.length >= 3) || Math.abs(b.x) >= 4.5 ? 'E' : 'T';
+    names[b.i] = {who:n, sub:n === 'N' ? 'nose' : n === 'E' ? (b.x < 0 ? 'weak end' : 'strong end') : 'tackle'}; });
+  const LBN = lb.length === 1 ? ['M'] : lb.length === 2 ? ['W','M'] : lb.length === 3 ? ['W','M','S'] : ['W','B','M','S','L','L'];
+  lb.forEach((b, k) => { names[b.i] = {who:LBN[k] || 'B', sub:'backer'}; });
+  const S0 = (EN.defStart && EN.defStart.box) || [];
+  return dl.concat(lb).map(b => {
+    const isDL = b.d === 1, side = b.x < 0 ? -1 : 1, w = S0[b.i];
+    let opts;
+    if (isDL){ const t = techOf(b.x), k = Math.max(0, DL_ORDER.indexOf(t)), s0 = Math.max(0, Math.min(DL_ORDER.length - 6, k - 2)); opts = DL_ORDER.slice(s0, s0 + 6).map(v => ({t:v, v, on:v === t})); }
+    else { const k = Math.round(Math.abs(b.x)), s0 = Math.max(0, Math.min(1, k - 2)); opts = [0, 1, 2, 3, 4, 5, 6].slice(s0, s0 + 6).map(v => ({t:v ? String(v * 10) : '0', v:String(v), on:v === k})); }
+    let was = '';
+    if (w && w.x !== b.x) was = (isDL ? techOf(w.x) : String(Math.round(Math.abs(w.x)) * 10)) + (Math.sign(w.x || 1) !== side ? (w.x < 0 ? ' weak' : ' strong') : '');
+    const handChg = !!(w && isDL && w.hand !== b.hand), depChg = !!(w && !isDL && (w.dep || 5) !== (b.dep || 5));
+    return Object.assign({}, names[b.i], {i:b.i, isDL, side, opts, hand:isDL ? (b.hand || 'down') : null, dep:isDL ? null : (b.dep || 5), was, hot:handChg || depChg});
+  });
+}
+function enDefChanges(){
+  const D = EN.def, S0 = EN.defStart; if (!D || !S0) return [];
+  const rows = enBoxRows(D), out = [];
+  rows.forEach(r => {
+    const b = D.box[r.i], w = S0.box[r.i]; if (!w) return;
+    if (w.x !== b.x) out.push(`${r.who} ${r.isDL ? techOf(w.x) : Math.round(Math.abs(w.x)) * 10} → ${r.isDL ? techOf(b.x) : Math.round(Math.abs(b.x)) * 10}`);
+    if (r.isDL && w.hand !== b.hand) out.push(`${r.sub === 'strong end' ? 'strong end’s' : r.sub === 'weak end' ? 'weak end’s' : r.who + '’s'} hand ${b.hand || 'down'}`);
+    if (!r.isDL && (w.dep || 5) !== (b.dep || 5)) out.push(`${r.who} at ${fmtDep(b.dep || 5)} yds`);
+  });
+  return out;
+}
+function enFrontName(){
+  const D = EN.def; if (!D) return EN.defName || 'Front';
+  const rows = enBoxRows(D), S0 = EN.defStart, tags = [];
+  rows.forEach(r => { const b = D.box[r.i], w = S0 && S0.box[r.i]; if (w && w.x !== b.x) tags.push(`${r.who} ${r.isDL ? techOf(b.x) : Math.round(Math.abs(b.x)) * 10}`); });
+  return (EN.defName || 'Front') + (tags.length ? ' · ' + tags.slice(0, 2).join(' · ') : '');
+}
+function enStrength(){ try { const t = W.tokens.filter(x => x.slot); return t.length ? strengthOf(t) : 'R'; } catch(e){ return 'R'; } }
+function enTechsHTML(){
+  if (!EN.def && !EN.fronts) enDefInit();
+  const D = EN.def, front = EN.mode === 'front';
+  const top = enTop({segList:front ? null : ['on', 'cur', ''], segs:front ? null : undefined, def:true, ctx:front ? 'New front' : 'Defense · 1 of 2', right:front ? 'close' : 'back', back:false});
+  if (!D) return top + `<div class="zero"><b>No fronts to start from</b><small>${BASE.state === 'error' ? 'The NFL base fronts did not load. Check the connection and open this again.' : 'The NFL base fronts are still loading. Open this again in a moment.'}</small></div><div class="fl-row"><button class="fb" data-act="${front ? 'enClose' : 'enBack'}">Back</button></div>`;
+  const off = front ? enFrontOff() : enOffNow(), mir = !front && enStrength() === 'L';
+  const fr = (EN.fronts || []).slice(0, 2);
+  const chips = fr.map(x => `<button class="${EN.defCode === x.code ? 'on' : ''}" data-act="enFront" data-v="${esc(x.code)}">${esc(x.name)}${x.src === 'ipad' ? ' · iPad' : x.n ? ' · ' + x.n + '×' : ''}</button>`).join('')
+    + (EN.defCode && !fr.some(x => x.code === EN.defCode) ? `<button class="on" data-act="enFrontMore">${esc(EN.defName)}</button>` : '') + `<button data-act="enFrontMore">More ›</button>`;
+  const rows = enBoxRows(D).map(r => `<div class="tr${r.was || r.hot ? ' chg' : ''}${EN.sel === r.i ? ' sel' : ''}"><button class="who" data-act="enSel" data-i="${r.i}" aria-label="${esc(r.sub)}${EN.sel === r.i ? ', tap again to flip sides' : ''}"><b>${esc(r.who)}${EN.sel === r.i ? ' ⇄' : ''}</b><small>${esc(r.was ? 'was ' + r.was : r.sub)}</small></button>
+    <span class="sc">${r.opts.map(o => `<button class="${o.on ? 'on' : ''}" data-act="enTech" data-i="${r.i}" data-v="${o.v}">${o.t}</button>`).join('')}</span>
+    <button class="hd${r.hot ? ' hot' : ''}" data-act="${r.isDL ? 'enHand' : 'enDep'}" data-i="${r.i}">${r.isDL ? r.hand : fmtDep(r.dep) + ' yds'}</button></div>`).join('');
+  const K = EN.known || {}, ch = enDefChanges();
+  const note = [`Box ${D.box.length}${K.box ? (K.box.v === D.box.length ? ' · data' : ` · the data says ${K.box.v}`) : ''}`].concat(ch).join(' · ');
+  return top + `<h1 class="fl-h">Where’s each man in the box?</h1>
+    <div class="frs"><b>FROM</b>${chips}</div>
+    <span class="fl-art" style="height:118px;margin-bottom:10px">${QZ.box(D, off, {w:358, h:118, sel:EN.sel, was:EN.defStart, mirror:mir})}</span>
+    <div class="tt-h"><span style="width:54px">MAN</span><span style="flex:1">TECH</span><span style="width:64px">HAND · DEPTH</span></div>${rows}
+    <p class="fl-note">${esc(note)}${EN.sel != null ? ' · tap the man again to flip sides' : ''}</p>
+    ${front ? `<div class="fl-row"><button class="fb pri" data-act="enSaveFront">Save the front</button></div>`
+      : `<div class="fl-row"><button class="fb pri" data-act="enSnapGo">Next: after the snap</button><button class="fb" data-act="enLogFront">Log it</button></div>`}`;
+}
+
+/* ---- E06: after the snap — the shell at the snap, who rotated, the call, the rush (the data's when it has it) ---- */
+const ROT_WORD = {none:'Nobody', sky:'Sky', buzz:'Buzz', cloud:'Cloud', robber:'Robber'};
+const ROT_NOTE = {none:'everyone stays', sky:'S down · F middle', buzz:'S to the hook · F middle', cloud:'the corner squats · S deep', robber:'S robs the hole'};
+const COV_NUM = {c0:'0', c1:'1', c1h:'1', c1r:'1', c2:'2', c2t:'2', c2m:'2', c3:'3', c3c:'3', c3b:'3', fz:'3', c4:'4', c4p:'4', c6:'6'};
+const COV_ROT = {c3:'sky', c3c:'cloud', c3b:'buzz', c1r:'robber'};
+function numToCid(cov, rot, rush){
+  if (cov == null) return null;
+  const c = String(cov);
+  if (c === '0') return 'c0';
+  if (c === '1') return rot === 'robber' ? 'c1r' : 'c1';
+  if (c === '2') return 'c2';
+  if (c === '3') return rot === 'cloud' ? 'c3c' : rot === 'buzz' ? 'c3b' : rush >= 5 ? 'fz' : 'c3';
+  if (c === '4') return 'c4';
+  if (c === '6') return 'c6';
+  return null;
+}
+function enCid(){
+  const P = EN.post; if (!P || P.cov == null || !EN.def) return null;
+  const cid = numToCid(P.cov, P.rot, P.rush || 0);
+  try { return cid && PBA.fits(EN.def, cid) ? cid : null; } catch(e){ return null; }
+}
+function covWord(post){
+  if (!post || post.cov == null) return 'no call';
+  const C = post.cid ? PBA.COVS.find(c => c.id === post.cid) : null;
+  return C ? C.name : ({'0':'Cover 0', '1':'Cover 1', '2':'Cover 2', '3':'Cover 3', '4':'Cover 4', '6':'Cover 6'}[String(post.cov)] || 'Coverage');
+}
+function enPostInit(){
+  if (EN.post && EN.post.init) return;
+  const K = EN.known || {}, t = K.tag, P = EN.post = {init:true, deep:EN.def ? EN.def.shell : 2, rot:'none', cov:null, rush:null, bl:0};
+  if (t && t.cid && COV_NUM[t.cid]){ P.cov = COV_NUM[t.cid]; P.covSrc = 'ipad'; if (COV_ROT[t.cid]) P.rot = COV_ROT[t.cid]; }
+  if (K.rush){ P.rush = Math.min(6, Math.max(3, K.rush.v)); P.rushSrc = K.rush.src; }
+  if (K.bl) P.bl = K.bl.v;
+}
+function enSnapHTML(){
+  if (!EN.def){ EN.step = 'techs'; return enTechsHTML(); }
+  enPostInit();
+  const P = EN.post, K = EN.known || {}, key = EN.q && EN.q.key, F = key ? framesNow(key) : null, fr = EN.frame || 'snap', mir = enStrength() === 'L';
+  const shots = [['snap','SNAP'],['post','+1 s'],['post2','+2 s']];
+  const photo = F && F.img[fr] ? `<button class="fl-film" data-act="zoom" data-key="${esc(key)}" data-v="${fr}" aria-label="See the frame up close"><img src="${F.img[fr]}" alt="${fr} frame"><span>${fr === 'snap' ? 'SNAP' : fr === 'post' ? '+1 s' : '+2 s'} · from the iPad</span></button>` : '';
+  const cid = enCid();
+  const art = QZ.shell(EN.def, enOffNow(), {w:358, h:190, frame:{snap:'snap', post:'p1', post2:'p2'}[fr], cid, mirror:mir});
+  const row = (k, q, note, tone, opts, locked) => `<div class="fl-q"><div class="qh"><b>${q}</b><small style="color:${tone}">${esc(note)}</small></div><div class="fl-chips">${opts.map(([v, l]) => `<button class="fc${String(P[k]) === v ? ' on' : ''}${locked ? ' lock' : ''}" data-act="enPost" data-k="${k}" data-v="${v}"${locked ? ' aria-disabled="true"' : ''}>${l}</button>`).join('')}</div></div>`;
+  const covNote = P.covSrc === 'ipad' ? `iPad’s tag: ${P.cov}` : K.cov ? `NGS saw ${String(K.cov.v).replace(/_/g, ' ').toLowerCase()}` : cid ? '' : P.cov != null ? 'doesn’t fit this front — saved as a word' : '';
+  const rows = row('deep', 'How many deep at the snap?', 'SNAP frame', 'var(--fg2)', [['0','0'],['1','1'],['2','2']])
+    + row('rot', 'Who rotated at +1 s?', ROT_NOTE[P.rot] || '', 'var(--run)', Object.entries(ROT_WORD))
+    + row('cov', 'Coverage?', covNote, P.covSrc === 'ipad' ? 'var(--t-ipad-fg)' : 'var(--fg2)', [['1','1'],['2','2'],['3','3'],['4','4'],['6','6'],['0','0']])
+    + row('rush', 'How many rushed?', P.rushSrc ? `${SRC_WORD[P.rushSrc]} · not asked` : '', 'var(--t-data-fg)', [['3','3'],['4','4'],['5','5'],['6','6+']], !!P.rushSrc);
+  const sum = [enFrontName(), `${P.deep} deep${P.rot !== 'none' ? ' → ' + ROT_WORD[P.rot] : ''}`, P.cov != null ? covWord({cov:P.cov, cid}) : '', P.rush ? `${P.rush}${P.rush >= 6 ? '+' : ''} rush` : '', P.bl ? `${P.bl} blitz` : ''].filter(Boolean).join(' · ');
+  return enTop({segList:['on', 'on', 'cur'], def:true, ctx:'Defense · 2 of 2', right:'back'})
+    + `<h1 class="fl-h">After the snap</h1><p class="fl-sub">One frame at a time.${P.rushSrc ? ' The rush came from the ' + (P.rushSrc === 'ipad' ? 'iPad.' : 'data.') : ''}</p>
+    <div class="fseg">${shots.map(([v, l]) => `<button class="${fr === v ? 'on' : ''}" data-act="enFrame" data-v="${v}">${l}</button>`).join('')}</div>${photo}
+    <span class="fl-art" style="height:190px;margin-bottom:12px">${art}</span>${rows}
+    <p class="fl-note">${esc(sum)}</p><div class="fl-row"><button class="fb pri" data-act="enLogAll">Log the play ✓</button></div>`;
+}
+
+/* ---- log it: the set filed, the play made, the defense and the call on it, what happened after the snap ---- */
+function enLog(scope){
+  const q = (EN && EN.q) || {}, st = offStatus();
+  if (!st.legal){ toast(st.left ? `${st.left} still to place.` : ((st.issues[0] || {}).msg || 'Not a legal set.'), 'err'); if (!EN.place) enPlaceInit(false); EN.step = 'place'; renderFlow(); return; }
+  W.tokens.forEach(t => { delete t.fixed; });
+  const off = offObject(), strength = strengthOf(off.tokens);
+  const x = {qb:off.qb, xol:!!off.xol, tokens:off.tokens.map(t => ({type:t.type, slot:t.slot}))};
+  const neutral = NAMES.setText(x, NAMING === 'desc' ? 'plain' : 'pro', {field:strength, neutral:true});
+  const mine = String(W.myName || '').trim(), name = mine || neutral;
+  let def = null, cid = null;
+  if (scope !== 'off' && EN.def){
+    let d = enClone({box:EN.def.box, dbs:EN.def.dbs, shell:EN.def.shell, strength:'R'});
+    d.box.forEach(b => { if (b.d === 1){ if (b.hand !== 'up') b.hand = 'down'; delete b.dep; } else { b.d = 5; b.hand = null; } });
+    if (scope === 'all'){
+      cid = enCid();
+      if (cid){
+        const offR = strength === 'L' ? mirrorOff(off) : off, cd = PBA.callDef({box:d.box, dbs:d.dbs, shell:d.shell}, offR, cid);
+        if (cd) d = Object.assign(d, {box:cd.box, dbs:cd.dbs, shell:cd.shell, cov:cd.cov, roles:null}); else cid = null;
+      }
+      if (!cid && EN.post) d.shell = Math.max(0, Math.min(2, +EN.post.deep || 0));
+    }
+    def = frontDef(d, strength, enFrontName());
+    def.box.forEach((b, i) => { const s = d.box[i]; if (b.d !== 1 && s && s.dep && s.dep !== 5) b.dep = s.dep; });
+    if (cid) def.call = cid;
+    else if (scope === 'all' && EN.post && EN.post.cov != null) def.cov = {name:covWord({cov:EN.post.cov}), code:'C' + EN.post.cov, pressure:EN.post.rush ? `${EN.post.rush}${EN.post.rush >= 6 ? '+' : ''}-man rush` : ''};
+    const de = validateDefense(def);
+    if (de.length){ fail('engine.log', 'a valid defense', de.join('; '), def); return; }
+  }
+  const res = cardRes(q, null, strength);
+  const how = {v:1, start:EN.start ? {id:EN.start.id, name:EN.start.name} : null, kept:EN.kept, changed:Object.keys(EN.changed), placed:!!EN.placed,
+    src:{pers:EN.known.pers ? EN.known.pers.src : 'you', qb:EN.known.qb ? EN.known.qb.src : 'you'}, front:def ? {name:EN.defName, from:EN.defSrc, changes:enDefChanges()} : null};
+  const post = scope === 'all' && EN.post ? {deep:+EN.post.deep, rot:EN.post.rot, cov:EN.post.cov == null ? null : String(EN.post.cov), rush:EN.post.rush || null, bl:EN.post.bl || 0, cid,
+    src:{deep:'you', rot:'you', cov:EN.post.covSrc || 'you', rush:EN.post.rushSrc || 'you'}} : null;
+  const extra = {how}; if (res) extra.res = res; if (post) extra.post = post;
+  const baseId = EN.start && EN.start.base && !EN.placed && !Object.keys(EN.changed).length ? EN.start.id : null;
+  const pre = mine ? fileSet(off, name, baseId) : null;
+  if (pre && !pre.base) pre.f.myName = mine;
+  const p = makePlay({off, name, baseId, def, key:q.key || null, sit:q.sit || null, hash:W.hash, spot:W.spot, src:'engine', stage:'engine.log', extra});
+  if (!p){ if (pre && pre.isNew){ const i = S.formations.indexOf(pre.f); if (i >= 0) S.formations.splice(i, 1); } return; }
+  if (pre && pre.isNew) dbPut('formations', pre.f, 'engine.log');
+  if (q.key){ CARD.delete(q.key); PARK.delete(q.key); parkSave(); if (CARDV.key === q.key){ CARDV.key = null; CARDV.shot = 'snap'; } }
+  if (SYNC.hold && q.key && SYNC.hold.key === q.key) setHold(null);
+  EN.logged = p; EN.step = 'done';
+  diag('engine.log', `play ${p.n} ${q.key || 'by hand'}: ${playCode(p)}${post ? ' · ' + covWord(post) : ''} · ${scope}`);
+  renderFlow(); $('#flow').scrollTop = 0;
+}
+
+/* ---- E07: logged → next ---- */
+function enNext(){
+  const q = EN && EN.q, k = q && q.key;
+  if (q && q.fromGame){
+    const gid = String(k).split(':')[0], g = GAMES.cache.get(gid);
+    if (g){
+      const side = gameSide(g), drive = EN.chain && EN.chain.drive != null ? EN.chain.drive : null;
+      const nx = gameNextOpen({gid, side, drive}) || (drive != null ? gameNextOpen({gid, side}) : null);
+      if (nx){ const hit = gameFind(nx.key); return Object.assign(nx, {drive:hit ? hit.d : null}); }
+      return null;
+    }
+  }
+  return inboxSplit().live.find(x => x.key !== k) || null;
+}
+function enDefLine(d0, strength){   // the play's defense in strength-right terms: W is always the weak backer
+  const d = strength === 'L' ? mirrorDef(d0) : d0, R = QZ.defRoles(d), out = [];
+  (d.box || []).forEach((b, i) => { if (b.d === 1 && b.hand === 'up') out.push(`${R['b' + i] === 'E' ? 'end' : R['b' + i]} up`); });
+  (d.box || []).forEach((b, i) => { if (b.d !== 1) out.push(`${R['b' + i]} ${Math.round(Math.abs(b.x)) * 10}${b.dep && b.dep !== 5 ? ' at ' + fmtDep(b.dep) : ''}`); });
+  out.push(`box ${(d.box || []).length}`);
+  return out.join(' · ');
+}
+function enDoneHTML(){
+  const p = EN.logged; if (!p) return '';
+  const s = p.sit || {}, off = p.off, Lt = QZ.lettersOf(off), rows = [];
+  if (p.res) rows.push(['RESULT', resWords(p.res), p.res.from === 'nflverse' ? 'from the play-by-play' : p.res.from === 'desc' ? 'from the play’s description' : 'from the iPad']);
+  rows.push(['OFFENSE', p.name, [EN.start ? 'started from ' + EN.start.name : 'placed by hand', persStr(off.pers, off.xol), QB_LABEL[off.qb], Object.values(Lt).join(' ')].filter(Boolean).join(' · ')]);
+  if (p.def) rows.push(['DEFENSE', p.def.front || 'Front', enDefLine(p.def, p.strength)]);
+  if (p.post) rows.push(['AFTER', `${p.post.deep} deep${p.post.rot && p.post.rot !== 'none' ? ' → ' + ROT_WORD[p.post.rot] : ''}${p.post.cov != null ? ' · ' + covWord(p.post) : ''}`,
+    `${p.post.rush ? p.post.rush + (p.post.rush >= 6 ? '+' : '') + ' rushed' : 'rush not known'} · ${p.post.bl ? p.post.bl + (p.post.bl === 1 ? ' blitzer' : ' blitzers') : 'no blitz'}`]);
+  const on = SYNC.state === 'on';
+  const g = EN.q && EN.q.fromGame ? GAMES.cache.get(String(EN.q.key).split(':')[0]) : null, row = g ? gameRow(g.id) : null;
+  const pr = g ? gameProgress(g, gameSide(g)) : null, nx = enNext();
+  const prog = pr && row ? `<div class="prog"><div><b>${pr.n} of ${pr.total} logged · ${esc(row.away)} at ${esc(row.home)}</b><small>${pr.left ? pr.left + ' to go, whenever' : 'every snap logged'}</small></div><div class="bar"><i style="display:block;width:${pr.total ? Math.round(100 * pr.n / pr.total) : 0}%;background:var(--accent)"></i></div></div>` : '';
+  let next = '';
+  if (nx){
+    const K = enKnown(nx), ns = nx.sit || {};
+    const bits = [K.res ? resWords(K.res.v) : '', K.pers ? K.pers.v + ' personnel' : '', K.qb ? QB_WORD[K.qb.v].toLowerCase() : ''].filter(Boolean).join(' · ');
+    next = `<div class="nextup"><span class="k">NEXT UP${nx.drive ? ' · DRIVE ' + nx.drive.n : ''}</span><div class="t"><b>${esc(sitWord(ns))}${spotTeam(ns) ? ' · ' + esc(spotTeam(ns)) : ''}</b><small>${ns.qtr ? 'Q' + esc(ns.qtr) + ' ' : ''}${esc(clockWord(ns.clock))}</small></div>
+      <span class="s">${esc(bits || nx.desc || '')}${bits ? ' — from the data' : ''}</span><button class="fb" data-act="enNextGo">Log it →</button></div>`;
+  }
+  return `<div class="done-h"><i>${CHECK_SVG.replace('<svg ', '<svg style="color:#fff" ')}</i><span><b>Logged${s.down ? ' · ' + esc(sitWord(s)) : ''}</b><small class="${on ? '' : 'off'}">${on ? 'Synced — iPad, sheet and band' : SYNC.token ? 'Saved · syncing when GitHub answers' : 'Saved on this phone · sync is off'}</small></span></div>
+    <div class="sum"><span class="fl-art">${QZ.set(off, {w:354, h:92})}</span>${rows.map(([k, v, sub]) => `<div class="sum-r"><span class="k">${k}</span><span><b>${esc(v)}</b><small>${esc(sub)}</small></span></div>`).join('')}</div>
+    ${prog}${next}
+    <div class="fl-row"><button class="fb" data-act="enBackHome">${{sheet:'Back to the sheet', game:'Back to the game', watch:'Back to the inbox', book:'The book'}[enHome()] || 'Home'}</button><button class="fb out" data-act="enStop">Stop here for now</button></div>`;
+}
+
+/* ================= 0.13.0 the call sheet, one set, the wristband ================= */
+const SHV = {team:null, scope:null, set:null, bandBy:['down', 'pers', 'zone'].includes(lsGetRaw('pb.band.by')) ? lsGetRaw('pb.band.by') : 'down'};
+function shTeams(){ const c = new Map(); S.plays.forEach(p => { const t = p.sit && p.sit.pos; if (t && !p._bad) c.set(t, (c.get(t) || 0) + 1); }); return [...c.entries()].sort((a, b) => b[1] - a[1]).map(e => e[0]); }
+function shTeam(){
+  if (SHV.team) return SHV.team;
+  const row = GAMEV.gid ? gameRow(GAMEV.gid) : null;
+  if (row){ const s = gameSide(row); if (s) return s; }
+  return shTeams()[0] || null;
+}
+function shScope(team){
+  if (SHV.scope) return SHV.scope;
+  return GAMEV.gid && S.plays.some(p => !p._bad && p.sit && p.sit.pos === team && String(p.key || '').startsWith(GAMEV.gid + ':')) ? 'game' : 'season';
+}
+function shPlays(team, scope){
+  return S.plays.filter(p => !p._bad && p.off && (!team || (p.sit && p.sit.pos === team)) && (scope !== 'game' || (GAMEV.gid && String(p.key || '').startsWith(GAMEV.gid + ':'))));
+}
+const SH_COLS = ['1ST', '2ND', '3RD L', '3RD M', '3RD S'];
+function shCol(s){
+  if (!s || !s.down) return -1;
+  const d = +s.down, t = s.dist == null ? 10 : +s.dist;
+  if (d === 1) return 0; if (d === 2) return 1;
+  return t >= 7 ? 2 : t >= 3 ? 3 : 4;
+}
+const mkOf = p => p.res && p.res.ptype === 'run' ? 'r' : p.res && p.res.ptype === 'pass' ? 'p' : 'u';
+const mkHTML = m => `<i class="mk ${m}">${m === 'u' ? '·' : m.toUpperCase()}</i>`;
+function shSetName(p){ const f = fmGet(p.formationId); return f ? fmName(f) : (p.name || 'Set'); }
+function shNext(team){
+  if (GAMEV.gid){ const g = GAMES.cache.get(GAMEV.gid); if (g){ const side = gameSide(g); if (!team || side === team){ const nx = gameNextOpen({gid:GAMEV.gid, side}); if (nx) return nx; } } }
+  return inboxSplit().live.find(q => !team || !q.sit || !q.sit.pos || q.sit.pos === team) || null;
+}
+function shBest(rows, nx){
+  if (!nx || !rows.length) return null;
+  const K = enKnown(nx), col = shCol(nx.sit);
+  const fit = rows.filter(r => (!K.pers || r.pers === K.pers.v) && (!K.qb || r.qb === K.qb.v));
+  const pool = fit.length ? fit : rows;
+  return pool.slice().sort((a, b) => ((col >= 0 ? b.cells[col].length : 0) - (col >= 0 ? a.cells[col].length : 0)) || b.n - a.n)[0] || null;
+}
+function sheetHTML(){
+  if (SHV.set) return setPageHTML(SHV.set);
+  const team = shTeam(), scope = shScope(team), plays = shPlays(team, scope), nx = shNext(team);
+  const row = scope === 'game' && GAMEV.gid ? gameRow(GAMEV.gid) : null;
+  const teams = shTeams();
+  const ctl = `<div class="fchips" style="margin-top:6px">${(teams.length ? teams : (team ? [team] : [])).slice(0, 8).map(t => `<button class="chip${t === team ? ' on' : ''}" data-act="shTeam" data-v="${esc(t)}">${esc(t)}</button>`).join('')}
+    <button class="chip${scope === 'game' ? ' on' : ''}" data-act="shScope" data-v="game"${GAMEV.gid ? '' : ' disabled'}>This game</button><button class="chip${scope === 'season' ? ' on' : ''}" data-act="shScope" data-v="season">Season</button></div>`;
+  if (!team) return ctl + `<div class="zero"><b>Nothing logged yet</b><small>Log a few snaps from a game and the sheet fills in by personnel, set and down.</small></div>`;
+  const by = new Map();
+  plays.forEach(p => {
+    const id = p.formationId || ('n:' + p.name);
+    if (!by.has(id)) by.set(id, {id, fid:p.formationId, name:shSetName(p), pers:p.off.pers, qb:p.off.qb, cells:SH_COLS.map(() => []), n:0});
+    const r = by.get(id), c = shCol(p.sit); r.n++; if (c >= 0) r.cells[c].push(mkOf(p));
+  });
+  const rows = [...by.values()], best = shBest(rows, nx), hl = nx ? shCol(nx.sit) : -1;
+  const groups = new Map(); rows.forEach(r => { if (!groups.has(r.pers)) groups.set(r.pers, []); groups.get(r.pers).push(r); });
+  const gl = [...groups.entries()].sort((a, b) => b[1].reduce((n, r) => n + r.n, 0) - a[1].reduce((n, r) => n + r.n, 0));
+  const left = row && GAMES.cache.get(row.id) ? gameProgress(GAMES.cache.get(row.id), team).left : inboxSplit().live.length;
+  const head = `<div class="sh-head"><span><b>${esc(team)} OFFENSE</b><small>CALL SHEET · ${row ? `WK ${row.week} ${row.away === team ? 'at ' + esc(row.home) : 'vs ' + esc(row.away)}` : 'SEASON'} · ${plays.length} LOGGED</small></span><span class="sh-cnt"><i>${left}</i><small>TO LOG</small></span></div>`;
+  const strip = nx ? `<button class="sh-next" data-act="shNew"><span><b>NEXT UP · ${nx.sit && nx.sit.qtr ? 'Q' + esc(nx.sit.qtr) + ' ' + esc(clockWord(nx.sit.clock)) + ' · ' : ''}${esc(sitWord(nx.sit).toUpperCase())}${spotTeam(nx.sit) ? ' · ' + esc(spotTeam(nx.sit).toUpperCase()) : ''}</b><small>${esc((resWords(resOf(nx)) || nx.desc || '').toUpperCase())}</small><em>tap the closest set to start from it ↓</em></span></button>` : '';
+  const th = `<div class="sh-tr sh-th"><span>SET</span><span class="cells">${SH_COLS.map((c, i) => `<span class="c${i === hl ? ' hl' : ''}">${c}</span>`).join('')}</span></div>`;
+  const body = gl.map(([pers, list]) => `<div class="sh-grp">${esc(pers)} PERSONNEL</div>` + list.sort((a, b) => b.n - a.n).map(r => {
+    const isBest = best && best.id === r.id;
+    return `<div class="sh-tr"><button class="nm" data-act="shSet" data-id="${esc(r.fid || '')}"><span>${esc(r.name)}</span>${isBest ? '<small>BEST FIT</small>' : ''}</button><button class="cells" data-act="shStart" data-id="${esc(r.fid || '')}"${nx && r.fid ? '' : ' disabled'} aria-label="${esc(r.name)}${nx ? ', start the next play from it' : ''}">${r.cells.map((mk, ci) => `<span class="c${ci === hl ? ' hl' : ''}">${mk.slice(0, 3).map(mkHTML).join('')}${mk.length > 3 ? `<i class="mk u">+${mk.length - 3}</i>` : ''}${isBest && ci === hl ? '<i class="qm">?</i>' : ''}</span>`).join('')}</button></div>`;
+  }).join('')).join('');
+  return ctl + head + strip + (rows.length ? `<div class="sh-tbl">${th}${body}</div>` : `<div class="empty">Nothing logged for ${esc(team)} ${scope === 'game' ? 'in this game' : 'yet'}.</div>`)
+    + `<p class="sh-leg">${mkHTML('r')} run · ${mkHTML('p')} pass — straight from the play-by-play, never asked. Tap a set’s name for its page; tap its row to start the next play from it.</p>
+    <div class="sh-btns"><button data-act="shNew"${nx ? '' : ' disabled'}>+ NOT ON THE SHEET</button><button data-act="shPark"${nx ? '' : ' disabled'} style="flex:0 0 96px">PARK</button></div>
+    <div class="sh-btns"><button data-act="tab" data-v="plays">EVERY PLAY ›</button><button data-act="tend">TENDENCIES</button></div>`;
+}
+function setPageHTML(fid){
+  const f = fmGet(fid); if (!f){ SHV.set = null; return sheetHTML(); }
+  const team = shTeam(), plays = S.plays.filter(p => !p._bad && p.formationId === fid && (!team || (p.sit && p.sit.pos === team))).sort((a, b) => a.n - b.n);
+  const name = fmName(f), off = offFromSet(f, f.pers);
+  const byCol = SH_COLS.map(() => []); plays.forEach(p => { const c = shCol(p.sit); if (c >= 0) byCol[c].push(mkOf(p)); });
+  const dir = {strong:0, weak:0, middle:0}; plays.forEach(p => { const d = p.res && p.res.dir; if (d && dir[d] != null) dir[d]++; });
+  const mx = Math.max(1, dir.strong, dir.weak, dir.middle);
+  let also = []; try { also = NAMES.candidates(nameX(f), {}).map(c => c.text).filter(t => t !== name).slice(0, 2); } catch(e){ also = []; }
+  if (f.aliases && f.aliases.length) also = also.concat(f.aliases).slice(0, 3);
+  const where = r => !r ? '' : r.ptype === 'run' ? [r.loc, r.gap && r.gap !== 'middle' ? r.gap : ''].filter(Boolean).join(' ') : [r.len, r.loc].filter(Boolean).join(' ');
+  const resT = r => !r ? '' : `${r.yds != null ? (r.yds > 0 ? '+' : '') + r.yds : ''}${r.td ? ' TD' : r.fd ? ' 1ST' : ''}`;
+  return `<div class="st-top"><button data-act="shBack">‹ SHEET</button><button class="box" data-act="${f.base ? 'tplFrom' : 'fmEdit'}" data-id="${esc(f.id)}">${f.base ? 'NEW FROM IT' : 'EDIT SET'}</button></div>
+    <div class="st-name">${esc(name.toUpperCase())}</div><div class="st-sub">${esc(persStr(f.pers, f.xol))} PERSONNEL · ${esc(QB_WORD[f.qb].toUpperCase())} · STRONG = THE TE SIDE</div>
+    <div class="st-art"><span class="fl-art">${QZ.set(off, {w:346, h:178})}</span></div>
+    <div class="st-2"><div><h5>CALLED <span style="color:var(--pass)">${plays.length}×</span></h5>${SH_COLS.map((c, i) => byCol[i].length ? `<div class="st-l"><span>${c}</span><span>${byCol[i].map(mkHTML).join(' ')}</span></div>` : '').join('') || '<div class="st-l"><span>Not logged yet</span></div>'}</div>
+      <div><h5>WHERE IT WENT</h5>${['strong', 'weak', 'middle'].map(k => dir[k] ? `<div class="st-bar"><span>${k.toUpperCase()}</span><i style="width:${Math.round(70 * dir[k] / mx)}px"></i><b>${dir[k]}</b></div>` : '').join('') || '<div class="st-bar"><span>—</span></div>'}</div></div>
+    <div class="st-plays">${plays.slice(-12).map(p => `<div class="st-p"><span>${esc(sitWord(p.sit).toUpperCase())}</span><span>${esc(spotTeam(p.sit))}</span>${mkHTML(mkOf(p))}<span>${esc(where(p.res))}</span><span>${esc(resT(p.res))}</span></div>`).join('')}</div>
+    <div class="st-also"><div><b>ALSO SAID</b><br>${esc(also.join(' · ') || '—')}</div><button data-act="fmCard" data-id="${esc(f.id)}">NAMES ›</button></div>`;
+}
+function bandHTML(){
+  const team = shTeam(), scope = shScope(team), plays = shPlays(team, scope), by = SHV.bandBy;
+  const row = scope === 'game' && GAMEV.gid ? gameRow(GAMEV.gid) : null;
+  const DOWNS = ['1ST DOWN', '2ND DOWN', '3RD DOWN', '4TH DOWN'];
+  const secOf = p => by === 'pers' ? `${p.off.pers} PERSONNEL` : by === 'zone' ? String(PBA.fieldZone(p.sit && p.sit.yard) || 'NO SPOT').replace(/ \(.*/, '').toUpperCase() : (p.sit && p.sit.down ? DOWNS[p.sit.down - 1] || 'NO DOWN' : 'NO DOWN');
+  const secs = new Map();
+  plays.forEach(p => { const k = secOf(p); if (!secs.has(k)) secs.set(k, {n:0, sets:new Map()}); const S1 = secs.get(k); S1.n++; const id = p.formationId || p.name; if (!S1.sets.has(id)) S1.sets.set(id, {name:shSetName(p), marks:[]}); S1.sets.get(id).marks.push(mkOf(p)); });
+  const order = by === 'down' ? DOWNS.concat(['NO DOWN']) : by === 'zone' ? FZ_ORDER.map(z => z.replace(/ \(.*/, '').toUpperCase()).concat(['NO SPOT']) : [...secs.keys()].sort((a, b) => secs.get(b).n - secs.get(a).n);
+  let num = 0;
+  const body = order.filter(k => secs.has(k)).map(k => { const S1 = secs.get(k);
+    return `<div class="band-sec"><span>${esc(k)}</span><span>${S1.n} PLAY${S1.n === 1 ? '' : 'S'}</span></div><div class="band-g">${[...S1.sets.values()].sort((a, b) => b.marks.length - a.marks.length).map(b => `<div class="band-b"><b>${++num}</b><span><b>${esc(b.name)}</b><span>${b.marks.slice(0, 6).map(mkHTML).join('')}</span></span></div>`).join('')}</div>`; }).join('');
+  return `<div class="band-h"><span><b>WRISTBAND</b><small>${esc(team || '—')} OFFENSE · ${plays.length} PLAYS${row ? ` · WK ${row.week} ${row.away === team ? 'at ' + esc(row.home) : 'vs ' + esc(row.away)}` : ' · SEASON'}</small></span><button class="no-print" data-act="bandBy">BY ${by === 'pers' ? 'PERSONNEL' : by === 'zone' ? 'FIELD' : 'DOWN'} ▾</button></div>`
+    + (body || `<div class="empty">Nothing logged ${team ? 'for ' + esc(team) + ' ' : ''}${scope === 'game' ? 'in this game' : 'yet'}.</div>`)
+    + `<div class="sh-btns no-print" style="margin-top:14px"><button class="solid" data-act="bandPrint">PRINT</button><button data-act="bandPrint" data-v="pdf">SHARE PDF</button></div>`;
+}
+/* E11: every question the engine can ask, worded by role, and what lets it skip each one */
+const BANK = [
+  ['Offense', '15 questions + skip to placing', [
+    ['0', 'What should we start with?', 'closest sets · this offense first', 'always', 'always first'],
+    ['1', 'Personnel?', '11 · 12 · 21 · 10 · 13 · 22', 'data', 'NGS or the iPad'],
+    ['2', 'Where’s the QB?', 'under · pistol · gun', 'data', 'FTN has it'],
+    ['3', 'Which side is the tight end on?', 'right · left', 'pick', 'pick matches'],
+    ['4', 'Where’s the tight end?', 'on the line · a step off · wing · slot · split · backfield', 'pick', 'pick matches'],
+    ['5', 'How many backs?', '0 · 1 · 2 · 3', 'data', 'FTN has it'],
+    ['6', 'Where’s the back?', 'weak hip · strong hip · deep · offset · I', 'pick', 'pick matches'],
+    ['7', 'How many receivers each side?', '3–1 · 2–2 · 4–1 · 3–2', 'pick', 'pick matches'],
+    ['8', 'How are they set on each side?', 'spread · bunched · stacked · tight', 'pick', 'pick matches'],
+    ['9', 'Who’s on the ball?', 'only when two men could be', 'rule', 'the line rule decides'],
+    ['10', 'How wide is the outside man?', 'tight · slot · numbers · wide', 'pick', 'pick matches'],
+    ['11', 'Anyone off the ball or stacked?', 'tap who', 'pick', 'pick matches'],
+    ['12', 'Any motion?', 'yes · no', 'data', 'FTN has it'],
+    ['13', 'Any shift?', 'from the SET and SNAP frames', 'ipad', 'shift mark'],
+    ['14', 'Extra lineman?', '6 OL', 'pick', 'heavy sets only'],
+    ['→', 'Skip to placing', 'back, TE, receivers — you place, we letter', 'out', 'any time']]],
+  ['Defense', '10 questions + place him', [
+    ['0', 'What front should we start with?', 'closest fronts vs this set · the iPad’s tag first', 'always', 'always first'],
+    ['1', 'Package?', 'base · nickel · dime · goal line', 'data', 'NGS or the iPad'],
+    ['2', 'How many in the box?', '5 · 6 · 7 · 8', 'data', 'FTN has it'],
+    ['3', 'Each lineman’s tech and hand', '0 1 2i 2 3 4i 4 5 7 6 9 · up or down', 'always', 'always yours'],
+    ['4', 'Each backer’s spot and depth', '0 · 10 · 20 · 30 · 40 · 50 · 60 · yards deep', 'pick', 'the front matches'],
+    ['5', 'How many deep at the snap?', '0 · 1 · 2 — SNAP frame', 'pick', 'the front matches'],
+    ['6', 'Who rotated at +1 s?', 'nobody · sky · buzz · cloud · robber', 'ipad', '+1 s frame'],
+    ['7', 'The coverage?', '0 · 1 · 2 · 3 · 4 · 6', 'ipad', 'the iPad’s tag first'],
+    ['8', 'How many rushed?', '3 · 4 · 5 · 6+', 'data', 'FTN has it'],
+    ['9', 'Who brought it?', 'blitzers', 'data', 'FTN counts them'],
+    ['→', 'Place him yourself', 'tap his tech and depth', 'out', 'last resort']]]
+];
+function bankHTML(){
+  const TAG = {data:'skips · data', ipad:'skips · iPad', pick:'skips · your pick', always:'always asked', rule:'rule', out:'any time'};
+  return `<p class="fl-sub" style="margin-top:8px">Worded by role, never by letter. It asks only what the data, the iPad and your pick can’t answer — and you can skip to placing at any point.</p>
+    <div class="bk-leg">${['data', 'ipad', 'pick', 'always'].map(k => `<span class="src-${k === 'always' ? 'you' : k}">${TAG[k]}</span>`).join('')}</div>`
+    + BANK.map(([t, n, qs]) => `<div class="bk-sec"><b>${esc(t)}</b><small>${esc(n)}</small></div>` + qs.map(([num, q, o, kind, tag]) => `<div class="bk-q"><i class="${kind === 'out' ? 'out' : ''}">${esc(num)}</i><span><b>${esc(q)}</b><small>${esc(o)}</small></span><em class="src-${kind === 'always' ? 'you' : kind}">${esc(tag)}</em></div>`).join('')).join('')
+    + `<div class="bk-foot"><b>Letters are never asked.</b> X Y Z H — and the backs’ letters — come from where each man lines up. The tailback letter follows your Names setting.</div>`;
+}
+
 /* ================= actions ================= */
 const ACT = {
   topL(){
     if (VIEW === 'diag'){ setView(PREV_VIEW === 'diag' ? 'home' : PREV_VIEW); refresh(); return; }
     if (EMBED && VIEW === 'home'){ try { parent.postMessage({type:'pb-close'}, '*'); } catch(e){ diag('embed', 'pb-close not sent'); } return; }
-    if (VIEW === 'home'){ homeNav(HOMEV.page === 'game' ? 'games' : 'doors'); return; }
+    if (VIEW === 'home'){
+      if (HOMEV.tab === 'sheet' && SHV.set){ SHV.set = null; refresh(); $('#home').scrollTop = 0; return; }
+      if (HOMEV.tab === 'plays'){ ACT.tab({v:'sheet'}); return; }
+      if (HOMEV.tab === 'more'){ ACT.tab({v:'home'}); return; }
+      if (HOMEV.tab === 'bank'){ ACT.tab({v:'more'}); return; }
+      homeNav(HOMEV.page === 'game' ? 'games' : 'doors'); return;
+    }
     if (VIEW !== 'editor' || !W) return goHome();
     const placed = W.tokens.some(t => t.slot) && (W.touched || !W.wizOn);   // 0.11.0: the wizard's defaults alone are nothing to lose
     if (W.mode === 'design' && (W.dirty || (W.step === 'off' && placed))){
@@ -6179,7 +7464,7 @@ const ACT = {
     }
     goHome();
   },
-  topR(){ setView('diag'); refresh(); },
+  topR(){ if (VIEW === 'home' && !EMBED && HOMEV.tab !== 'more'){ ACT.tab({v:'more'}); return; } setView('diag'); refresh(); },
   leaveYes(){ hideSheet(); diag('flow', 'left without saving'); goHome(); },
   closeSheet(){ hideSheet(); },
   dismissToast(){ $('#toast').hidden = true; clearTimeout(toastTimer); },
@@ -6187,7 +7472,7 @@ const ACT = {
   boxView(){ boxView(); render(); },
   rpickman(d){ const m = manById(d.id); if (!m) return; if (m.id === W.rsel) selectMan(null); else selectMan(m); refresh(); },
   copyCode(d){ copyText(d.v, 'Code'); },
-  logNew(){ startLog(null); },
+  logNew(){ enOpen(null, {from:'hand'}); },
   tplNew(){ startTemplate(null); },
   logFrom(d){ hideSheet(); const f = fmGet(d.id); if (f) startLog(f); },
   fmMenu(d){
@@ -6678,13 +7963,11 @@ Object.assign(ACT, {
     PARK.add(q.key); parkSave(); CARDV.key = null;
     diag('card.park', q.key); toast(`Parked: ${esc(sitWord(q.sit))}`); renderHome();
   },
-  cardEdit(d){
+  cardEdit(d){   // 0.13.0: the engine on this play — from the card's set when it has one, placing when you asked for a blank field
     const q = topCard(); if (!q) return;
     hideSheet();
-    const v = cardView(q);
-    startQueued(q); W.fromCard = true;
-    if (v.set && !(d && d.v === 'blank')){ const off = offFromSet(v.set.f, persOf(q.pers)); loadOffInto(W, v.c.strength === 'L' ? mirrorOff(off) : off, false); W.hash = v.c.hash; if (W.wizOn) wizInfer(); refresh(); }
-    else if (W.wizOn && v.c.strength === 'L' && W.wiz.str !== 'L'){ W.wiz.str = 'L'; wizApply('card strength'); refresh(); }
+    const v = cardView(q), blank = d && d.v === 'blank';
+    enOpen(q, {set:!blank && v.set ? v.set.f.id : null, place:blank, from:q.fromGame ? 'game' : 'watch'});
   },
   cardOk(){
     const q = topCard(); if (!q){ renderHome(); return; }
@@ -6786,9 +8069,9 @@ function cardRes(q, v, st){
 Object.assign(ACT, {
   noop(){},
   allPlays(){ HOMEV.allPlays = !HOMEV.allPlays; renderHome(); },
-  tab(d){ if (!TAB_NAME[d.v]) return; if (d.v === 'home') HOMEV.page = 'doors'; HOMEV.tab = d.v; lsSetRaw('pb.tab', d.v); diag('tab', d.v); refresh(); $('#home').scrollTop = 0; },
+  tab(d){ if (!TAB_NAME[d.v]) return; if (d.v === 'home') HOMEV.page = 'doors'; if (d.v === 'sheet') SHV.set = null; HOMEV.tab = d.v; if (['home','sheet','band','book'].includes(d.v)) lsSetRaw('pb.tab', d.v); diag('tab', d.v); refresh(); $('#home').scrollTop = 0; },
   /* 0.12.0 the doors and the games */
-  door1(){ homeNav('watch'); },
+  door1(){ const top = inboxSplit().top; if (top) enOpen(top, {from:'door1'}); else homeNav('watch'); },
   door2(){ if (!GAMEV.gid){ homeNav('games'); return; } homeNav('game'); },
   games(){ homeNav('games'); },
   gamesRetry(){ GAMES.state = 'off'; GAMES.err = null; gamesLoad(); renderHome(); },
@@ -6812,7 +8095,7 @@ Object.assign(ACT, {
     const g = GAMES.cache.get(GAMEV.gid); if (!g){ toast('The snaps are still loading.'); return; }
     const run = {gid:GAMEV.gid, side:gameSide(g), drive:+d.n};
     const q = gameNextOpen(run); if (!q){ toast('Every snap of that drive is logged.'); return; }
-    startQueued(q); W.gameRun = run;
+    enOpen(q, {chain:run, from:'game'});
     diag('flow', `game run: ${run.gid} drive ${run.drive}, ${run.side} offense`);
   },
   pf(d){ HOMEV.pf = d.v; renderHome(); },
@@ -7014,6 +8297,266 @@ Object.assign(ACT, {
     toast(`Play ${p.n} logged: ${esc(p.name)}${def ? ' vs ' + esc(v.front.name) + (def.cov ? ' · ' + esc(def.cov.name) : '') : ''}`);
     renderHome();
   }
+});
+/* ================= 0.13.0 actions: the engine, the call sheet, the wristband ================= */
+Object.assign(ACT, {
+  enClose(){
+    if (!EN){ setView('home'); refresh(); return; }
+    const busy = EN.step !== 'start' && EN.step !== 'done' && !!(EN.start || EN.placed || (W && W.touched) || EN.mode !== 'log');
+    if (busy){
+      showSheet(`<h3>Leave without ${EN.mode === 'log' ? 'logging' : 'saving'}?</h3><p>${EN.mode === 'log' ? 'The play stays where it was. Nothing here is saved.' : 'Nothing here is saved yet.'}</p>
+        <div class="row"><button class="btn" data-act="closeSheet">Stay</button><button class="btn danger" data-act="enLeave">Leave</button></div>`);
+      return;
+    }
+    enExit(enHome());
+  },
+  enLeave(){ hideSheet(); diag('engine', 'left without logging'); enExit(enHome()); },
+  enBack(){
+    if (!EN) return;
+    const s = EN.step;
+    if (s === 'ask'){
+      const qs = enWalk(), i = qs.findIndex(x => x.k === EN.qk);
+      if (i > 0) EN.qk = qs[i - 1].k; else EN.step = EN.mode === 'set' ? 'place' : 'start';
+    }
+    else if (s === 'place'){
+      if (EN.mode === 'set'){ ACT.enClose(); return; }
+      if (EN.start){ const qs = enWalk(); if (qs.length){ EN.qk = qs[qs.length - 1].k; EN.step = 'ask'; } else EN.step = 'start'; }
+      else EN.step = 'start';
+    }
+    else if (s === 'card'){
+      if (EN.placed || EN.mode === 'set'){ if (!EN.place) enPlaceInit(false); EN.step = 'place'; }
+      else { const qs = enWalk(); if (qs.length && EN.start){ EN.qk = qs[qs.length - 1].k; EN.step = 'ask'; } else EN.step = 'start'; }
+    }
+    else if (s === 'techs'){ if (EN.mode === 'front'){ ACT.enClose(); return; } EN.step = 'card'; }
+    else if (s === 'snap') EN.step = 'techs';
+    else { ACT.enClose(); return; }
+    renderFlow(); $('#flow').scrollTop = 0;
+  },
+  enPick(d){ hideSheet(); if (EN) enPick(d.id); },
+  enMoreSets(){
+    if (!EN) return;
+    const all = enCands();
+    showSheet(`<h3>Start from</h3><p>${esc(W.pers)} personnel · ${esc(QB_LABEL[W.qb])} · this game first, then most-logged</p>
+      <div class="fl-grid">${all.map(x => `<button class="fl-set" data-act="enPick" data-id="${esc(x.f.id)}"><span class="fl-art" style="height:72px">${QZ.set(offFromSet(x.f, W.pers), {w:147, h:72, letters:false})}</span><b>${esc(fmFiled(x.f, W.pers))}</b><small>${esc(candSub(x))}</small></button>`).join('')}</div>
+      <button class="btn" data-act="closeSheet">Cancel</button>`);
+  },
+  enPlaceGo(){
+    if (!EN) return;
+    const fresh = EN.step === 'start';
+    if (fresh){ EN.start = null; EN.changed = {}; }
+    enPlaceInit(fresh); renderFlow(); $('#flow').scrollTop = 0;
+  },
+  enPlacePref(){ const on = !enPlacePref(); lsSetRaw(EN_PLACE_LS, on ? '1' : ''); diag('engine', `always go straight to placing: ${on}`); if (VIEW === 'flow') renderFlow(); else refresh(); },
+  enPers(d){
+    const v = persOf(d.v); if (!v || !EN) return;
+    W.xol = !!W.xol && +v[0] + +v[1] <= 4; W.pers = v; W.tokens = buildTokens(v, W.xol, W.tokens); EN.persYou = true;
+    if (EN.place) EN.place.cur = enFirstOpen();
+    if (EN.step === 'card' && !offStatus().legal){ if (!EN.place) enPlaceInit(false); EN.step = 'place'; EN.place.cur = enFirstOpen(); }
+    diag('engine', `personnel → ${v}`); hideSheet(); renderFlow();
+  },
+  enQb(d){
+    const v = qbOf(d.v); if (!v || !EN) return;
+    W.qb = v; EN.qbYou = true;
+    W.tokens.forEach(t => { if (t.slot && !slotOK(t.slot, t.type, v)) t.slot = null; });
+    if (EN.place) EN.place.cur = enFirstOpen();
+    if (EN.step === 'card' && !offStatus().legal){ if (!EN.place) enPlaceInit(false); EN.step = 'place'; EN.place.cur = enFirstOpen(); }
+    diag('engine', `QB → ${v}`); hideSheet(); renderFlow();
+  },
+  enAns(d){
+    if (!EN) return;
+    const k = d.k, v = d.v;
+    if (W.wiz[k] !== v){
+      W.wiz[k] = v; wizApply('engine ' + k); EN.changed[k] = true; W.touched = true; diag('engine', `answer ${k} = ${v}`);
+      if (k === 'sp'){ EN.askKeys.as = true; EN.askKeys.aw = true; }   // a new split: how each side sets is a new question
+    }
+    enNextQ(k);
+  },
+  enSkipQ(){ if (EN && EN.qk) enNextQ(EN.qk); },
+  enTray(d){ if (!EN || !EN.place) return; const i = +d.i; EN.place.cur = EN.place.cur === i && W.tokens[i] && W.tokens[i].slot ? null : i; renderFlow(); },
+  enSide(d){ if (!EN || !EN.place) return; EN.place.side = d.v === 'L' ? 'L' : 'R'; renderFlow(); },
+  enCell(d){
+    if (!EN || !EN.place) return;
+    const P = EN.place, key = d.k, j = W.tokens.findIndex(t => t.slot === key), i = P.cur;
+    if (i == null){ if (j >= 0){ P.cur = j; renderFlow(); return; } toast('Tap a man in the tray first, then his spot.'); return; }
+    const t = W.tokens[i];
+    if (!slotOK(key, t.type, W.qb)){ toast(t.type === 'L' ? 'The extra lineman lines up on the ball.' : `Not a spot he can take with the QB ${W.qb === 'under' ? 'under center' : W.qb === 'pistol' ? 'in the pistol' : 'in the gun'}.`); return; }
+    if (j === i){ P.cur = enFirstOpen(); renderFlow(); return; }
+    P.hist.push(W.tokens.map(o => o.slot));
+    if (j >= 0){ const o = W.tokens[j]; o.slot = t.slot && slotOK(t.slot, o.type, W.qb) ? t.slot : null; }
+    t.slot = key; W.touched = true; EN.placed = true; P.last = i;
+    if (/:[ITSNW]:0$/.test(key) && t.type !== 'L' && W.tokens.some((o, k) => k !== i && o.slot && o.slot[0] === key[0] && /:[ITSNW]:0$/.test(o.slot) && o.type !== 'L'))
+      toast('Two men on the ball that side — the inside one is covered and not eligible.');
+    P.cur = enFirstOpen();
+    renderFlow();
+  },
+  enUndo(){
+    if (!EN || !EN.place || !EN.place.hist.length) return;
+    const h = EN.place.hist.pop(); W.tokens.forEach((t, i) => { t.slot = h[i] || null; }); EN.place.cur = enFirstOpen(); renderFlow();
+  },
+  enDonePlace(){
+    if (!EN) return;
+    const st = offStatus();
+    if (!st.legal){ toast(st.left ? `${st.left} still to place.` : ((st.issues[0] || {}).msg || 'Not legal yet.'), 'err'); return; }
+    W.wiz = {}; wizInfer(); EN.step = 'card'; renderFlow(); $('#flow').scrollTop = 0;
+  },
+  enAskGo(){
+    if (!EN) return;
+    W.wiz = {};
+    if (W.tokens.some(t => t.slot)) wizInfer();
+    if (W.tokens.some(t => !t.slot)) wizApply('engine fill');
+    EN.askAll = true;
+    EN.qs = enWalk(); EN.qk = EN.qs.length ? EN.qs[0].k : null; EN.step = EN.qs.length ? 'ask' : 'card';
+    renderFlow(); $('#flow').scrollTop = 0;
+  },
+  enRename(){
+    if (!EN) return;
+    const off = enOffNow(), x = {qb:off.qb, xol:!!off.xol, tokens:off.tokens.filter(t => t.slot)};
+    let cands = []; try { cands = NAMES.candidates(x, {field:strengthOf(x.tokens)}); } catch(e){ cands = []; }
+    showSheet(`<h3>Rename the set</h3><p>Your word for it. The neutral read stays underneath for the book and the iPad.</p>
+      <input id="enName" class="txt" value="${esc(W.myName || '')}" placeholder="${esc(enNameNow())}" autocomplete="off" autocapitalize="words" spellcheck="false">
+      ${cands.length ? `<div class="sugs">${cands.map(c => `<button class="sug c" data-act="enRenameUse" data-v="${esc(c.text)}">${esc(c.text)}<small>${esc(c.sep)}</small></button>`).join('')}</div>` : ''}
+      <div class="row"><button class="btn" data-act="enRenameClear">Neutral name</button><button class="btn pri" data-act="enRenameSave">Save</button></div>`);
+  },
+  enRenameSave(){ if (!W) return; W.myName = ($('#enName') ? $('#enName').value : '').trim(); hideSheet(); renderFlow(); },
+  enRenameUse(d){ if (!W) return; W.myName = d.v; hideSheet(); renderFlow(); },
+  enRenameClear(){ if (!W) return; W.myName = ''; hideSheet(); renderFlow(); },
+  enFix(d){
+    if (!EN) return;
+    const k = d.k;
+    if (!k){ toast('That line comes straight from the data or the iPad.'); return; }
+    if (k === 'pers'){
+      showSheet(`<h3>Personnel</h3><p>${EN.known.pers ? `The ${esc(SRC_WORD[EN.known.pers.src])} said ${esc(EN.known.pers.v)}. Change it only if the film says otherwise.` : 'Backs first, then tight ends.'}</p>
+        <div class="fl-chips">${['10','11','12','13','21','22','20','01','02','23'].map(p => `<button class="fc${W.pers === p ? ' on' : ''}" data-act="enPers" data-v="${p}">${p}</button>`).join('')}</div><button class="btn" data-act="closeSheet">Cancel</button>`);
+      return;
+    }
+    if (k === 'qb'){
+      showSheet(`<h3>Where’s the QB?</h3><div class="fl-chips">${[['under','Under center'],['pistol','Pistol'],['gun','Shotgun']].map(([v, l]) => `<button class="fc${W.qb === v ? ' on' : ''}" data-act="enQb" data-v="${v}">${l}</button>`).join('')}</div><button class="btn" data-act="closeSheet">Cancel</button>`);
+      return;
+    }
+    if (k === 'place'){ if (!EN.place) enPlaceInit(false); EN.step = 'place'; renderFlow(); $('#flow').scrollTop = 0; return; }
+    W.wiz = {}; wizInfer();
+    EN.askKeys[k] = true; if (k === 'sp'){ EN.askKeys.as = true; EN.askKeys.aw = true; }
+    const qs = enWalk(), hit = qs.find(x => x.k === k) || qs.find(x => x.k.slice(0, 2) === k.slice(0, 2));
+    if (!hit){ if (!EN.place) enPlaceInit(false); EN.step = 'place'; renderFlow(); $('#flow').scrollTop = 0; return; }
+    EN.qs = qs; EN.qk = hit.k; EN.step = 'ask'; renderFlow(); $('#flow').scrollTop = 0;
+  },
+  enDefGo(){
+    if (!EN) return;
+    if (!offStatus().legal){ toast('Finish the set first.', 'err'); return; }
+    EN.step = 'techs'; if (!EN.def) enDefInit(); renderFlow(); $('#flow').scrollTop = 0;
+  },
+  enLogOff(){ enLog('off'); },
+  enFront(d){ if (!EN) return; const x = (EN.fronts || []).find(f => f.code === d.v); if (x){ enSetFront(x); renderFlow(); } },
+  enFrontMore(){
+    if (!EN) return;
+    const list = EN.fronts || enFronts(), off = EN.mode === 'front' ? enFrontOff() : enOffNow(), mir = EN.mode !== 'front' && enStrength() === 'L';
+    showSheet(`<h3>Start the box from</h3><p>${EN.known && EN.known.box ? `The ${esc(SRC_WORD[EN.known.box.src])} says ${EN.known.box.v} in the box. ` : ''}The iPad’s tag first, then what you logged, then your fronts and the NFL base.</p>
+      <div class="fl-grid">${list.slice(0, 48).map(x => `<button class="fl-set${EN.defCode === x.code ? ' on' : ''}" data-act="enFrontPick" data-v="${esc(x.code)}"><span class="fl-art" style="height:72px">${QZ.box(x.d, off, {w:147, h:72, mirror:mir})}</span><b>${esc(x.name)}</b><small>${esc([x.src === 'ipad' ? 'the iPad’s tag' : x.n ? x.n + '× logged' : x.src === 'base' ? 'NFL base' : 'your front', `box ${x.d.box.length}`].join(' · '))}</small></button>`).join('')}</div>
+      <button class="btn" data-act="closeSheet">Cancel</button>`);
+  },
+  enFrontPick(d){ if (!EN) return; const x = (EN.fronts || []).find(f => f.code === d.v); hideSheet(); if (x){ enSetFront(x); renderFlow(); } },
+  enSel(d){
+    if (!EN || !EN.def) return;
+    const i = +d.i, b = EN.def.box[i]; if (!b) return;
+    if (EN.sel === i){
+      if (b.x === 0){ toast('He’s head-up on the center — tap a technique to move him.'); return; }
+      const nx = -b.x;
+      if (b.d === 1 && EN.def.box.some((o, k) => k !== i && o.d === 1 && o.x === nx)){ toast('A lineman already lines up there.'); return; }
+      b.x = nx; diag('engine', `box man ${i} flipped to ${nx}`);
+    } else EN.sel = i;
+    renderFlow();
+  },
+  enTech(d){
+    if (!EN || !EN.def) return;
+    const i = +d.i, b = EN.def.box[i]; if (!b) return;
+    const side = b.x < 0 ? -1 : 1;
+    let x;
+    if (b.d === 1){ const hit = TECH_X.find(([t]) => t === d.v); if (!hit) return; x = hit[1] === 0 ? 0 : side * hit[1]; }
+    else { const v = +d.v; if (!(v >= 0 && v <= 6)) return; x = v === 0 ? 0 : side * v; }
+    if (b.d === 1 && EN.def.box.some((o, k) => k !== i && o.d === 1 && o.x === x)){ toast('Another lineman is already there.'); return; }
+    b.x = x; EN.sel = i; renderFlow();
+  },
+  enHand(d){ if (!EN || !EN.def) return; const b = EN.def.box[+d.i]; if (!b || b.d !== 1) return; b.hand = b.hand === 'up' ? 'down' : 'up'; EN.sel = +d.i; renderFlow(); },
+  enDep(d){ if (!EN || !EN.def) return; const b = EN.def.box[+d.i]; if (!b || b.d === 1) return; const k = DEPS.indexOf(b.dep || 5); b.dep = DEPS[(k + 1) % DEPS.length]; EN.sel = +d.i; renderFlow(); },
+  enSnapGo(){ if (!EN || !EN.def) return; EN.step = 'snap'; renderFlow(); $('#flow').scrollTop = 0; },
+  enLogFront(){ enLog('front'); },
+  enFrame(d){ if (!EN) return; EN.frame = ['snap', 'post', 'post2'].includes(d.v) ? d.v : 'snap'; renderFlow(); },
+  enPost(d){
+    if (!EN || !EN.post) return;
+    const P = EN.post, k = d.k, v = d.v;
+    if (k === 'rush' && P.rushSrc){ toast(`The ${SRC_WORD[P.rushSrc]} has it: ${P.rush}${P.rush >= 6 ? '+' : ''} rushed.`); return; }
+    if (k === 'rot') P.rot = ROT_WORD[v] ? v : 'none';
+    else if (k === 'cov'){ P.cov = P.cov === v && P.covSrc === 'you' ? null : v; P.covSrc = 'you'; }
+    else if (k === 'deep') P.deep = +v;
+    else if (k === 'rush') P.rush = +v;
+    renderFlow();
+  },
+  enLogAll(){ enLog('all'); },
+  enNextGo(){
+    if (!EN) return;
+    const nx = enNext();
+    if (!nx){ enExit(enHome()); return; }
+    const chain = EN.chain, from = EN.from;
+    enOpen(nx, {chain, from});
+  },
+  enBackHome(){ enExit(enHome()); },
+  enStop(){ enExit('doors'); },
+  enSaveSet(){
+    if (!EN || !W) return;
+    const st = offStatus();
+    if (!st.legal){ toast(st.left ? `${st.left} still to place.` : ((st.issues[0] || {}).msg || 'Not legal yet.'), 'err'); return; }
+    W.tokens.forEach(t => { delete t.fixed; });
+    const off = offObject(), errs = validateOffense(off);
+    if (errs.length){ fail('engine.saveSet', 'a valid offense', errs.join('; '), off); return; }
+    const nm = enNameNow(), mine = String(W.myName || '').trim();
+    const f = upsertFormation(off, mine || nm, null);
+    if (mine) f.myName = mine;
+    f.nf = 1;
+    if (!saveStore('engine.saveSet')) return;
+    pushBaseline('formation', f); dbPut('formations', f, 'engine.saveSet');
+    diag('engine', `set saved: ${f.id} "${mine || nm}" ${f.code}`);
+    toast(`Saved to the book: ${esc(mine || nm)}`); enExit('book');
+  },
+  enSaveFront(){
+    if (!EN || !EN.def) return;
+    showSheet(`<h3>Name the front</h3><p>It goes in the book with its techniques, hands and depths. Strength right; it flips with the tight end.</p>
+      <input id="enFr" class="txt" value="${esc(enFrontName())}" autocomplete="off" autocapitalize="words" spellcheck="false">
+      <div class="row"><button class="btn" data-act="closeSheet">Cancel</button><button class="btn pri" data-act="enSaveFrontDo">Save</button></div>`);
+  },
+  enSaveFrontDo(){
+    if (!EN || !EN.def) return;
+    const name = ($('#enFr') ? $('#enFr').value : '').trim() || enFrontName();
+    const d = {box:EN.def.box.map(b => { const o = {x:b.x, d:b.d === 1 ? 1 : 5, hand:b.d === 1 ? (b.hand === 'up' ? 'up' : 'down') : null, tech:techOf(b.x), cat:b.d === 1 && b.hand !== 'up' ? 'DL' : 'LB'}; if (b.d !== 1 && b.dep && b.dep !== 5) o.dep = b.dep; return o; }),
+      dbs:EN.def.dbs.map(o => ({slot:o.slot, kind:o.kind === 'deep' ? 'deep' : 'rest'})), shell:EN.def.shell};
+    d.summary = frontSummary(d.box, d.shell);
+    const errs = validateDefense(d);
+    if (errs.length){ fail('engine.saveFront', 'a valid defense', errs.join('; '), d); return; }
+    const code = defCode(d, 'R'), now = isoNow();
+    let f = S.fronts.find(o => o.code === code);
+    if (f){ Object.assign(f, {name, box:d.box, dbs:d.dbs, shell:d.shell, summary:d.summary, updated:now}); delete f._bad; }
+    else { f = {id:'d' + Date.now().toString(36), name, code, box:d.box, dbs:d.dbs, shell:d.shell, summary:d.summary, created:now}; S.fronts.push(f); }
+    if (!saveStore('engine.saveFront')) return;
+    pushBaseline('front', f); dbPut('fronts', f, 'engine.saveFront');
+    diag('engine', `front saved: ${f.id} "${name}" ${code}`);
+    hideSheet(); toast(`Saved front: ${esc(name)}`); enExit('book');
+  },
+  enNewSet(){ enOpen(null, {mode:'set', from:'door3'}); },
+  enNewFront(){ enOpen(null, {mode:'front', from:'door3'}); },
+  /* the call sheet and the wristband */
+  shTeam(d){ SHV.team = d.v || null; SHV.set = null; refresh(); },
+  shScope(d){ SHV.scope = d.v === 'game' ? 'game' : 'season'; refresh(); },
+  shSet(d){ if (!d.id){ toast('That set was never filed in the book.'); return; } SHV.set = d.id; refresh(); $('#home').scrollTop = 0; },
+  shBack(){ SHV.set = null; refresh(); $('#home').scrollTop = 0; },
+  shStart(d){ const nx = shNext(shTeam()); if (!nx){ if (d.id) ACT.shSet(d); return; } enOpen(nx, {set:d.id || null, from:'sheet'}); },
+  shNew(){ const nx = shNext(shTeam()); if (!nx){ toast('Nothing waiting to log for this offense.'); return; } enOpen(nx, {from:'sheet'}); },
+  shPark(){ const nx = shNext(shTeam()); if (!nx) return; PARK.add(nx.key); parkSave(); diag('sheet', `parked ${nx.key}`); toast(`Parked: ${esc(sitWord(nx.sit))}`); refresh(); },
+  bandBy(){ const L = ['down', 'pers', 'zone']; SHV.bandBy = L[(L.indexOf(SHV.bandBy) + 1) % L.length]; lsSetRaw('pb.band.by', SHV.bandBy); refresh(); },
+  bandPrint(d){
+    const pdf = d && d.v === 'pdf';
+    if (pdf) toast('In the print sheet, tap Share to save it as a PDF.');
+    setTimeout(() => { try { window.print(); } catch(e){ fail('band.print', 'the print sheet opened', String(e && e.message)); } }, pdf ? 900 : 60);
+  },
+  bank(){ ACT.tab({v:'bank'}); }
 });
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
