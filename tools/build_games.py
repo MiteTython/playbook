@@ -93,6 +93,21 @@ def save_baseline(season, obj):
         json.dump(obj, f, indent=1)
 
 
+def same_as_file(path, obj):
+    """True when the file on disk holds the same data, its build stamp aside."""
+    if not os.path.exists(path):
+        return False
+    try:
+        with open(path, encoding="utf-8") as f:
+            old = json.load(f)
+    except (OSError, ValueError):
+        return False
+    a, b = dict(old), dict(obj)
+    a.pop("built", None)
+    b.pop("built", None)
+    return json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True)
+
+
 def get(stage, url, gz, optional=False):
     """The file as text. An optional file that isn't published yet (404) comes back None."""
     log(stage, url)
@@ -224,7 +239,7 @@ def part_of(r):
 
 
 def build(season, rows, ftn, part):
-    games = {}
+    games, skipped = {}, []
     for r in rows:
         if r["play_type"] not in SCRIM or not r["posteam"] or r["posteam"] == "NA":
             continue
@@ -267,37 +282,45 @@ def build(season, rows, ftn, part):
             c["plays"] += len(d["plays"])
             c["drives"] += 1
         g["teams"] = counts
-        if len(drives) < 10 or sum(len(d["plays"]) for d in drives) < 60:
-            raise Fail("game", "10+ drives and 60+ snaps in a game", f"{len(drives)} drives, {sum(len(d['plays']) for d in drives)} snaps in {g['id']}", g)
+        snaps = sum(len(d["plays"]) for d in drives)
+        if len(drives) < 10 or snaps < 60:   # a game still going, or half-published: keep last run's file, say so
+            dump("game.partial", "10+ drives and 60+ snaps in a game", f"{len(drives)} drives, {snaps} snaps in {g['id']}", {"id": g["id"], "drives": len(drives), "snaps": snaps})
+            log("WARN", f"{g['id']}: {len(drives)} drives, {snaps} snaps — looks unfinished, kept the last good file")
+            skipped.append(g["id"])
+            continue
         out.append(g)
     out.sort(key=lambda g: (g["week"], g["date"], g["id"]))
-    return out
+    return out, skipped
 
 
-def write_season(season, games):
+def write_season(season, games, skipped=()):
     folder = os.path.join(DATA, "pbp", str(season))
     os.makedirs(folder, exist_ok=True)
-    keep = set()
+    keep = {gid + ".json" for gid in skipped if os.path.exists(os.path.join(folder, gid + ".json"))}
+    wrote = 0
     for g in games:
         path = os.path.join(folder, g["id"] + ".json")
         keep.add(g["id"] + ".json")
+        if same_as_file(path, dict(g, v=1)):   # unchanged since the last build: leave the file (and git) alone
+            continue
         with open(path, "w", encoding="utf-8") as f:
             json.dump(dict(g, v=1, built=now()), f, separators=(",", ":"), ensure_ascii=False)
+        wrote += 1
     stale = [n for n in os.listdir(folder) if n.endswith(".json") and n not in keep]
     for n in stale:
         os.remove(os.path.join(folder, n))
     size = sum(os.path.getsize(os.path.join(folder, n)) for n in keep)
-    log("write", f"{season}: {len(games)} game files", mb=round(size / 1e6, 2), removed_stale=stale)
+    log("write", f"{season}: {len(games)} game files, {wrote} changed", mb=round(size / 1e6, 2), removed_stale=stale, kept_unfinished=sorted(skipped))
 
 
-def write_index(all_games):
+def write_index(all_games, skipped=()):
     path = os.path.join(DATA, "games.json")
     old = {"games": []}
     if os.path.exists(path):
         with open(path, encoding="utf-8") as f:
             old = json.load(f)
     seasons_built = {g["season"] for g in all_games}
-    kept = [g for g in old.get("games", []) if g.get("season") not in seasons_built]
+    kept = [g for g in old.get("games", []) if g.get("season") not in seasons_built or g.get("id") in set(skipped)]
     rows = kept + [{"id": g["id"], "season": g["season"], "week": g["week"], "date": g["date"], "away": g["away"], "home": g["home"], "score": g["score"],
                     "teams": g["teams"], "ftn": g["ftn"], "pp": g["pp"]} for g in all_games]
     rows.sort(key=lambda g: (-g["season"], -(g["week"] or 0), g["date"], g["id"]))
@@ -313,6 +336,9 @@ def write_index(all_games):
         s["weeks"].sort()
     idx = {"v": 1, "built": now(), "source": "nflverse play_by_play + FTN charting + NGS participation (github.com/nflverse/nflverse-data)",
            "seasons": seasons, "games": rows}
+    if same_as_file(path, idx):
+        log("index", f"{len(rows)} games, unchanged")
+        return
     with open(path, "w", encoding="utf-8") as f:
         json.dump(idx, f, separators=(",", ":"), ensure_ascii=False)
     log("index", f"{len(rows)} games", seasons={k: v["games"] for k, v in seasons.items()}, kb=round(os.path.getsize(path) / 1e3))
@@ -320,7 +346,7 @@ def write_index(all_games):
 
 def main(seasons):
     log("start", f"seasons {seasons}")
-    done = []
+    done, all_skipped = [], []
     for season in seasons:
         rows, cols = table("pbp", get("pbp", PBP.format(season=season), True), NEED, season, "pbp")
         ftn, fcols, frows = {}, [], 0
@@ -343,7 +369,8 @@ def main(seasons):
                 if pp:
                     part[(r["nflverse_game_id"], num(r["play_id"]))] = pp
             log("part", f"{len(part)} snaps with personnel of {prows} rows")
-        games = build(season, rows, ftn, part)
+        games, skipped = build(season, rows, ftn, part)
+        all_skipped.extend(skipped)
         if not games:
             raise Fail("build", "games with scrimmage plays", "0 games", {"rows": len(rows)})
         weeks = sorted({g["week"] for g in games})
@@ -354,13 +381,13 @@ def main(seasons):
         base = baseline(season) or {}
         if ftn and base.get("ftn_pct") and 100 * nf / snaps < base["ftn_pct"] - 15:
             log("WARN", f"FTN joined on {round(100 * nf / snaps, 1)}% of snaps, last good run {base['ftn_pct']}% — check the join keys")
-        write_season(season, games)
+        write_season(season, games, skipped)
         save_baseline(season, {"at": now(), "games": len(games), "weeks": weeks, "snaps": snaps,
                                "ftn_pct": round(100 * nf / snaps, 1) if snaps else 0, "part_pct": round(100 * npp / snaps, 1) if snaps else 0,
                                "pbp": {"rows": len(rows), "columns": cols}, "ftn": {"rows": frows, "columns": fcols}, "part": {"rows": prows, "columns": pcols}})
         done.extend(games)
-    write_index(done)
-    log("done", "ok", seconds=round(time.time() - T0, 1))
+    write_index(done, all_skipped)
+    log("done", "ok", seconds=round(time.time() - T0, 1), unfinished=all_skipped)
 
 
 if __name__ == "__main__":

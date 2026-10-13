@@ -1,0 +1,55 @@
+# The game data rebuilds itself: every morning and every afternoon in season, GitHub runs tools/build_games.py,
+# commits whatever changed under data/ (FTN catching up on last week's games, a new week, participation once it's out),
+# and asks Pages to republish. Nothing to run by hand. Each run's log, baselines and dumps are kept as the run's artifact.
+name: game data
+on:
+  schedule:
+    - cron: '17 10,22 * 1,2,8,9,10,11,12 *'   # 3:17 am and 3:17 pm Pacific, August through February
+  workflow_dispatch: {}
+permissions:
+  contents: write
+  pages: write
+concurrency:
+  group: game-data
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Last run's baselines
+        uses: actions/cache@v4
+        with:
+          path: tools/_diag/baselines
+          key: games-baselines-${{ github.run_id }}
+          restore-keys: games-baselines-
+      - name: Build the game files
+        run: python3 tools/build_games.py
+      - name: Keep the diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-games-diag
+          path: tools/_diag/
+          if-no-files-found: ignore
+          retention-days: 30
+      - name: Commit what changed
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then echo "Nothing changed in data/."; echo "changed=0" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git diff --cached --stat | tail -3
+          git commit -m "Game data: rebuilt from nflverse (play-by-play, FTN, participation when out)"
+          git push
+          echo "changed=1" >> "$GITHUB_OUTPUT"
+      - name: Republish Pages
+        if: steps.commit.outputs.changed == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds" --silent || echo "Pages builds on its own from the push."
