@@ -1344,7 +1344,7 @@ async function syncPush(){
   } catch(e){ syncFail('push', e); SYNC.dirty = true; }
   SYNC.writing = false;
   if (SYNC.dirty) syncMark(SYNC.state === 'error' ? 15000 : 1500);
-  if (VIEW === 'home') renderHome();
+  if (VIEW === 'home') homeSoon();
 }
 function syncOk(){ if (SYNC.state !== 'on') diag('sync', 'connected'); SYNC.state = 'on'; SYNC.err = null; SYNC.failed = false; }
 function syncFail(stage, e){
@@ -1358,8 +1358,8 @@ function syncFail(stage, e){
 async function syncTick(){
   clearTimeout(SYNC.timer);
   if (SYNC.token && document.visibilityState !== 'hidden' && Date.now() >= (SYNC.backoffUntil || 0)){
-    try { await syncFind(); const changed = await syncPull(); SYNC.lastPull = Date.now(); syncOk(); if (changed && VIEW === 'home') renderHome(); }
-    catch(e){ syncFail('pull', e); if (VIEW === 'home') renderHome(); }
+    try { await syncFind(); const changed = await syncPull(); SYNC.lastPull = Date.now(); syncOk(); if (changed && VIEW === 'home') homeSoon(); }
+    catch(e){ syncFail('pull', e); if (VIEW === 'home') homeSoon(); }
   }
   if (SYNC.token) SYNC.timer = setTimeout(syncTick, Math.max(SYNC.state === 'on' ? 4000 : 20000, (SYNC.backoffUntil || 0) - Date.now() + 500));
 }
@@ -1372,7 +1372,7 @@ function syncStart(){
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && SYNC.token) syncTick(); });
 /* the iPad follows the phone: while a queued play is open here, chalk holds it on the snap */
 function setHold(key, frame){
-  const t = key ? snapOf(key) : null;   // 0.16.0: the snap you picked here — the iPad sits on it
+  const t = key && snapsMap().has(key) ? snapsMap().get(key) : null;   // 0.16.0: the snap you picked here — the iPad sits on it
   SYNC.hold = key ? Object.assign({key, frame:frame || 'snap', at:new Date().toISOString()}, t != null ? {t} : {}) : null;
   diag('sync.hold', key ? `iPad: hold ${key} on the ${SYNC.hold.frame}${t != null ? ' at ' + t + ' s' : ''}` : 'iPad: let go');
   syncMark(300);
@@ -5889,6 +5889,7 @@ function framesCheck(obj, key, name){
 function framesSoon(){
   clearTimeout(FRM.timer);
   FRM.timer = setTimeout(() => {
+    if (SCRUB.on){ SCRUB.need = framesSoon; return; }   // 0.16.0: not under a scrubbing finger
     if (VIEW === 'home') renderHome();
     else if (VIEW === 'flow') renderFlow();
     else if (VIEW === 'editor') filmBtnSync();
@@ -5948,6 +5949,7 @@ function stripEntry(key){
   const F = SYNC.ipad.frames, e = F && key ? F[key] : null;
   if (!e || typeof e.g !== 'string' || !(e.sl || e.ez)) return null;
   if (SYNC.framesCleared && e.at && String(e.at) <= SYNC.framesCleared) return null;   // from before Clear all frames
+  const m = STRP.miss.get(key); if (m && m.dead && m.g === e.g) return null;   // its gist is gone (404): nothing to wait for
   return e;
 }
 const STRP = {cache:new Map(), busy:new Set(), miss:new Map()};
@@ -5959,6 +5961,7 @@ function stripCheck(o, key, a){
   let bad = 0; const img = o.img.map(x => { if (x == null) return null; if (okImg(x)) return x; bad++; return null; });
   if (bad) diag('frames.check', `${name}: ${bad} picture(s) weren't image data — skipped`);
   if (o.key && o.key !== key) diag('frames.check', `${name}: made for ${o.key}, shown for ${key}`);
+  if (SYNC.framesCleared && o.at && String(o.at) <= SYNC.framesCleared){ diag('frames.check', `${name}: kept ${o.at}, before the clear at ${SYNC.framesCleared} — not shown`); return null; }
   return img.some(Boolean) ? {t0, dt, n:img.length, img, at:o.at || null, part:!!o.part} : null;
 }
 function stripData(key){   // the play's strips from its own gist: one read, the last dozen plays kept in memory
@@ -5977,7 +5980,7 @@ function stripData(key){   // the play's strips from its own gist: one read, the
       STRP.miss.delete(key);
       diag('frames.strip', `${key}: ${Object.entries(ang).map(([a, v]) => `${a} ${v.img.filter(Boolean).length}/${v.n}`).join(' · ')}`);
       framesSoon();
-    })().catch(err => { STRP.miss.set(key, {sig, at:Date.now()}); diag('frames.strip', `${key}: ${(err && err.status) || ''} ${(err && (err.msg || err.message)) || err}`); })
+    })().catch(err => { STRP.miss.set(key, {sig, at:Date.now(), g:e.g, dead:!!(err && err.status === 404)}); diag('frames.strip', `${key}: ${(err && err.status) || ''} ${(err && (err.msg || err.message)) || err}`); if (err && err.status === 404) framesSoon(); })
       .finally(() => STRP.busy.delete(key));
   }
   return c ? c.data : null;
@@ -6043,6 +6046,11 @@ function stPaint(F){   // the frame and its words, in place — the slider under
     if (zb){ zb.classList.toggle('on', on); zb.textContent = on ? 'Snap ✓' : 'This is the snap'; }
   }
 }
+const SCRUB = {on:false, need:null};   // a finger on the scrubber: redraws from the sync wait for it to lift
+document.addEventListener('pointerdown', e => { if (e.target && e.target.closest && e.target.closest('[data-scrub]')) SCRUB.on = true; }, true);
+function scrubEnd(){ if (!SCRUB.on) return; SCRUB.on = false; const f = SCRUB.need; SCRUB.need = null; if (f) setTimeout(f, 0); }
+['pointerup', 'pointercancel', 'change'].forEach(t => document.addEventListener(t, scrubEnd, true));
+function homeSoon(){ if (SCRUB.on){ SCRUB.need = () => { if (VIEW === 'home') renderHome(); }; return; } renderHome(); }
 const stNow = key => { const k = key || STV.key, F = k ? framesNow(k) : null; return F && F.kind === 'strip' ? F : null; };
 function stRerender(){ framesSoon(); if (!$('#zoomer').hidden && ZM.strip) zoomShow(); }
 document.addEventListener('input', e => {   // the scrub: one frame per notch, painted in place
@@ -6091,7 +6099,7 @@ async function framesClearAll(){
     const ids = [];
     for (let page = 1; page <= 30; page++){
       const g = await gh('GET', `/gists?per_page=100&page=${page}`), list = Array.isArray(g.json) ? g.json : [];
-      list.forEach(x => { if (x && x.id && typeof x.description === 'string' && x.description.startsWith('chalk frames · ')) ids.push(x.id); });
+      list.forEach(x => { if (x && x.id && typeof x.description === 'string' && x.description.startsWith('chalk frames · ') && String(x.updated_at || '') <= at) ids.push(x.id); });   // one the iPad sent after you tapped Clear stays
       if (list.length < 100) break;
     }
     let strips = 0;
@@ -6288,7 +6296,8 @@ function inboxSplit(){
   const all = inboxItems();
   const live = all.filter(q => !PARK.has(q.key)), parked = all.filter(q => PARK.has(q.key));
   const H = SYNC.ipad.here;   // 0.16.0: the iPad moved to a play in the inbox after you last moved the card: that's the card
-  if (H && H.key && HEREV.seenAt > CARDV.pickAt && H.key !== CARDV.key && live.some(q => q.key === H.key)){ CARDV.key = H.key; CARDV.shot = 'snap'; CARDV.pickAt = HEREV.seenAt; diag('card.follow', `the iPad is on ${H.key}`); }
+  const hAt = H && H.at ? Date.parse(H.at) || 0 : 0;
+  if (H && H.key && hAt > CARDV.pickAt && H.key !== CARDV.key && live.some(q => q.key === H.key)){ CARDV.key = H.key; CARDV.shot = 'snap'; CARDV.pickAt = hAt; diag('card.follow', `the iPad is on ${H.key}`); }
   let top = (CARDV.key && live.find(q => q.key === CARDV.key)) || live[0] || null;
   if (top && top.key !== CARDV.key){ CARDV.key = top.key; CARDV.shot = 'snap'; }
   return {all, live, parked, top};
