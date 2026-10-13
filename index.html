@@ -279,6 +279,41 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .nextup .t b{font-size:22px;font-weight:800}.nextup .t small{font-size:13px;opacity:.75}
 .nextup .s{font-size:13px;opacity:.85;line-height:18px}
 .nextup .fb{height:48px;flex:none;background:var(--accent);color:#fff}
+/* 0.14.0 three ways to place the men: ask, grid, drag */
+.fseg.how{height:40px;border-radius:20px}
+.fseg.how button{display:flex;align-items:center;justify-content:center;gap:6px;border-radius:17px}
+.fseg.how svg{width:15px;height:15px;flex:none}
+.hows{display:flex;align-items:center;gap:6px;margin:0 0 12px}
+.hows > b{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--fg2);width:46px;line-height:1.2;flex:none}
+.hows button{flex:1;min-width:0;height:36px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--fg);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 4px}
+.hows svg{width:14px;height:14px;flex:none}
+.dm-name{font-size:28px;font-weight:800;line-height:32px;letter-spacing:-.02em;height:64px;margin:0 0 4px;display:flex;align-items:flex-end;overflow:hidden;overflow-wrap:anywhere}
+.dm-name.chg{color:var(--accent)}
+.dm-why{height:26px;overflow:hidden;margin:0 0 10px}
+.dm-legend{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:0 0 8px}
+.dm-legend.six{grid-template-columns:repeat(6,minmax(0,1fr))}
+.dm-l{height:56px;border-radius:14px;border:2px solid var(--line);background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--fg);padding:0}
+.dm-l i{width:28px;height:28px;border-radius:14px;background:var(--qz-ink);color:var(--qz-bg);font-style:normal;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
+.dm-l.ol i{border-radius:7px;background:var(--qz-ol);color:var(--fg);font-size:10px}
+.dm-l small{font-size:11px;font-weight:700;color:var(--fg2)}
+.dm-l.on{border-color:var(--accent);background:var(--soft)}
+.dm-l.on i{background:var(--accent);color:#fff;box-shadow:0 0 0 2px var(--soft),0 0 0 4.5px var(--coral)}
+.dm-l.on small{color:var(--accent);font-weight:800}
+.dm-wrap{border-radius:14px;overflow:hidden;margin:0 0 10px;background:var(--qz-bg)}
+.dm{display:block;width:100%;height:auto;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.dm .bg{fill:var(--qz-bg)}.dm .ln{stroke:var(--qz-line);stroke-width:1.5;fill:none}.dm .hs{stroke:var(--qz-hash);stroke-width:1.5;fill:none}.dm .los{stroke:var(--qz-los);stroke-width:2.5;fill:none}
+.dm .ol{fill:var(--qz-ol)}.dm .qb{fill:var(--qz-qb);stroke:var(--qz-ink);stroke-width:2}
+.dm .dot{fill:none;stroke:var(--qz-sub);stroke-width:1.4;opacity:.5}
+.dm .man{fill:var(--qz-ink)}.dm .xol{fill:var(--qz-ol);stroke:var(--qz-ink);stroke-width:1.5}
+.dm text{font-family:var(--font);font-weight:800;font-size:12.5px;text-anchor:middle;fill:var(--qz-bg);pointer-events:none}
+.dm .on .man,.dm .on .xol{fill:var(--accent)}.dm .on text{fill:#fff}
+.dm .ring{fill:none;stroke:var(--coral);stroke-width:3}.dm .pc:not(.on) .ring{display:none}
+.dm .tgt{fill:none;stroke:var(--coral);stroke-width:2.5;stroke-dasharray:5 4}
+.dm .gh{fill:none;stroke:var(--qz-ink);stroke-width:1.6;stroke-dasharray:4 3;opacity:.5}
+.dm.live .dot{opacity:.9}.dm .sw{opacity:.5}
+.dm .dot,.dm .gh,.dm .tgt,.dm .ring{pointer-events:none}
+.dm-st{min-height:58px;box-sizing:border-box}
+.dm-st small.bad{color:var(--run);font-weight:700}
 /* 0.13.0 the call sheet, one set, the wristband, the question bank */
 .sh-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 10px}
 .sh-head b{display:block;font-size:22px;font-weight:800;letter-spacing:.02em}
@@ -655,7 +690,7 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
 <script>
 (() => {
 'use strict';
-const VERSION = '0.13.0';
+const VERSION = '0.14.0';
 const KEYS = {store:'pb.store', diag:'pb.diag', dumps:'pb.dumps', base:'pb.baseline', bad:'pb.store.bad'};
 const LETTER_COLOR = {X:'#FF5A4E', Y:'#FFD23F', Z:'#B78CFF', H:'#4DA3FF', F:'#3DDC84'};
 const PERS = ['11','12','10','13','21','22','20','23','01','02','00','31','30'];
@@ -6466,7 +6501,7 @@ let EN = null;
 function enFresh(){
   return {mode:'log', q:null, known:{}, step:'start', start:null, qs:[], qk:null, kept:0, changed:{}, place:null, placed:false,
     def:null, defStart:null, defName:'', defCode:null, defSrc:null, fronts:null, sel:null, post:null, frame:'snap', logged:null, chain:null, from:null,
-    persYou:false, qbYou:false, askKeys:{}, askAll:false};
+    persYou:false, qbYou:false, askKeys:{}, askAll:false, how:'ask', drag:null};
 }
 
 /* ---- the art: quiz look, one renderer for sets, the box and the shell (SVG in yards; y down = into the offense's backfield) ---- */
@@ -6660,10 +6695,11 @@ function enTop(o){
 }
 function renderFlow(){
   const el = $('#flow'); if (!el) return;
+  if (DMS.g) return;   // a finger is dragging a man: the field stays put under it, and the drop draws everything
   if (!EN || !W){ el.innerHTML = ''; return; }
   let html = '';
   try {
-    html = EN.step === 'start' ? enStartHTML() : EN.step === 'ask' ? enAskHTML() : EN.step === 'place' ? enPlaceHTML() : EN.step === 'card' ? enCardHTML()
+    html = EN.step === 'start' ? enStartHTML() : EN.step === 'ask' ? enAskHTML() : EN.step === 'place' ? enPlaceHTML() : EN.step === 'drag' ? enDragHTML() : EN.step === 'card' ? enCardHTML()
       : EN.step === 'techs' ? enTechsHTML() : EN.step === 'snap' ? enSnapHTML() : EN.step === 'done' ? enDoneHTML() : '';
   } catch(e){
     fail('engine.render', `the ${EN.step} screen drawn`, String(e && e.message), String(e && e.stack || '').slice(0, 1500));
@@ -6747,27 +6783,37 @@ function enStartHTML(){
   const sub = `Closest sets for ${W.pers} · ${QB_LABEL[W.qb]}${dd ? ' on ' + String(dd).replace(/ \(.*\)$/, '').toLowerCase() : ''}${q.sit && q.sit.pos ? ` — ${q.sit.pos} first` : ''}.`;
   const grid = C.length ? `<div class="fl-grid">${C.map((x, i) => `<button class="fl-set${i === 0 ? ' on' : ''}" data-act="enPick" data-id="${esc(x.f.id)}"><span class="fl-art" style="height:78px">${QZ.set(offFromSet(x.f, W.pers), {w:147, h:78, letters:false})}</span><b>${esc(fmFiled(x.f, W.pers))}</b><small>${esc(candSub(x))}</small>${i === 0 ? '<span class="fl-tag">Closest</span>' : ''}</button>`).join('')}</div>`
     : `<div class="zero"><b>No sets for ${esc(W.pers)} · ${esc(QB_LABEL[W.qb])} yet</b><small>Place them. It names the set and keeps it in the book.</small></div>`;
+  const how = enHowPref();
   return enTop({segs:0, ctx:enCtx() || 'A play by hand', right:'close'}) + head + ask.join('')
     + `<h1 class="fl-h">What should we start with?</h1><p class="fl-sub">${esc(sub)}</p>${grid}`
     + (all.length > 4 ? `<button class="fl-link" data-act="enMoreSets" style="margin:-6px 0 10px">Every set for ${esc(W.pers)} · ${all.length} ›</button>` : '')
+    + `<div class="fl-q"><span class="lab">After you pick a set</span>${enHowSeg(how, 'enHowPref')}</div>`
     + `<button class="fl-big" data-act="enPlaceGo">${HAND_SVG}Skip the questions — place them</button>
     <div class="fl-sw"><span><b>Always go straight to placing</b><small>You can still ask for the questions</small></span><button class="sw${enPlacePref() ? ' on' : ''}" role="switch" aria-checked="${enPlacePref()}" aria-label="Always go straight to placing" data-act="enPlacePref"></button></div>
-    <p class="fl-note">Pick a set → only what it can’t tell gets asked</p>`;
+    <p class="fl-note">${how === 'drag' ? 'Pick a set → drag its men anywhere on the field' : how === 'grid' ? 'Pick a set → move its men on the grid' : 'Pick a set → only what it can’t tell gets asked'}</p>`;
 }
-function enPick(id){
-  const f = fmGet(id); if (!f){ toast('That set is not in the book any more.'); return; }
-  const want = (EN.known && EN.known.pers) ? EN.known.pers.v : EN.persYou ? W.pers : null;   // unknown personnel: the set's own
+/* a set from the book onto the field, as the start: its men, the answers that draw it, what its neighbours disagree on */
+function enLoadBase(f, keepPers){
+  const want = (EN.known && EN.known.pers) ? EN.known.pers.v : (EN.persYou || keepPers) ? W.pers : null;   // unknown personnel: the set's own
   const off = offFromSet(f, want || f.pers);
   loadOffInto(W, off, false);
   if (EN.known.pers && W.pers !== EN.known.pers.v) diag('engine', `${f.name || f.code} does not take ${EN.known.pers.v} personnel — kept ${W.pers}`);
   W.wiz = {}; wizInfer();
   EN.start = {id:f.id, name:fmFiled(f, W.pers), base:!!f.base, off:enClone({pers:W.pers, xol:W.xol, qb:W.qb, tokens:W.tokens.map(t => ({type:t.type, slot:t.slot}))}), wiz:enClone(W.wiz), fit:W.wizFit};
-  EN.kept = 0; EN.changed = {}; EN.placed = false; EN.place = null; EN.askAll = false;
+  EN.kept = 0; EN.changed = {}; EN.placed = false; EN.place = null; EN.drag = null; EN.askAll = false;
   EN.askKeys = enUnsure(f);
   EN.qs = enWalk(); EN.qk = EN.qs.length ? EN.qs[0].k : null;
-  EN.step = EN.qs.length ? 'ask' : 'card';
-  diag('engine', `start from "${EN.start.name}" ${f.code || ''} · asks ${EN.qs.map(q => q.k).join(' ') || 'nothing'} · wizard fit ${W.wizFit}`);
-  renderFlow(); $('#flow').scrollTop = 0;
+}
+/* picked: the questions, the grid or the field — the way set on the first screen; picked while dragging, you keep dragging */
+function enPick(id){
+  const f = fmGet(id); if (!f){ toast('That set is not in the book any more.'); return; }
+  const stay = EN.step === 'drag', how = stay ? 'drag' : enHowPref();
+  enLoadBase(f);
+  if (how === 'drag') enDragInit();
+  else if (how === 'grid') enPlaceInit(false);
+  else { EN.how = 'ask'; EN.step = EN.qs.length ? 'ask' : 'card'; }
+  diag('engine', `start from "${EN.start.name}" ${f.code || ''} · ${how}${how === 'ask' ? ' · asks ' + (EN.qs.map(q => q.k).join(' ') || 'nothing') : ''} · wizard fit ${W.wizFit}`);
+  renderFlow(); if (!stay) $('#flow').scrollTop = 0;
 }
 
 /* ---- E02: one question, in role words; the pick's answer is marked; nothing about letters ----
@@ -6867,6 +6913,7 @@ function enAskHTML(){
   }).join('');
   const rest = qs.slice(i + 1).map(x => enQShort(x.k));
   return enTop({segList:qs.map((x, j) => j < i ? 'on' : j === i ? 'cur' : ''), ctx:`${i + 1} of ${qs.length}`, right:'back'})
+    + enHowSeg('ask', 'enHow')
     + `<p class="fl-k">${esc(lead)}</p><h1 class="fl-h">${esc(enQText(Q.k))}</h1>${enFilmHTML()}<div class="fl-opts">${opts}</div>`
     + (rest.length ? `<p class="fl-k">Still to ask — only because the pick can’t tell</p><div class="fl-next">${rest.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : '')
     + `<div class="fl-row"><button class="fb out" data-act="enPlaceGo">Skip to placing</button><button class="fb" data-act="enSkipQ">Not sure — skip</button></div>
@@ -6889,7 +6936,7 @@ function enFirstOpen(){ const i = enOrderIdx().find(j => !W.tokens[j].slot); ret
 function enPlaceInit(fresh){
   if (fresh){ W.tokens.forEach(t => { t.slot = null; }); W.wiz = {}; }
   EN.place = {side:W.wiz && W.wiz.str === 'L' ? 'L' : 'R', cur:enFirstOpen(), hist:[], last:null};
-  EN.step = 'place';
+  EN.step = 'place'; EN.how = 'grid';
 }
 function enBackSpots(side){
   return W.qb === 'under' ? [[`${side}:HB`, 'Wing'], [`${side}:FB`, 'Offset'], ['M:FB', 'Fullback'], ['M:TB', 'Tailback']]
@@ -6943,7 +6990,8 @@ function enPlaceHTML(){
     const nm = enNameNow(), who = P.last != null && Lt[P.last] ? `He’s ${Lt[P.last]} — and that reads ` : 'That reads ';
     read = `<div class="reads"><b>${esc(who + nm)}</b><small>${esc(st.legal ? (enWhy(off).map(w => w.b).filter(Boolean).slice(0, 2).join(', ') + enThisGame()).replace(/^, /, '') : (st.issues[0] || {}).msg || '')}</small></div>`;
   } else read = `<div class="reads"><b>${st.left} to place</b><small>${esc(st.placed ? 'The name comes when everyone’s down.' : 'The back first, then the tight end, then the receivers.')}</small></div>`;
-  return enTop({back:true, ctx:`Placing · ${persStr(W.pers, W.xol)} personnel`, right:EN.mode === 'set' ? '' : 'ask'})
+  return enTop({back:true, ctx:`Placing · ${persStr(W.pers, W.xol)} personnel`})
+    + enHowSeg('grid', 'enHow')
     + (EN.mode === 'set' ? enBuildChips() : '')
     + `<h1 class="fl-h">${esc(title)}</h1><p class="fl-sub">Tap his spot. You never pick a letter — we do.</p>
     <div class="tray${order.length > 5 ? ' six' : ''}">${tray}</div>
@@ -6954,6 +7002,287 @@ function enPlaceHTML(){
     ${read}
     <div class="fl-row"><button class="fb pri" data-act="enDonePlace"${st.legal ? '' : ' disabled'}>${EN.mode === 'set' ? 'Done — name it' : 'Done — name it'}</button><button class="fb" data-act="enUndo"${P.hist.length ? '' : ' disabled'}>Undo</button></div>`;
 }
+
+/* ---- 0.14.0: three ways to place the men — Ask (the questions), Grid (the chart), Drag (the field). Any of the three,
+   any time: the same men carry across, the switch sits on every placing screen and on the card, and the first screen
+   remembers which one a picked set opens in. ---- */
+const HOW_LS = 'pb.en.how';
+const enHowPref = () => { const v = lsGetRaw(HOW_LS); return v === 'grid' || v === 'drag' ? v : 'ask'; };
+const HOW_OPTS = [['ask', 'Ask me'], ['grid', 'Grid'], ['drag', 'Drag']];
+const HOW_SVG = {
+  ask:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h11M4 12h16M4 17h8"/></svg>',
+  grid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M3.5 14.5h17M9.2 4.5v15M14.8 4.5v15"/></svg>',
+  drag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18M3 12h18M9 5.5L12 3l3 2.5M9 18.5l3 2.5 3-2.5M5.5 9L3 12l2.5 3M18.5 9L21 12l-2.5 3"/></svg>'
+};
+function enHowSeg(cur, act){
+  return `<div class="fseg how" role="group" aria-label="How to place the men">${HOW_OPTS.map(([v, l]) => `<button class="${cur === v ? 'on' : ''}" data-act="${act}" data-v="${v}" aria-pressed="${cur === v}">${HOW_SVG[v]}<span>${l}</span></button>`).join('')}</div>`;
+}
+/* to the questions: the answers read off the men where they stand; while it's still the picked set, only what the pick
+   can't tell gets asked — once a man was moved by hand, every question, with today's answer marked */
+function enGoAsk(){
+  W.wiz = {};
+  if (W.tokens.some(t => t.slot)) wizInfer();
+  if (W.tokens.some(t => !t.slot)) wizApply('engine fill');
+  else if (!W.wizFit) toast('The questions can’t draw this exact set — answering one redraws it from the answers.');
+  EN.askAll = !(EN.start && !EN.placed);
+  let qs = enWalk();
+  if (!qs.length && !EN.askAll){ EN.askAll = true; qs = enWalk(); }
+  EN.qs = qs; EN.qk = qs.length ? qs[0].k : null; EN.how = 'ask';
+  EN.step = qs.length ? 'ask' : 'card';
+}
+/* back to placing by hand, the way you were placing: the field if you were dragging, else the grid */
+function enGoPlace(){
+  if (EN.how === 'drag'){ enDragInit(); return; }
+  if (!EN.place) enPlaceInit(false); else { EN.step = 'place'; EN.how = 'grid'; }
+}
+
+/* ---- E03b: drag. A base set on the field. Tap a man in the legend (or on the field) and he's the one that moves: put a
+   finger down anywhere on the field and drag — he follows at the same offset, so the finger never covers him. The
+   nearest spot he can take is ringed, and the name, the letters and the line count read live as if he were already
+   there. Let go and he snaps in; a man already on that spot trades places with him. ---- */
+const DMG = (() => {   // the field in screen units: true depth; widths eased so every column sits a finger apart
+  const XS = [[0, 0], [2, 18], [4, 36], [6, 60], [9, 86], [12, 112], [FW / 2 - 8, 140], [FW / 2 - 4, 164], [FW / 2, 179]];
+  const SY = 26, Y0 = -1.4, Y1 = 9.3, VW = 360, VH = Math.round((Y1 - Y0) * SY);
+  const QBY = {under:1.75, pistol:4.6, gun:5.6};
+  const px = x => {
+    const a = Math.abs(x), s = x < 0 ? -1 : 1;
+    for (let i = 1; i < XS.length; i++){
+      const [x0, p0] = XS[i - 1], [x1, p1] = XS[i];
+      if (a <= x1 || i === XS.length - 1) return s * (p0 + (Math.min(a, x1) - x0) / (x1 - x0) * (p1 - p0));
+    }
+    return 0;
+  };
+  const py = y => (y - Y0) * SY;
+  const at = (key, qb) => { const q = key ? PBA.offXY(key, qb) : null; return q ? {x:px(q.x), y:py(q.r + 0.9)} : null; };
+  return {px, py, at, VW, VH, QBY};
+})();
+function enNameOf(tokens){   // the neutral read of these men (your own name for the set never hides how it reads)
+  const x = {qb:W.qb, xol:W.xol, tokens:tokens.filter(t => t.slot).map(t => ({type:t.type, slot:t.slot}))};
+  if (!x.tokens.length) return '—';
+  try { return NAMES.setText(x, NAMING === 'desc' ? 'plain' : 'pro', {field:strengthOf(x.tokens), neutral:true}) || '—'; } catch(e){ return '—'; }
+}
+function enStatusOf(slots){   // the line rule for these spots, without keeping them
+  const keep = W.tokens.map(t => t.slot);
+  try { W.tokens.forEach((t, n) => { t.slot = slots[n] || null; }); return offStatus(); }
+  finally { W.tokens.forEach((t, n) => { t.slot = keep[n]; }); }
+}
+const DM_COL = {I:'tight', T:'wide of the TE', S:'slot', N:'numbers', W:'wide'};
+function dmWord(k){
+  const [s, c, r] = String(k || '').split(':'), S = s === 'R' ? 'Right' : s === 'L' ? 'Left' : '';
+  if (c === 'FB') return s === 'M' ? 'Fullback, behind the QB' : `${S} · ${W.qb === 'under' ? 'offset back' : 'beside the QB'}`;
+  if (c === 'TB') return W.qb === 'under' ? 'Tailback' : W.qb === 'pistol' ? 'Behind the QB' : 'Deep behind the QB';
+  if (c === 'HB') return `${S} · wing`;
+  return `${S} · ${DM_COL[c] || c} · ${r === '0' ? 'on the ball' : r === '1' ? 'off the ball' : 'stacked'}`;
+}
+function dmTargets(i){   // every spot he can take: open ones, and taken ones whose man can take his spot (a trade)
+  const t = W.tokens[i]; if (!t) return [];
+  return OFF_KEYS.filter(k => {
+    if (!slotOK(k, t.type, W.qb)) return false;
+    const j = W.tokens.findIndex(o => o.slot === k);
+    return j < 0 || j === i || (!!t.slot && slotOK(t.slot, W.tokens[j].type, W.qb));
+  });
+}
+const DM_PREF = {B:['M:TB', 'R:FB', 'L:FB', 'M:FB', 'R:HB', 'L:HB'], T:['R:I:0', 'L:I:0', 'R:HB', 'L:HB', 'R:I:1', 'L:I:1'],
+  W:['R:W:0', 'L:W:0', 'R:S:1', 'L:S:1', 'R:N:1', 'L:N:1', 'R:T:1', 'L:T:1'], L:['R:I:0', 'L:I:0']};
+function enDragFill(){   // a man without a spot (new personnel, a QB move) goes to the nearest open one for his job
+  let n = 0;
+  W.tokens.forEach(t => {
+    if (t.slot) return;
+    const free = k => slotOK(k, t.type, W.qb) && !W.tokens.some(o => o.slot === k);
+    const k = (DM_PREF[t.type] || []).find(free) || OFF_KEYS.find(free) || null;
+    if (k){ t.slot = k; n++; }
+  });
+  return n;
+}
+function enDragInit(){
+  if (!W.tokens.some(t => t.slot)){   // an empty field: the closest set is the base, else the questions' defaults
+    const c = enCands()[0];
+    if (c){ enLoadBase(c.f, true); diag('engine.drag', `empty field — started from the closest set, ${EN.start.name}`); }
+    else { W.wiz = {}; wizApply('drag defaults'); }
+  }
+  const n = enDragFill();
+  if (n) diag('engine.drag', `${n} without a spot — put on the nearest open one`);
+  const sel = EN.drag && EN.drag.sel != null && W.tokens[EN.drag.sel] ? EN.drag.sel : null;
+  EN.drag = {sel, hist:[]};
+  EN.how = 'drag'; EN.step = 'drag';
+}
+function dmMapSVG(sel){
+  const g = DMG, f1 = v => (Math.round(v * 10) / 10).toString(), qb = W.qb, Lt = QZ.lettersOf(enOffNow()), out = [];
+  out.push(`<rect class="bg" x="-180" y="0" width="${g.VW}" height="${g.VH}"/>`);
+  const lines = [], ticks = [], hx = g.px(FW / 2 - HASH_L);
+  for (let y = -1; y <= 9; y++){ if (!y) continue; const Y = f1(g.py(y)); if (y % 5 === 0) lines.push(`M-180 ${Y}H180`); else ticks.push(`M${f1(-hx - 4)} ${Y}h8M${f1(hx - 4)} ${Y}h8`); }
+  out.push(`<path class="ln" d="${lines.join('')}"/><path class="hs" d="${ticks.join('')}"/><path class="los" d="M-180 ${f1(g.py(0))}H180"/>`);
+  [-4, -2, 0, 2, 4].forEach(x => out.push(`<rect class="ol" x="${f1(g.px(x) - 7)}" y="${f1(g.py(0.9) - 7)}" width="14" height="14" rx="3"/>`));
+  out.push(`<circle class="qb" cx="0" cy="${f1(g.py(g.QBY[qb] || 5.6))}" r="8"/>`);
+  const dots = sel != null ? dmTargets(sel).map(k => g.at(k, qb)).filter(Boolean).map(p => `<circle class="dot" cx="${f1(p.x)}" cy="${f1(p.y)}" r="3.6"/>`).join('') : '';
+  out.push(`<g id="dmDots">${dots}</g><circle class="gh" id="dmGh" cx="0" cy="0" r="11" visibility="hidden"/>`);
+  const men = W.tokens.map((t, i) => ({t, i})).filter(o => o.t.slot);
+  men.sort((a, b) => (a.i === sel) - (b.i === sel));   // the picked man drawn last, on top
+  men.forEach(({t, i}) => {
+    const p = g.at(t.slot, qb); if (!p) return;
+    const on = i === sel, ring = on ? `<circle class="ring" cx="${f1(p.x)}" cy="${f1(p.y)}" r="${t.type === 'L' ? 14 : 15.5}"/>` : '';
+    out.push(t.type === 'L'
+      ? `<g class="pc${on ? ' on' : ''}" id="dmP${i}">${ring}<rect class="xol" x="${f1(p.x - 8)}" y="${f1(p.y - 8)}" width="16" height="16" rx="3.5"/></g>`
+      : `<g class="pc${on ? ' on' : ''}" id="dmP${i}">${ring}<circle class="man" cx="${f1(p.x)}" cy="${f1(p.y)}" r="11"/><text x="${f1(p.x)}" y="${f1(p.y + 4.5)}">${esc(Lt[i] || '')}</text></g>`);
+  });
+  out.push(`<circle class="tgt" id="dmTgt" cx="0" cy="0" r="16" visibility="hidden"/>`);
+  return `<svg id="dmMap" class="dm" viewBox="-180 0 ${g.VW} ${g.VH}" width="${g.VW}" height="${g.VH}" role="img" aria-label="The field. Put a finger anywhere on it and drag to move the picked man.">${out.join('')}</svg>`;
+}
+function dmStatHTML(st, head){
+  const err = st.issues.find(x => x.lvl === 'err'), warn = st.issues.find(x => x.lvl === 'warn');
+  const line = st.left ? `${st.left} still to place` : !st.legal ? (err ? err.msg : 'Not legal yet') : warn ? warn.msg : `${st.onLine} on the line · legal`;
+  return `<b>${esc(head)}</b><small class="${st.legal ? '' : 'bad'}">${esc(line)}</small>`;
+}
+function enDragHTML(){
+  if (!EN.drag) enDragInit();
+  const D = EN.drag, off = enOffNow(), Lt = QZ.lettersOf(off), order = enOrderIdx();
+  const sel = D.sel != null && W.tokens[D.sel] && W.tokens[D.sel].slot ? D.sel : null;
+  const st = offStatus(), nm = enNameOf(W.tokens), moved = EN.start && EN.start.name !== nm;
+  const lead = EN.start ? `STARTED FROM <span class="${moved ? 'was' : ''}">${esc(EN.start.name.toUpperCase())}</span>${moved ? ' · NOW' : ' · KEPT'}` : 'IT READS';
+  const why = enWhy(off).map(w => `<span><b>${esc(w.a)}</b>${esc(w.b)}</span>`).join('');
+  const C = enCands();
+  const from = C.length ? `<div class="frs"><b>FROM</b>${C.slice(0, 8).map(x => `<button class="${EN.start && EN.start.id === x.f.id ? 'on' : ''}" data-act="enPick" data-id="${esc(x.f.id)}">${esc(fmFiled(x.f, W.pers))}</button>`).join('')}${C.length > 8 ? `<button data-act="enMoreSets">Every set · ${C.length} ›</button>` : ''}</div>` : '';
+  const legend = order.map(i => {
+    const t = W.tokens[i], l = t.type === 'L' ? 'OL' : (Lt[i] || '•'), on = i === sel;
+    return `<button class="dm-l${on ? ' on' : ''}${t.type === 'L' ? ' ol' : ''}" id="dmL${i}" data-act="enDragSel" data-i="${i}" aria-pressed="${on}" aria-label="${esc(TYPE_ROLE[t.type] + ' ' + l + (on ? ', the one that moves' : ''))}"><i>${esc(l)}</i><small>${TYPE_ROLE[t.type]}</small></button>`;
+  }).join('');
+  const head = sel != null ? `${W.tokens[sel].type === 'L' ? 'The extra lineman' : (Lt[sel] || 'He')} · ${dmWord(W.tokens[sel].slot)}` : 'Tap a man above — then drag anywhere on the field';
+  return enTop({back:true, ctx:`Placing · ${persStr(W.pers, W.xol)} personnel`})
+    + enHowSeg('drag', 'enHow')
+    + (EN.mode === 'set' ? enBuildChips() : '')
+    + from
+    + `<p class="fl-lead">${lead}</p><h1 class="dm-name" id="dmName">${esc(nm)}</h1><div class="why dm-why" id="dmWhy">${why}</div>
+    <div class="dm-legend${order.length > 5 ? ' six' : ''}">${legend}</div>
+    <div class="dm-wrap">${dmMapSVG(sel)}</div>
+    <div class="reads dm-st" id="dmSt">${dmStatHTML(st, head)}</div>
+    <div class="fl-row"><button class="fb pri" data-act="enDonePlace"${st.legal ? '' : ' disabled'}>Done — name it</button><button class="fb" data-act="enDragUndo"${D.hist.length ? '' : ' disabled'}>Undo</button></div>
+    <p class="fl-note">Pick a man, then drag anywhere on the field — he follows without your finger on him</p>`;
+}
+/* the drag itself. Pointer events on the flow (it outlives every redraw); nothing redraws while a finger is down */
+const DMS = {g:null};
+function dmPt(sv, e){   // a finger in field units
+  try {
+    const m = sv.getScreenCTM();
+    if (m){ const p = sv.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(m.inverse()); return {x:q.x, y:q.y}; }
+  } catch(err){ /* fall through to the box */ }
+  const r = sv.getBoundingClientRect(), s = DMG.VW / Math.max(1, r.width);
+  return {x:-DMG.VW / 2 + (e.clientX - r.left) * s, y:(e.clientY - r.top) * s};
+}
+function dmHit(p, r){   // the man under a finger, if one is
+  let best = null, bd = r;
+  W.tokens.forEach((t, n) => { if (!t.slot) return; const q = DMG.at(t.slot, W.qb); if (!q) return; const d = Math.hypot(q.x - p.x, q.y - p.y); if (d < bd){ bd = d; best = n; } });
+  return best;
+}
+function dmLift(g){
+  const sv = g.sv, f1 = v => v.toFixed(1);
+  sv.classList.add('live');
+  g.mv = sv.querySelector('#dmP' + g.i);
+  if (EN.drag.sel !== g.i){   // nobody was picked and the finger came down on him: he's the one that moves now
+    EN.drag.sel = g.i;
+    if (g.mv) g.mv.classList.add('on');
+    const lb = $('#dmL' + g.i); if (lb) lb.classList.add('on');
+    const dots = sv.querySelector('#dmDots'); if (dots) dots.innerHTML = g.pts.map(o => `<circle class="dot" cx="${f1(o.x)}" cy="${f1(o.y)}" r="3.6"/>`).join('');
+  }
+  const gh = sv.querySelector('#dmGh'); if (gh){ gh.setAttribute('cx', f1(g.s0.x)); gh.setAttribute('cy', f1(g.s0.y)); gh.setAttribute('visibility', 'visible'); }
+  // nothing under the finger is moved in the tree — Safari can drop a touch whose node leaves the page
+}
+function dmMove(g, e){
+  const x = clamp(g.s0.x + (e.clientX - g.c0.x) * g.k, -174, 174), y = clamp(g.s0.y + (e.clientY - g.c0.y) * g.k, 8, DMG.VH - 8);
+  if (g.mv) g.mv.setAttribute('transform', `translate(${(x - g.s0.x).toFixed(1)} ${(y - g.s0.y).toFixed(1)})`);
+  let best = null, bd = Infinity;
+  g.pts.forEach(o => { const d = Math.hypot(o.x - x, o.y - y); if (d < bd){ bd = d; best = o; } });
+  if (best && g.tgt && best.k !== g.tgt){ const c = g.pts.find(o => o.k === g.tgt); if (c && Math.hypot(c.x - x, c.y - y) - bd < 4) best = c; }   // no flicker between two spots
+  const k = best ? best.k : null;
+  if (k !== g.tgt){ g.tgt = k; dmPreview(g); }
+}
+function dmPreview(g){   // the field, the name, the letters and the line as if he were already on the ringed spot
+  const sv = g.sv, i = g.i, t = W.tokens[i], k = g.tgt, f1 = v => v.toFixed(1);
+  if (g.j >= 0){ const pj = sv.querySelector('#dmP' + g.j); if (pj){ pj.removeAttribute('transform'); pj.classList.remove('sw'); } }
+  g.j = k ? W.tokens.findIndex((o, n) => n !== i && o.slot === k) : -1;
+  const tg = sv.querySelector('#dmTgt');
+  if (!k){ if (tg) tg.setAttribute('visibility', 'hidden'); return; }
+  const p = DMG.at(k, W.qb);
+  if (tg && p){ tg.setAttribute('cx', f1(p.x)); tg.setAttribute('cy', f1(p.y)); tg.setAttribute('visibility', 'visible'); }
+  if (g.j >= 0){ const pj = sv.querySelector('#dmP' + g.j), q = DMG.at(W.tokens[g.j].slot, W.qb); if (pj && q){ pj.setAttribute('transform', `translate(${f1(g.s0.x - q.x)} ${f1(g.s0.y - q.y)})`); pj.classList.add('sw'); } }
+  const slots = W.tokens.map((o, n) => n === i ? k : n === g.j ? t.slot : o.slot);
+  const toks = W.tokens.map((o, n) => ({type:o.type, slot:slots[n]}));
+  const off = {pers:W.pers, xol:W.xol, qb:W.qb, tokens:toks}, Lt = QZ.lettersOf(off), nm = enNameOf(toks), st = enStatusOf(slots);
+  W.tokens.forEach((o, n) => {
+    if (o.type === 'L') return;
+    const tx = sv.querySelector('#dmP' + n + ' text'); if (tx) tx.textContent = Lt[n] || '';
+    const li = $('#dmL' + n + ' i'); if (li) li.textContent = Lt[n] || '•';
+  });
+  const h = $('#dmName'); if (h){ h.textContent = nm; h.classList.toggle('chg', nm !== g.nm0); }
+  const w = $('#dmWhy'); if (w) w.innerHTML = enWhy(off).map(x => `<span><b>${esc(x.a)}</b>${esc(x.b)}</span>`).join('');
+  const s = $('#dmSt');
+  if (s){ const who = t.type === 'L' ? 'The extra lineman' : (Lt[i] || 'He'), sw = g.j >= 0 ? (W.tokens[g.j].type === 'L' ? 'the extra lineman' : (g.L0[g.j] || TYPE_ROLE[W.tokens[g.j].type])) : '';
+    s.innerHTML = dmStatHTML(st, `${who} → ${dmWord(k)}${sw ? ' · trades with ' + sw : ''}`); }
+}
+function dmDrop(g, cancel){
+  if (!EN || !W || EN.step !== 'drag' || !EN.drag){ renderFlow(); return; }
+  if (cancel){ diag('engine.drag', 'cancelled'); renderFlow(); return; }
+  if (!g.moved){   // a tap: the man under the finger becomes the one that moves
+    const hit = dmHit(g.p0, 26);
+    if (hit != null && EN.drag.sel !== hit){ EN.drag.sel = hit; diag('engine.drag', `picked ${TYPE_LABEL[W.tokens[hit].type]} on the field`); }
+    renderFlow(); return;
+  }
+  if (g.i == null){ toast('Tap a man first — then drag anywhere on the field.'); renderFlow(); return; }
+  const t = W.tokens[g.i];
+  if (!t || t !== g.tok){ diag('engine.drag', 'the men changed under the finger — nothing moved'); renderFlow(); return; }
+  EN.drag.sel = g.i;
+  const k = g.tgt, from = t.slot;
+  if (k && k !== from){
+    EN.drag.hist.push(W.tokens.map(o => o.slot));
+    const j = W.tokens.findIndex((o, n) => n !== g.i && o.slot === k);
+    if (j >= 0) W.tokens[j].slot = from;
+    t.slot = k; W.touched = true; EN.placed = true;
+    diag('engine.drag', `${TYPE_LABEL[t.type]} ${from} → ${k}${j >= 0 ? ' (traded)' : ''} · reads ${enNameOf(W.tokens)}`);
+  }
+  renderFlow();
+}
+(function dmWire(){
+  const flow = $('#flow'); if (!flow) return;
+  window.addEventListener('pointerdown', e => {   // a new first finger anywhere means the old one is gone, even if its lift was never heard
+    if (DMS.g && e.isPrimary){ diag('engine.drag', 'a finger never came up — let it go'); DMS.g = null; }
+  }, true);
+  flow.addEventListener('pointerdown', e => {
+    if (DMS.g || !EN || !W || EN.step !== 'drag' || !EN.drag) return;
+    const sv = e.target && e.target.closest ? e.target.closest('#dmMap') : null; if (!sv) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    e.preventDefault();
+    const p = dmPt(sv, e), r = sv.getBoundingClientRect();
+    let m = null; try { m = sv.getScreenCTM(); } catch(err){ m = null; }
+    const sel = EN.drag.sel != null && W.tokens[EN.drag.sel] && W.tokens[EN.drag.sel].slot ? EN.drag.sel : null;
+    const g = {id:e.pointerId, sv, p0:p, c0:{x:e.clientX, y:e.clientY}, k:m && m.a ? 1 / m.a : DMG.VW / Math.max(1, r.width), i:sel != null ? sel : dmHit(p, 26), moved:false, tgt:null, j:-1, mv:null, tok:null};
+    if (g.i != null){
+      const t = W.tokens[g.i];
+      g.tok = t; g.s0 = DMG.at(t.slot, W.qb); g.tgt = t.slot; g.nm0 = enNameOf(W.tokens); g.L0 = QZ.lettersOf(enOffNow());
+      g.pts = dmTargets(g.i).map(k => Object.assign({k}, DMG.at(k, W.qb))).filter(o => o.x != null);
+      if (!g.s0) g.i = null;
+    }
+    DMS.g = g;
+    try { sv.setPointerCapture(e.pointerId); } catch(err){ /* the window still hears the finger */ }
+  });
+  window.addEventListener('pointermove', e => {
+    const g = DMS.g; if (!g || e.pointerId !== g.id) return;
+    if (!EN || !W || EN.step !== 'drag' || (g.i != null && W.tokens[g.i] !== g.tok)) return;   // the drop sorts it out
+    e.preventDefault();
+    if (!g.moved){
+      if (Math.hypot(e.clientX - g.c0.x, e.clientY - g.c0.y) * g.k < 7) return;
+      g.moved = true;
+      if (g.i != null) dmLift(g);
+    }
+    if (g.i != null) dmMove(g, e);
+  });
+  const end = (e, cancel) => {
+    const g = DMS.g; if (!g || e.pointerId !== g.id) return;
+    DMS.g = null;
+    try { g.sv.releasePointerCapture(e.pointerId); } catch(err){ /* already released */ }
+    try { dmDrop(g, cancel); } catch(err){ fail('engine.drag', 'the drop', String(err && err.message), String(err && err.stack || '').slice(0, 1500)); renderFlow(); }
+  };
+  window.addEventListener('pointerup', e => end(e, false));
+  window.addEventListener('pointercancel', e => end(e, true));
+})();
 
 /* ---- E04: the card — the name, why, every line with where it came from, was → now, the letters ---- */
 const WORD_SHORT = {Trey:'TE + 2 out one side', Trips:'3 out one side', Bunch:'3 close together', Doubles:'2 and 2', '2x2':'2 and 2', Pro:'TE and flanker one side', Twins:'2 out one side',
@@ -7042,7 +7371,7 @@ function enBookLine(off){
 }
 function enCardHTML(){
   const st = offStatus();
-  if (!st.legal){ if (!EN.place) enPlaceInit(false); EN.step = 'place'; return enPlaceHTML(); }
+  if (!st.legal){ enGoPlace(); return EN.step === 'drag' ? enDragHTML() : enPlaceHTML(); }
   const off = enOffNow(), nm = enNameNow(), Lt = QZ.lettersOf(off), rows = enCardRows(), moved = EN.start && EN.start.name !== nm;
   const lead = EN.start ? `STARTED FROM <span class="${moved ? 'was' : ''}">${esc(EN.start.name.toUpperCase())}</span>${moved ? ' · NOW' : ' · KEPT'}` : EN.mode === 'set' ? 'WE’D CALL IT' : 'PLACED BY HAND · IT READS';
   const why = enWhy(off).map(w => `<span><b>${esc(w.a)}</b>${esc(w.b)}</span>`).join('');
@@ -7055,7 +7384,8 @@ function enCardHTML(){
     <div class="why">${why}</div>
     <span class="fl-art" style="height:118px;margin-bottom:10px">${QZ.set(off, {w:358, h:118})}</span>${EN.mode === 'set' ? enBookLine(off) : ''}
     <div class="ck"><div class="ck-h"><span>EVERY LINE · TAP ONE TO FIX IT</span><span>where it came from</span></div>${ck}</div>
-    <div class="lets"><b>OUR LETTERS</b>${lets}</div>${btns}`;
+    <div class="lets"><b>OUR LETTERS</b>${lets}</div>
+    <div class="hows"><b>CHANGE IT</b>${HOW_OPTS.map(([v, l]) => `<button data-act="enHow" data-v="${v}">${HOW_SVG[v]}${l}</button>`).join('')}</div>${btns}`;
 }
 
 /* ---- E05: the box, man by man — a front to start from, then each man's technique, hand and depth ---- */
@@ -7203,7 +7533,7 @@ function enSnapHTML(){
 /* ---- log it: the set filed, the play made, the defense and the call on it, what happened after the snap ---- */
 function enLog(scope){
   const q = (EN && EN.q) || {}, st = offStatus();
-  if (!st.legal){ toast(st.left ? `${st.left} still to place.` : ((st.issues[0] || {}).msg || 'Not a legal set.'), 'err'); if (!EN.place) enPlaceInit(false); EN.step = 'place'; renderFlow(); return; }
+  if (!st.legal){ toast(st.left ? `${st.left} still to place.` : ((st.issues[0] || {}).msg || 'Not a legal set.'), 'err'); enGoPlace(); renderFlow(); return; }
   W.tokens.forEach(t => { delete t.fixed; });
   const off = offObject(), strength = strengthOf(off.tokens);
   const x = {qb:off.qb, xol:!!off.xol, tokens:off.tokens.map(t => ({type:t.type, slot:t.slot}))};
@@ -8316,16 +8646,23 @@ Object.assign(ACT, {
     const s = EN.step;
     if (s === 'ask'){
       const qs = enWalk(), i = qs.findIndex(x => x.k === EN.qk);
-      if (i > 0) EN.qk = qs[i - 1].k; else EN.step = EN.mode === 'set' ? 'place' : 'start';
+      if (i > 0) EN.qk = qs[i - 1].k;
+      else if (EN.mode === 'set'){ if (!EN.place) enPlaceInit(false); else { EN.step = 'place'; EN.how = 'grid'; } }
+      else EN.step = 'start';
     }
     else if (s === 'place'){
       if (EN.mode === 'set'){ ACT.enClose(); return; }
-      if (EN.start){ const qs = enWalk(); if (qs.length){ EN.qk = qs[qs.length - 1].k; EN.step = 'ask'; } else EN.step = 'start'; }
+      if (EN.start){ const qs = enWalk(); if (qs.length){ EN.qk = qs[qs.length - 1].k; EN.step = 'ask'; EN.how = 'ask'; } else EN.step = 'start'; }
       else EN.step = 'start';
     }
-    else if (s === 'card'){
-      if (EN.placed || EN.mode === 'set'){ if (!EN.place) enPlaceInit(false); EN.step = 'place'; }
-      else { const qs = enWalk(); if (qs.length && EN.start){ EN.qk = qs[qs.length - 1].k; EN.step = 'ask'; } else EN.step = 'start'; }
+    else if (s === 'drag'){
+      if (EN.mode === 'set'){ ACT.enClose(); return; }
+      EN.step = 'start';
+    }
+    else if (s === 'card'){   // back to the way the set was made: the field, the grid, or the last question
+      if (EN.how === 'drag') enDragInit();
+      else if (EN.how === 'grid' || EN.mode === 'set'){ if (!EN.place) enPlaceInit(false); else { EN.step = 'place'; EN.how = 'grid'; } }
+      else { const qs = enWalk(); if (qs.length && (EN.start || EN.askAll)){ EN.qk = qs[qs.length - 1].k; EN.step = 'ask'; } else EN.step = 'start'; }
     }
     else if (s === 'techs'){ if (EN.mode === 'front'){ ACT.enClose(); return; } EN.step = 'card'; }
     else if (s === 'snap') EN.step = 'techs';
@@ -8351,7 +8688,8 @@ Object.assign(ACT, {
     const v = persOf(d.v); if (!v || !EN) return;
     W.xol = !!W.xol && +v[0] + +v[1] <= 4; W.pers = v; W.tokens = buildTokens(v, W.xol, W.tokens); EN.persYou = true;
     if (EN.place) EN.place.cur = enFirstOpen();
-    if (EN.step === 'card' && !offStatus().legal){ if (!EN.place) enPlaceInit(false); EN.step = 'place'; EN.place.cur = enFirstOpen(); }
+    if (EN.step === 'drag' && EN.drag){ enDragFill(); EN.drag.sel = null; EN.drag.hist = []; }   // new men take the nearest open spot; the order changed, so nobody's picked
+    if (EN.step === 'card' && !offStatus().legal){ enGoPlace(); if (EN.step === 'place' && EN.place) EN.place.cur = enFirstOpen(); }
     diag('engine', `personnel → ${v}`); hideSheet(); renderFlow();
   },
   enQb(d){
@@ -8359,7 +8697,8 @@ Object.assign(ACT, {
     W.qb = v; EN.qbYou = true;
     W.tokens.forEach(t => { if (t.slot && !slotOK(t.slot, t.type, v)) t.slot = null; });
     if (EN.place) EN.place.cur = enFirstOpen();
-    if (EN.step === 'card' && !offStatus().legal){ if (!EN.place) enPlaceInit(false); EN.step = 'place'; EN.place.cur = enFirstOpen(); }
+    if (EN.step === 'drag' && EN.drag){ enDragFill(); EN.drag.hist = []; }
+    if (EN.step === 'card' && !offStatus().legal){ enGoPlace(); if (EN.step === 'place' && EN.place) EN.place.cur = enFirstOpen(); }
     diag('engine', `QB → ${v}`); hideSheet(); renderFlow();
   },
   enAns(d){
@@ -8404,7 +8743,7 @@ Object.assign(ACT, {
     W.wiz = {};
     if (W.tokens.some(t => t.slot)) wizInfer();
     if (W.tokens.some(t => !t.slot)) wizApply('engine fill');
-    EN.askAll = true;
+    EN.askAll = true; EN.how = 'ask';
     EN.qs = enWalk(); EN.qk = EN.qs.length ? EN.qs[0].k : null; EN.step = EN.qs.length ? 'ask' : 'card';
     renderFlow(); $('#flow').scrollTop = 0;
   },
@@ -8433,12 +8772,12 @@ Object.assign(ACT, {
       showSheet(`<h3>Where’s the QB?</h3><div class="fl-chips">${[['under','Under center'],['pistol','Pistol'],['gun','Shotgun']].map(([v, l]) => `<button class="fc${W.qb === v ? ' on' : ''}" data-act="enQb" data-v="${v}">${l}</button>`).join('')}</div><button class="btn" data-act="closeSheet">Cancel</button>`);
       return;
     }
-    if (k === 'place'){ if (!EN.place) enPlaceInit(false); EN.step = 'place'; renderFlow(); $('#flow').scrollTop = 0; return; }
+    if (k === 'place'){ enGoPlace(); renderFlow(); $('#flow').scrollTop = 0; return; }
     W.wiz = {}; wizInfer();
     EN.askKeys[k] = true; if (k === 'sp'){ EN.askKeys.as = true; EN.askKeys.aw = true; }
     const qs = enWalk(), hit = qs.find(x => x.k === k) || qs.find(x => x.k.slice(0, 2) === k.slice(0, 2));
-    if (!hit){ if (!EN.place) enPlaceInit(false); EN.step = 'place'; renderFlow(); $('#flow').scrollTop = 0; return; }
-    EN.qs = qs; EN.qk = hit.k; EN.step = 'ask'; renderFlow(); $('#flow').scrollTop = 0;
+    if (!hit){ enGoPlace(); renderFlow(); $('#flow').scrollTop = 0; return; }
+    EN.qs = qs; EN.qk = hit.k; EN.step = 'ask'; EN.how = 'ask'; renderFlow(); $('#flow').scrollTop = 0;
   },
   enDefGo(){
     if (!EN) return;
@@ -8557,6 +8896,28 @@ Object.assign(ACT, {
     setTimeout(() => { try { window.print(); } catch(e){ fail('band.print', 'the print sheet opened', String(e && e.message)); } }, pdf ? 900 : 60);
   },
   bank(){ ACT.tab({v:'bank'}); }
+});
+/* ================= 0.14.0 actions: three ways to place, the drag ================= */
+Object.assign(ACT, {
+  enHow(d){   // switch now: the questions, the grid or the field — the men stay where they are
+    if (!EN || !W) return;
+    const v = d.v === 'grid' || d.v === 'drag' ? d.v : 'ask', at = EN.step;
+    if (v === 'drag'){ if (at === 'drag') return; enDragInit(); }
+    else if (v === 'grid'){ if (at === 'place') return; enPlaceInit(false); }
+    else { if (at === 'ask') return; enGoAsk(); }
+    diag('engine', `placing by ${v} (from ${at})`);
+    renderFlow(); $('#flow').scrollTop = 0;
+  },
+  enHowPref(d){   // the first screen: what a picked set opens in
+    const v = d.v === 'grid' || d.v === 'drag' ? d.v : 'ask';
+    lsSetRaw(HOW_LS, v === 'ask' ? '' : v); diag('engine', `a picked set opens in: ${v}`); renderFlow();
+  },
+  enDragSel(d){ if (!EN || !EN.drag || !W) return; const i = +d.i; if (!W.tokens[i]) return; EN.drag.sel = i; renderFlow(); },
+  enDragUndo(){
+    if (!EN || !EN.drag || !EN.drag.hist.length) return;
+    const h = EN.drag.hist.pop(); W.tokens.forEach((t, i) => { t.slot = h[i] || null; });
+    diag('engine.drag', `undo → ${enNameOf(W.tokens)}`); renderFlow();
+  }
 });
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
