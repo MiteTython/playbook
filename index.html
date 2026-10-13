@@ -279,6 +279,12 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .nextup .t b{font-size:22px;font-weight:800}.nextup .t small{font-size:13px;opacity:.75}
 .nextup .s{font-size:13px;opacity:.85;line-height:18px}
 .nextup .fb{height:48px;flex:none;background:var(--accent);color:#fff}
+/* 0.15.0 families: one row of sets per family in the book */
+.h2r{display:flex;gap:6px}
+.famr{display:flex;flex-direction:column;gap:2px;margin:0 0 4px}
+.famh{display:flex;align-items:baseline;gap:8px;padding:8px 2px 2px}
+.famh b{font-size:17px;font-weight:800;letter-spacing:-.01em;color:var(--fg);text-transform:none}
+.famh small{font-size:12px;font-weight:700;color:var(--fg2)}
 /* 0.14.0 three ways to place the men: ask, grid, drag */
 .fseg.how{height:40px;border-radius:20px}
 .fseg.how button{display:flex;align-items:center;justify-content:center;gap:6px;border-radius:17px}
@@ -690,7 +696,7 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
 <script>
 (() => {
 'use strict';
-const VERSION = '0.14.1';
+const VERSION = '0.15.0';
 const KEYS = {store:'pb.store', diag:'pb.diag', dumps:'pb.dumps', base:'pb.baseline', bad:'pb.store.bad'};
 const LETTER_COLOR = {X:'#FF5A4E', Y:'#FFD23F', Z:'#B78CFF', H:'#4DA3FF', F:'#3DDC84'};
 const PERS = ['11','12','10','13','21','22','20','23','01','02','00','31','30'];
@@ -910,7 +916,7 @@ function inferTypes(out, pers){
 }
 
 /* ================= store ================= */
-let S = {v:1, seq:0, formations:[], plays:[], fronts:[], designs:[]};
+let S = {v:1, seq:0, formations:[], plays:[], fronts:[], designs:[], famList:[], famOv:{}};
 /* older grids → slots */
 function toYards(skill){ return skill.map(p => ({type:p.type, letter:p.letter, x:p.x != null ? p.x : Math.round(p.c * 2 / 3), r:p.r})); }
 function nearestOffSlots(skill, hash, qb){
@@ -1015,7 +1021,9 @@ function loadStore(){
   }
   if (bad.length){ lsSetRaw(KEYS.bad, raw); fail('boot.store.shape', bad.map(b=>b[0]).join(' + '), bad.map(b=>b[1]).join(' + ')); return; }
   S = {v:1, seq:obj.seq|0, formations:obj.formations.map(normFormation), plays:obj.plays.map(normPlay), fronts:Array.isArray(obj.fronts) ? obj.fronts : [],
-    designs:Array.isArray(obj.designs) ? obj.designs : []};
+    designs:Array.isArray(obj.designs) ? obj.designs : [],
+    famList:Array.isArray(obj.famList) ? obj.famList.filter(x => typeof x === 'string' && x.trim()) : [],   // 0.15.0: families you added
+    famOv:obj.famOv && typeof obj.famOv === 'object' && !Array.isArray(obj.famOv) ? obj.famOv : {}};       // and NFL base sets you moved to another family
   let flagged = 0, conv = 0;
   S.designs.forEach(d => { if (checkDesign(d).length){ flagged++; diag('boot.validate', `design ${d.id}: ${d._bad}`); } });
   S.fronts.forEach(f => { if (checkFront(f).length){ flagged++; diag('boot.validate', `front ${f.id}: ${f._bad}`); } });
@@ -1167,7 +1175,7 @@ async function gh(method, path, body, etag){
 const strip = (k,v) => (k === '_bad' || k === '_sync' || k === '_conv') ? undefined : v;
 function phoneJSON(){
   return JSON.stringify({v:1, at:new Date().toISOString(), names:NAMES.cfg(), formations:S.formations, fronts:S.fronts, designs:S.designs, plays:S.plays,
-    deleted:SYNC.deleted.slice(-5000), hold:SYNC.hold, framesCleared:SYNC.framesCleared || null}, strip);
+    deleted:SYNC.deleted.slice(-5000), hold:SYNC.hold, framesCleared:SYNC.framesCleared || null, families:{list:S.famList, ov:S.famOv}}, strip);
 }
 function tomb(id){ SYNC.deleted.push(id); lsSetRaw('pb.deleted', JSON.stringify(SYNC.deleted.slice(-5000))); }
 const stamp = o => String(o.updated || o.created || o.t || '');
@@ -1193,8 +1201,14 @@ function mergeStore(src, stage){
     counts[coll] = `${added} new, ${newer} newer`;
   });
   S.seq = Math.max(S.seq, ...S.plays.map(p => p.n | 0), 0);
+  if (src.families && typeof src.families === 'object'){   // 0.15.0: families travel in phone.json too
+    (Array.isArray(src.families.list) ? src.families.list : []).forEach(x => { if (typeof x === 'string' && x.trim() && !S.famList.includes(x)) S.famList.push(x); });
+    const ov = src.families.ov && typeof src.families.ov === 'object' ? src.families.ov : {};
+    Object.keys(ov).forEach(k => { if (S.famOv[k] == null && typeof ov[k] === 'string') S.famOv[k] = ov[k]; });
+  }
   restrength();
   namesMigrate();
+  setsTidy();
   saveStore(stage);
   diag(stage, 'merged', counts);
   return counts;
@@ -3604,7 +3618,7 @@ function startQueued(q){
 function goHome(){ if (SYNC.hold) setHold(null); W = null; drag = null; bubble = null; setView('home'); refresh(); }
 function startLog(f){
   W = newWork('log');
-  if (f) loadOffInto(W, f, false);
+  if (f){ loadOffInto(W, f, false); W.fam = famOf(f); }
   wizEnter();
   setStep('off'); setView('editor'); refresh();
   diag('flow', f ? `log from formation "${f.name}" ${f.code}` : 'log formations');
@@ -3625,7 +3639,7 @@ function goName(){
   diag('flow', 'offense set → name step', formationCodeOf(offObject()));
   refresh();
 }
-function upsertFormation(off, name, editId){
+function upsertFormation(off, name, editId, fam){
   const code = formationCodeOf(off);
   const tokens = strongRight(off.tokens.map(t => ({type:t.type, slot:t.slot})));
   let f = editId ? S.formations.find(o => o.id === editId) : S.formations.find(o => o.code === code);
@@ -3633,12 +3647,14 @@ function upsertFormation(off, name, editId){
   if (f){
     const was = f.name;
     Object.assign(f, {name, pers:off.pers, xol:off.xol, qb:off.qb, tokens, code, fmt:4, updated:now});
+    if (!f.family) f.family = famAdd(fam) || famGuess(f);
     delete f._bad;
-    diag('save.formation', `updated ${f.id}: "${was}" → "${name}" ${code}`);
+    diag('save.formation', `updated ${f.id}: "${was}" → "${name}" ${code} · ${f.family}`);
   } else {
     f = {id:'f' + Date.now().toString(36), name, pers:off.pers, xol:off.xol, qb:off.qb, tokens, code, fmt:4, created:now};
+    f.family = famAdd(fam) || famGuess(f);   // 0.15.0: the family it came from, else its backfield's
     S.formations.push(f);
-    diag('save.formation', `new ${f.id} "${name}" ${code}`);
+    diag('save.formation', `new ${f.id} "${name}" ${code} · ${f.family}`);
   }
   return f;
 }
@@ -3669,8 +3685,10 @@ function saveOff(after){
   const fcode = formationCodeOf(off);
   const rt = parseFormation(fcode);
   if (rt.errors.length){ fail('save.code', 'a code that reads back', rt.errors[0], fcode); return; }
-  const f = upsertFormation(off, name, W.mode === 'template' ? W.editId : null);
-  f.nameOv = JSON.parse(JSON.stringify(W.nameOv || {locks:{}, hidden:[], addTags:[]})); f.myName = mine && mine !== neutralName ? mine : null; f.nf = 1;
+  const own = mine && mine !== neutralName;
+  const twin = W.mode !== 'template' && !own && !S.formations.some(x => x.code === fcode) ? baseByCode(fcode) : null;   // 0.15.0: a play on a base set files on that set
+  const f = twin || upsertFormation(off, name, W.mode === 'template' ? W.editId : null, W.fam);
+  if (!twin){ f.nameOv = JSON.parse(JSON.stringify(W.nameOv || {locks:{}, hidden:[], addTags:[]})); f.myName = own ? mine : null; f.nf = 1; }
   if (W.mode === 'template'){
     if (saveStore('save.formation')){ pushBaseline('formation', f); dbPut('formations', f, 'save.formation'); embedPost('formation', f, {tag:W.embedTag !== false}); toast(`Saved formation: ${esc(name)}`); goHome(); }
     return;
@@ -3681,7 +3699,7 @@ function saveOff(after){
   S.plays.push(play);
   if (!saveStore('save.play')){ S.plays.pop(); S.seq--; return; }
   pushBaseline('play', play);
-  dbPut('formations', f, 'save.formation');
+  if (!twin) dbPut('formations', f, 'save.formation');
   dbPut('plays', play, 'save.play');
   embedPost('formation', Object.assign({}, f, {play:{strength:play.strength, hash:play.hash, spot:play.spot}}));
   /* the next play keeps personnel, QB depth, hash and spot */
@@ -4200,9 +4218,9 @@ const PBA = (() => {
 
   /* ---- the glossary: what each naming style describes, the words, and their opposites ---- */
   const GLOSS = {
-    pro: {title:'Pro names — the call', eg:'Gun Trey Rt Tight · Z Jet Lt · Inside Zone Lt',
-      what:'A pro name reads in huddle order, the way a play is called: shift, formation, direction, tags, motion, then the play. Every word is common league language — no team’s code words. Rt/Lt is the strength: the tight end’s side; with no tight end, the side with more receivers.',
-      parts:[['1 · Shift','what moves before the set: Shift to…, Y across'],['2 · Formation','backfield and receivers: Gun Trey, I, Ace Doubles, Empty Quads'],['3 · Direction','Rt / Lt — the strength'],['4 · Tags','Tight, Close, Nasty, Wide, Stack, Bunch, Slot, Wing, Off, Flex, Unbalanced'],['5 · Motion','who and where: Z Jet Lt, H Orbit Rt, Y Across, F Short'],['6 · Play','a run’s family and side (Inside Zone Lt, Power Rt); a pass’s concept (Mesh, Smash, Stick, Flood)']],
+    pro: {title:'Pro names — the call', eg:'Gun Trey Tight · Z Jet Weak · Inside Zone Strong',
+      what:'A pro name reads in huddle order, the way a play is called: shift, formation, tags, motion, then the play. Every word is common league language — no team’s code words. A set’s name never says a side: a set and its mirror are one set. Names → Direction words adds Rt/Lt, the strength — the tight end’s side; with no tight end, the side with more receivers.',
+      parts:[['1 · Shift','what moves before the set: Shift to…, Y across'],['2 · Formation','backfield and receivers: Gun Trey, I, Ace Doubles, Empty Quads'],['3 · Direction','off — a set and its mirror are one set (Names → Direction words adds Rt / Lt)'],['4 · Tags','Tight, Close, Nasty, Wide, Stack, Bunch, Slot, Wing, Off, Flex, Unbalanced'],['5 · Motion','who and where: Z Jet Weak, H Orbit Strong, Y Across, F Short'],['6 · Play','a run’s family and side (Inside Zone Strong, Power Weak); a pass’s concept (Mesh, Smash, Stick, Flood)']],
       words:[
         ['Gun','QB about 5 yards deep (shotgun).','Under center'],
         ['Pistol','QB about 4 yards deep, the back directly behind him.','Gun (back beside the QB)'],
@@ -4216,7 +4234,7 @@ const PBA = (() => {
         ['Trey','3x1 where one of the three is the tight end on the line.','Trips (all three detached)'],
         ['Twins','Two wide receivers to one side, the tight end alone the other side.','Pro (tight end and flanker the same side)'],
         ['Quads','Four receivers to one side.','Balanced'],
-        ['Rt / Lt','The strength: the tight end’s side; no tight end, the side with more receivers.','Each other'],
+        ['Rt / Lt','Off by default — a set and its mirror are one set. Turned on (Names → Direction words), the strength: the tight end’s side; no tight end, the side with more receivers.','Each other'],
         ['Slot (tag)','The flanker moves inside to the weak side’s slot.','Pro (flanker outside the tight end)'],
         ['Tight / Close (tag)','A receiver in a reduced split, near the formation.','Wide / Max (split out to the sideline)'],
         ['Nasty (tag)','A receiver about 4 yards outside the end man — a crack and rub split.','Normal split'],
@@ -4546,9 +4564,11 @@ const ENG = (() => {
   function setChips(A, s, ov, words, scope){
     s = s || {}; ov = ov || {};
     const locks = ov.locks || {}, hidden = new Set(ov.hidden || []);
+    const noDir = s.dir === 'none';   // 0.15.0: no side in a set's name — a set and its mirror are one set
     const ds = DIR[s.dir || 'short'] || DIR.short;
     const chips = [];
     const push = (part, neutral, info, kind, fixed) => {
+      if (noDir && (part === 'dir' || part === 'ydir')) return;
       const val = locks[part] != null && !fixed ? locks[part] : neutral;
       if (val == null || val === '') return;
       chips.push({part, neutral:val, auto:neutral, show:swap(val, words, scope), why:info && info.why, alts:info && info.alts || [], unsure:!!(info && info.unsure) && locks[part] == null, locked:locks[part] != null, hidden:hidden.has(part), kind:kind || part});
@@ -4566,7 +4586,7 @@ const ENG = (() => {
       if (w === 'Pro' && s.sayPro === false && locks.word == null) w = '';
       const away = /Away$/.test(locks.word || w);
       const base = String(locks.word || w).replace(/ Away$/, '');
-      if (away && s.awayStyle === 'split'){
+      if (away && s.awayStyle === 'split' && !noDir){
         /* "Trips Lt · Y Rt": the receivers' side, then the tight end's */
         if (base) push('word', base, A.word, 'word');
         push('dir', ds[opp(dirSide)], {why:'The side the receivers are set to.', alts:[], unsure:false}, 'dir', true);
@@ -4978,7 +4998,7 @@ const CALL = (() => {
    slots at the moment it is shown; text is never the source. Pure: no page, no storage. */
 const NAMES = (() => {
   'use strict';
-  const DEF = {len:{caption:'wrist', list:'pro', detail:'full', glossary:'plain', share:'code'}, dir:'short', awayStyle:'away', sayPro:true, families:true,
+  const DEF = {len:{caption:'wrist', list:'pro', detail:'full', glossary:'plain', share:'code'}, dir:'none', awayStyle:'away', sayPro:true, families:true,
     pers:'digits', chips:true, tie:'field', frontDir:'te', tb:'R', showNeutral:true};
   const LENS = [['wrist','Wristband'],['pro','Pro'],['full','Full call'],['plain','Plain English'],['code','Code']];
   const clone = o => JSON.parse(JSON.stringify(o));
@@ -5351,9 +5371,9 @@ function setNameSaved(f){
 
 /* ---- the Names sheet: every setting, My words ---- */
 const NSET = [
-  ['dir', 'Direction words', 'The set’s side', [['short','Rt / Lt'],['long','Right / Left'],['letter','R / L']]],
-  ['awayStyle', 'Away style', 'Receivers set away from the tight end', [['away','Trips Away Rt'],['split','Trips Lt · Y Rt']]],
-  ['sayPro', 'Say “Pro”', 'Tight end + flanker together', [['true','I Pro Rt'],['false','I Rt']]],
+  ['dir', 'Direction words', 'None: a set and its mirror are one set', [['none','None'],['short','Rt / Lt'],['long','Right / Left'],['letter','R / L']]],
+  ['awayStyle', 'Away style', 'Receivers away from the tight end (the split call needs direction words)', [['away','Trips Away'],['split','Trips Lt · Y Rt']]],
+  ['sayPro', 'Say “Pro”', 'Tight end + flanker together', [['true','I Pro'],['false','I']]],
   ['families', 'Named families', 'Flexbone, Wing-T, Double Wing…', [['true','On'],['false','Spell it out']]],
   ['pers', 'Personnel', 'Only on plays, never on saved sets', [['digits','11'],['words','1 back, 1 TE'],['off','Off']]],
   ['tb', 'Tailback letter', 'In motions and routes', [['R','R'],['T','T']]],
@@ -5489,12 +5509,110 @@ async function baseLoad(){
     const b = await r.json();
     if (baseAccept(b, 'base.fetch')) lsSetRaw('pb.base', JSON.stringify(b));
   } catch(e){ diag('base.fetch', `base book not fetched (${e && e.message})${cached ? ': using the copy on this phone' : ''}`); if (!cached) BASE.state = 'error'; }
+  setsTidy();   // 0.15.0: with the base book in, one set per formation and every set in a family
   adoptIpad();
   if (VIEW === 'home') renderHome();
 }
+/* ================= 0.15.0 families: every set lives in one — Gun, Pistol, Empty, Ace, I, Pro, … and any you add =================
+   A base set's family is the NFL base book's (or wherever you moved it); yours is its own. A set made by changing another
+   keeps that one's family unless you pick another; a set made from nothing reads its backfield. And one formation is one
+   set: a set of yours that matches a base set stands in for it, and logging a play never makes a copy of a base set. */
+const FAM_ORDER = ['Gun', 'Pistol', 'Empty', 'Ace', 'I', 'Pro', 'Heavy', 'Goal line', 'T', 'Wing-T', 'Option', 'Wildcat', 'Single wing', 'Victory', 'Trick'];
+const FAM_OLD = {'Shotgun':'Gun', 'Singleback':'Ace', 'Split backs':'Pro', 'I formation':'I', 'T formation':'T'};   // the base book's first words for them
+const famLabel = s => { const t = String(s == null ? '' : s).trim(); return FAM_OLD[t] || t; };
+function famGuess(f){   // a set from nothing: the backfield says the family
+  const back = ((f && Array.isArray(f.tokens)) ? f.tokens : []).filter(t => t && /:(FB|TB)$/.test(t.slot || '')).map(t => t.slot);
+  if (!back.length) return 'Empty';
+  if (f.qb === 'gun') return 'Gun';
+  if (f.qb === 'pistol') return 'Pistol';
+  if (back.length >= 3) return 'T';
+  if (back.length === 2) return back.includes('L:FB') && back.includes('R:FB') ? 'Pro' : 'I';
+  return 'Ace';
+}
+function codeOfSet(f){   // a base set's code as this app writes it (the book's own field is not trusted)
+  if (!f) return '';
+  if (!f.base) return f.code || '';
+  if (!f._code){ try { f._code = formationCodeOf(f); } catch(e){ f._code = f.code || ''; } }
+  return f._code;
+}
+let BASE_CODES = null, BASE_SIG = '';
+function baseByCode(code){
+  const sig = `${BASE.formations.length}|${BASE.at || ''}|${BASE.formations[0] ? BASE.formations[0].id : ''}`;
+  if (!BASE_CODES || BASE_SIG !== sig){ BASE_CODES = new Map(); BASE.formations.forEach(b => { const c = codeOfSet(b); if (c && !BASE_CODES.has(c)) BASE_CODES.set(c, b); }); BASE_SIG = sig; }
+  return (code && BASE_CODES.get(code)) || null;
+}
+const baseVisible = () => { const mine = new Set(S.formations.filter(f => !f._bad).map(f => f.code)); return BASE.formations.filter(b => !mine.has(codeOfSet(b))); };
+function famOf(f){
+  if (!f) return 'Other';
+  return famLabel(f.base ? (S.famOv[f.id] || f.family) : f.family) || famGuess(f);
+}
+function famList(){   // the usual families that have sets, then yours in the order you made them, then any other a set carries
+  const have = new Set(allSets().map(famOf)), out = FAM_ORDER.filter(x => have.has(x));
+  S.famList.forEach(x => { if (!out.includes(x)) out.push(x); });
+  [...have].forEach(x => { if (!out.includes(x)) out.push(x); });
+  return out;
+}
+const famKnown = v => famList().concat(FAM_ORDER).find(x => x.toLowerCase() === String(v || '').trim().toLowerCase()) || null;
+function famAdd(v){ const k = famKnown(v); if (k) return k; const t = String(v || '').trim(); if (!t) return null; S.famList.push(t); return t; }
+function famApply(f, fam){   // move a set to a family; a base set's move is kept beside the book
+  const v = famAdd(fam); if (!f || !v) return false;
+  if (f.base) S.famOv[f.id] = v;
+  else { f.family = v; f.updated = isoNow(); }
+  if (!saveStore('family.set')) return false;
+  if (!f.base) dbPut('formations', f, 'family.set');
+  diag('family', `${f.base ? 'base ' : ''}${f.id} → ${v}`);
+  return true;
+}
+function famSheet(title, cur, act, id){
+  const at = id ? ` data-id="${esc(id)}"` : '';
+  showSheet(`<h3>${esc(title)}</h3><p>Every set lives in one family. Pick one, or start a new one.</p>
+    <div class="sugs">${famList().map(x => `<button class="sug${x === cur ? ' on' : ''}" data-act="${act}" data-v="${esc(x)}"${at}>${esc(x)}${x === cur ? '<small>now</small>' : ''}</button>`).join('')}</div>
+    <div class="row"><input id="famNew" class="txt" placeholder="A new family" autocomplete="off" autocapitalize="words" spellcheck="false"><button class="btn pri slim" data-act="${act}" data-new="1"${at}>Add</button></div>
+    <button class="btn" data-act="closeSheet">Cancel</button>`);
+}
+const famTyped = d => d.new ? String($('#famNew') ? $('#famNew').value : '').trim() : String(d.v || '').trim();
+/* one formation, one set, every set in a family, no side in a name. On boot and after a merge; changes only what needs it. */
+function setsTidy(){
+  if (EMBED || !Array.isArray(S.formations)) return 0;
+  const mine = new Map(); S.formations.forEach(f => { if (f && !f._bad && f.code) mine.set(f.code, f); });
+  let fam = 0, moved = 0, named = 0;
+  S.formations.forEach(f => {
+    if (!f || f._bad || f.family) return;
+    const b = baseByCode(f.code);
+    f.family = b ? famOf(b) : famGuess(f); f.updated = isoNow(); fam++;
+  });
+  const baseIds = new Map(BASE.formations.map(b => [b.id, b]));
+  S.plays.forEach(p => {   // a play logged on a base set you also keep a copy of: onto your copy, so the set is one row everywhere
+    const b = p && p.formationId ? baseIds.get(p.formationId) : null; if (!b) return;
+    const u = mine.get(codeOfSet(b)); if (!u) return;
+    p.formationId = u.id; p.updated = isoNow(); moved++;
+  });
+  if (NAMES.st().dir === 'none'){
+    const SIDE = /\b(Rt|Lt|Right|Left)\b/;
+    S.formations.forEach(f => {
+      if (!f || f._bad || f.myName || !SIDE.test(f.name || '')) return;
+      const nm = NAMES.setText(nameX(f), 'pro', {neutral:true}); if (nm && nm !== f.name){ f.name = nm; f.updated = isoNow(); named++; }
+    });
+    S.plays.forEach(p => {
+      if (!p || p._bad || !p.off || !Array.isArray(p.off.tokens) || !SIDE.test(p.name || '')) return;
+      const u = S.formations.find(x => x.id === p.formationId);
+      const nm = (u && u.myName) || NAMES.setText({qb:p.off.qb, xol:!!p.off.xol, tokens:p.off.tokens}, 'pro', {neutral:true});
+      if (nm && nm !== p.name){ p.name = nm; p.updated = isoNow(); named++; }
+    });
+  }
+  if (fam || moved || named){ saveStore('sets.tidy'); diag('sets.tidy', `${fam} sets given a family, ${moved} plays moved onto your copy of a base set, ${named} names without a side`); }
+  return fam + moved + named;
+}
+/* 0.15.0, once: names without a side, as you asked — your saved naming setting moves to None */
+function noDirMigrate(){
+  if (EMBED || lsGetRaw('pb.mig.nodir') === '1') return;
+  const s = NAMES.st();
+  if (s.dir !== 'none'){ s.dir = 'none'; namesSave(); diag('names.set', 'dir = none (0.15.0: a set and its mirror are one set)'); }
+  lsSetRaw('pb.mig.nodir', '1');
+}
 function baseFmRows(act){
   if (!BASE.formations.length) return '';
-  return `<details class="base"><summary>NFL base sets · ${BASE.formations.length}</summary><div class="list">${BASE.formations.map(f => `
+  return `<details class="base"><summary>NFL base sets · ${baseVisible().length}</summary><div class="list">${baseVisible().map(f => `
     <button class="li" data-act="${act}" data-id="${f.id}"><span class="li-main"><span class="li-t">${esc(fmName(f))}</span>
     <span class="li-s">${esc(NAMING === 'desc' ? `${f.name} · ${f.code}` : (f.desc || f.code))}</span></span></button>`).join('')}</div></details>`;
 }
@@ -5530,10 +5648,12 @@ function adoptAdds(){
       const off = {pers:o.pers, xol:!!o.xol, qb:o.qb, tokens:Array.isArray(o.tokens) ? o.tokens.map(t => ({type:t.type, slot:t.slot})) : o.tokens};
       const e = validateOffense(off);
       if (e.length){ fail('adopt.add', `formation "${o.name}" valid`, e[0], o); return; }
-      const code = formationCodeOf(off), cur = S.formations.find(x => x.id === id);
+      const code = formationCodeOf(off), cur = S.formations.find(x => x.id === id), twin = baseByCode(code);
       const body = {name:o.name || code, pers:off.pers, xol:off.xol, qb:off.qb, tokens:strongRight(off.tokens), code, fmt:4};
-      if (cur){ if (String(a.at || '') > stamp(cur)){ Object.assign(cur, body, {updated:a.at}); dbPut('formations', cur, 'adopt.add'); n++; } }
-      else if (!S.formations.some(x => x.code === code)){ const f = Object.assign({id, created:a.at || isoNow()}, body); S.formations.push(f); dbPut('formations', f, 'adopt.add'); adoptNote('set', f.name); n++; }
+      const fam = famLabel(o.family) || (twin ? famOf(twin) : famGuess(off));   // 0.15.0: the family the designer started from
+      if (cur){ if (String(a.at || '') > stamp(cur)){ Object.assign(cur, body, {updated:a.at}); if (!cur.family) cur.family = famAdd(fam); dbPut('formations', cur, 'adopt.add'); n++; } }
+      else if (twin && !o.myName) diag('adopt.add', `"${o.name}" is the NFL base set ${twin.id} — no copy made`);
+      else if (!S.formations.some(x => x.code === code)){ const f = Object.assign({id, created:a.at || isoNow(), family:famAdd(fam)}, body); if (o.myName) f.myName = o.myName; S.formations.push(f); dbPut('formations', f, 'adopt.add'); adoptNote('set', f.name); n++; }
     } else if (a.kind === 'front'){
       if (o.logOnly) return;   // a defense logged on one play: it rides on that play's tag, not into the book
       const d = o.strength === 'L' ? frontNorm(o, 'L') : o;
@@ -5561,7 +5681,7 @@ function tagOffense(t){
     if (dz && dz.off) return {off:{pers:dz.off.pers, xol:!!dz.off.xol, qb:dz.off.qb, tokens:dz.off.tokens}, name:t.fname || dz.setName || dz.name, oriented:true, extra:{call:t.zname || dz.name, designId:dz.id}};
   }
   let f = t.fadd ? addObj(t.fadd) : null, play = f && f.play ? f.play : null;
-  if (!f && t.fcode) f = S.formations.find(o => o.code === t.fcode) || BASE.formations.find(o => o.code === t.fcode) || null;
+  if (!f && t.fcode) f = S.formations.find(o => o.code === t.fcode) || baseByCode(t.fcode) || BASE.formations.find(o => o.code === t.fcode) || null;
   if (!f && t.fbase) f = Object.assign({base:true}, t.fbase);
   if (!f && t.fcode){
     const r = parseFormation(t.fcode);
@@ -5599,13 +5719,13 @@ function tagRes(t, st){
   const loc = r.loc || null, dir = loc === 'left' || loc === 'right' ? (((loc === 'right') === (st === 'R')) ? 'strong' : 'weak') : loc === 'middle' ? 'middle' : null;
   return Object.assign({}, r, {dir});
 }
-function fileSet(off, name, baseId){
+function fileSet(off, name, baseId, fam){   // 0.15.0: an NFL base set with the same slots is that set — never a copy of it
   const code = formationCodeOf(off);
   const f = S.formations.find(x => x.code === code);
   if (f) return {f, isNew:false};
-  const b = baseId ? BASE.formations.find(x => x.id === baseId) : null;
+  const b = baseByCode(code) || (baseId ? BASE.formations.find(x => x.id === baseId) : null);
   if (b) return {f:b, isNew:false, base:true};
-  return {f:upsertFormation(off, name, null), isNew:true};
+  return {f:upsertFormation(off, name, null, fam), isNew:true};
 }
 /* one logged play, made the way saveOff makes it; the set goes in the book once per code and is never renamed here */
 function makePlay(o){
@@ -5613,7 +5733,7 @@ function makePlay(o){
   const errs = validateOffense(off);
   if (errs.length){ fail(o.stage, 'valid offense', errs.join('; '), off); return null; }
   if (o.def){ const de = validateDefense(o.def); if (de.length){ fail(o.stage, 'valid defense', de.join('; '), o.def); return null; } }
-  const fs = fileSet(off, o.name, o.baseId);
+  const fs = fileSet(off, o.name, o.baseId, o.family);
   const fcode = formationCodeOf(off);
   const play = Object.assign({id:pbId('p'), n:++S.seq, t:isoNow(), formationId:fs.f.id, name:fs.base ? o.name : fs.f.name, fcode, strength:strengthOf(off.tokens),
     hash:/^[LMR]$/.test(o.hash || '') ? o.hash : 'M', spot:o.spot == null ? -35 : o.spot, off, def:o.def || null, fmt:4, key:o.key || null, sit:o.sit || null, src:o.src}, o.extra || {});
@@ -5881,7 +6001,7 @@ function cardOf(key){ let c = CARD.get(key); if (!c){ c = {setId:null, frontCode
 function setCands(q){
   const pers = persOf(q.pers), qb = qbOf(q.qb);
   const out = [], seen = new Set();
-  const push = (f, n, src) => { if (!f || f._bad) return; const k = codeBodyOf(f.code); if (seen.has(k)) return; seen.add(k); out.push({f, n, src}); };
+  const push = (f, n, src) => { if (!f || f._bad) return; const k = codeBodyOf(codeOfSet(f)); if (seen.has(k)) return; seen.add(k); out.push({f, n, src}); };
   const hist = S.plays.filter(p => p.off && !p._bad && p.formationId && (!pers || p.off.pers === pers) && (!qb || p.off.qb === qb));
   const team = q.sit && q.sit.pos ? q.sit.pos : null, cnt = new Map();
   hist.forEach(p => { const c = cnt.get(p.formationId) || {n:0, w:0}; c.n++; c.w += team && p.sit && p.sit.pos === team ? 3 : 1; cnt.set(p.formationId, c); });
@@ -6000,7 +6120,7 @@ function renderEmbedHome(){
 function embedBoot(){
   const b = (EMBED && EMBED.book) || {};
   const mine = (arr, base) => (Array.isArray(arr) ? arr : []).filter(x => x && typeof x === 'object' && !!x.base === base);
-  S = {v:1, seq:0, formations:mine(b.formations, false).map(normFormation), plays:[], fronts:mine(b.fronts, false), designs:Array.isArray(b.designs) ? b.designs : []};
+  S = {v:1, seq:0, formations:mine(b.formations, false).map(normFormation), plays:[], fronts:mine(b.fronts, false), designs:Array.isArray(b.designs) ? b.designs : [], famList:[], famOv:{}};
   S.formations.forEach(checkFormation); S.fronts.forEach(checkFront); S.designs.forEach(checkDesign);
   baseAccept({formations:mine(b.formations, true), fronts:mine(b.fronts, true), at:null}, 'embed.base');
   NAMING = EMBED.naming === 'desc' ? 'desc' : 'pro';
@@ -6012,7 +6132,7 @@ function embedBoot(){
     else if (from && Array.isArray(from.tokens)){
       const e = validateOffense(from);
       if (e.length) fail('embed.from', 'a legal set to adjust', e[0], from);
-      else { startTemplate(Object.assign({}, from, {id:null, name:from.base ? fmFiled(from, from.pers) : (from.name || '')})); W.embedTag = true; }
+      else { startTemplate(Object.assign({}, from, {id:null, name:from.base ? fmFiled(from, from.pers) : (from.name || '')})); W.embedTag = true; W.fam = famOf(from); }
     }
   } catch(e){ fail('embed.from', 'the set chalk handed over opened', String(e && e.message), from); }
   try { parent.postMessage({type:'pb-ready', v:VERSION}, '*'); } catch(e){ diag('embed', 'pb-ready not sent: ' + (e && e.message)); }
@@ -6124,7 +6244,7 @@ function restoreCall(d){
 
 /* ---- Polaroids: a square of art, the name under it ---- */
 const pol = (act, id, art, title, sub, on, attrs) => `<button class="pol${on ? ' on' : ''}" data-act="${act}" data-id="${esc(id)}"${attrs || ''}><span class="pol-art">${art}</span><b>${esc(title)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</button>`;
-const allSets = () => S.formations.filter(f => !f._bad).slice().sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''))).concat(BASE.formations);
+const allSets = () => S.formations.filter(f => !f._bad).slice().sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''))).concat(baseVisible());   // 0.15.0: a base set you keep a copy of shows once — yours
 const allFronts = () => S.fronts.filter(f => !f._bad).slice().sort((a,b) => String(a.name || '').localeCompare(String(b.name || ''))).concat(BASE.fronts);
 function fmSub(f){ return `${persStr(f.pers, f.xol)} · ${QB_LABEL[f.qb] || f.qb} · ${f.base ? 'NFL base' : 'your set'}`; }
 function frSub(f){ const id = PBA.frontId(f, 'R'); return [id.id, `${f.shell}-high`, id.pkg, f.base ? 'NFL base' : 'your front'].join(' · '); }
@@ -6482,10 +6602,12 @@ function playsTabHTML(){
 /* ---- Book: your sets, fronts and drawn plays, each with its own New ---- */
 function bookTabHTML(){
   const dzs = S.designs.slice().sort((a,b) => String(b.updated || b.created || '').localeCompare(String(a.updated || a.created || '')));
-  const sets = allSets(), fronts = allFronts();
+  const sets = allSets(), fronts = allFronts(), fams = famList(), by = new Map(fams.map(k => [k, []]));   // 0.15.0: one row per family
+  sets.forEach(f => { const k = famOf(f); if (!by.has(k)) by.set(k, []); by.get(k).push(f); });
   return `
-    <section class="sec" style="margin-top:6px"><h2><span>Offense sets · ${sets.length}</span><button class="li-b" data-act="tplNew">+ New set</button></h2>
-      <div class="pfeed">${sets.map(f => setPol('fmCard', f)).join('')}</div>
+    <section class="sec" style="margin-top:6px"><h2><span>Offense sets · ${sets.length}</span><span class="h2r"><button class="li-b" data-act="famNew">+ Family</button><button class="li-b" data-act="tplNew">+ New set</button></span></h2>
+      ${[...by.entries()].map(([k, list]) => `<div class="famr"><div class="famh"><b>${esc(k)}</b><small>${list.length}</small></div>
+        ${list.length ? `<div class="pfeed">${list.map(f => setPol('fmCard', f)).join('')}</div>` : '<div class="empty" style="padding:6px 2px 10px">Nothing here yet — move a set in from its card, or pick this family when you log a new one.</div>'}</div>`).join('')}
     </section>
     <section class="sec"><h2><span>Defense fronts · ${fronts.length}</span><button class="li-b" data-act="frontNew">+ New front</button></h2>
       <div class="pfeed">${fronts.map(f => frontPol('frCard', f, null)).join('')}</div>
@@ -6547,7 +6669,7 @@ let EN = null;
 function enFresh(){
   return {mode:'log', q:null, known:{}, step:'start', start:null, qs:[], qk:null, kept:0, changed:{}, place:null, placed:false,
     def:null, defStart:null, defName:'', defCode:null, defSrc:null, fronts:null, sel:null, post:null, frame:'snap', logged:null, chain:null, from:null,
-    persYou:false, qbYou:false, askKeys:{}, askAll:false, how:'ask', drag:null};
+    persYou:false, qbYou:false, askKeys:{}, askAll:false, how:'ask', drag:null, fam:null, famYou:false};
 }
 
 /* ---- the art: quiz look, one renderer for sets, the box and the shell (SVG in yards; y down = into the offense's backfield) ---- */
@@ -6846,7 +6968,7 @@ function enLoadBase(f, keepPers){
   if (EN.known.pers && W.pers !== EN.known.pers.v) diag('engine', `${f.name || f.code} does not take ${EN.known.pers.v} personnel — kept ${W.pers}`);
   W.wiz = {}; wizInfer();
   EN.start = {id:f.id, name:fmFiled(f, W.pers), base:!!f.base, off:enClone({pers:W.pers, xol:W.xol, qb:W.qb, tokens:W.tokens.map(t => ({type:t.type, slot:t.slot}))}), wiz:enClone(W.wiz), fit:W.wizFit};
-  EN.kept = 0; EN.changed = {}; EN.placed = false; EN.place = null; EN.drag = null; EN.askAll = false;
+  EN.kept = 0; EN.changed = {}; EN.placed = false; EN.place = null; EN.drag = null; EN.askAll = false; EN.fam = null; EN.famYou = false;
   EN.askKeys = enUnsure(f);
   EN.qs = enWalk(); EN.qk = EN.qs.length ? EN.qs[0].k : null;
 }
@@ -7365,11 +7487,22 @@ function enFacets(off){
   try { const A = ENG.analyze({qb:off.qb, xol:!!off.xol, tokens:off.tokens}, {tb:NAMES.st().tb}); out.word = A.word ? A.word.w : ''; out.bf = A.bf ? A.bf.w : ''; } catch(e){ out.word = ''; out.bf = ''; }
   return out;
 }
+/* 0.15.0: the family the set goes in, and why — the one it is already in, the one it was made from, or its backfield's */
+function enFamNow(){
+  let code = null; try { code = formationCodeOf(offObject()); } catch(e){ code = null; }
+  const ex = code ? (S.formations.find(x => x.code === code) || baseByCode(code)) : null;
+  if (EN.famYou && EN.fam) return {v:EN.fam, src:'you', ex};
+  if (ex) return {v:famOf(ex), src:EN.start && EN.start.id === ex.id ? 'pick' : 'rule', ex};
+  const s = EN.start ? fmGet(EN.start.id) : null;
+  if (s) return {v:famOf(s), src:'pick', ex:null};
+  return {v:famGuess(enOffNow()), src:'rule', ex:null};
+}
 function enCardRows(){
   const K = EN.known || {}, off = enOffNow(), F = enFacets(off), F0 = EN.start ? enFacets(EN.start.off) : null, ch = k => !!EN.changed[k];
   const by = (k, alt) => EN.placed ? 'you' : ch(k) || (alt && ch(alt)) ? 'you' : EN.start ? 'pick' : 'you';
   const pr = ENG.analyze({qb:off.qb, xol:!!off.xol, tokens:off.tokens}, {}).pers;
-  const rows = [];
+  const rows = [], fam = enFamNow();
+  rows.push({k:'FAMILY', v:fam.ex ? fam.v : `${fam.v} · a new set${EN.start && fam.src === 'pick' ? ', like ' + EN.start.name : ''}`, src:fam.src, fix:'fam'});
   rows.push({k:'PERSONNEL', v:`${persStr(W.pers, W.xol)} — ${pr.backs} back${pr.backs === 1 ? '' : 's'}, ${pr.te} TE, ${pr.wr} WR`, src:K.pers ? K.pers.src : EN.persYou ? 'you' : EN.start ? 'pick' : 'you', fix:'pers'});
   rows.push({k:'QB', v:QB_WORD[W.qb], src:K.qb ? K.qb.src : EN.qbYou ? 'you' : EN.start ? 'pick' : 'you', fix:'qb'});
   const hasTE = W.tokens.some(t => t.type === 'T');
@@ -7611,11 +7744,14 @@ function enLog(scope){
     src:{deep:'you', rot:'you', cov:EN.post.covSrc || 'you', rush:EN.post.rushSrc || 'you'}} : null;
   const extra = {how}; if (res) extra.res = res; if (post) extra.post = post;
   const baseId = EN.start && EN.start.base && !EN.placed && !Object.keys(EN.changed).length ? EN.start.id : null;
-  const pre = mine ? fileSet(off, name, baseId) : null;
-  if (pre && !pre.base) pre.f.myName = mine;
-  const p = makePlay({off, name, baseId, def, key:q.key || null, sit:q.sit || null, hash:W.hash, spot:W.spot, src:'engine', stage:'engine.log', extra});
+  const fam = enFamNow();   // 0.15.0: the family it was made from, unless you picked another
+  let pre = mine ? fileSet(off, name, baseId, fam.v) : null;
+  if (pre && pre.base) pre = {f:upsertFormation(off, name, null, fam.v), isNew:true};   // your own name for a base set: your copy carries it (and stands in for the base one)
+  if (pre) pre.f.myName = mine;
+  const p = makePlay({off, name, baseId, family:fam.v, def, key:q.key || null, sit:q.sit || null, hash:W.hash, spot:W.spot, src:'engine', stage:'engine.log', extra});
   if (!p){ if (pre && pre.isNew){ const i = S.formations.indexOf(pre.f); if (i >= 0) S.formations.splice(i, 1); } return; }
   if (pre && pre.isNew) dbPut('formations', pre.f, 'engine.log');
+  if (EN.famYou && EN.fam){ const fs = fmGet(p.formationId); if (fs && famOf(fs) !== EN.fam) famApply(fs, EN.fam); }
   if (q.key){ CARD.delete(q.key); PARK.delete(q.key); parkSave(); if (CARDV.key === q.key){ CARDV.key = null; CARDV.shot = 'snap'; } }
   if (SYNC.hold && q.key && SYNC.hold.key === q.key) setHold(null);
   EN.logged = p; EN.step = 'done';
@@ -8520,7 +8656,7 @@ Object.assign(ACT, {
     const f = fmGet(d.id); if (!f) return;
     hideSheet();
     startTemplate(Object.assign({}, f, {id:null, name:''}));
-    W.fromSet = fmName(f);
+    W.fromSet = fmName(f); W.fam = famOf(f);   // 0.15.0: the new set keeps this one's family
     toast(`Starting from ${esc(fmName(f))}. Drag anyone, then name it: it saves as a new set.`);
     diag('flow', `new set from "${fmName(f)}" ${f.code}`);
   },
@@ -8528,6 +8664,7 @@ Object.assign(ACT, {
     const f = fmGet(d.id); if (!f) return;
     showSheet(`<div class="pol-big">${PBA.setArt(f, fmName(f))}</div><h3>${esc(fmName(f))}</h3>${f._bad ? '' : setNameBlock(f)}<p>${esc(fmSub(f))}${f.base && NAMING !== 'desc' && f.desc ? '<br>' + esc(f.desc) : ''}${f.aliases && f.aliases.length ? '<br>Also: ' + esc(f.aliases.join(', ')) : ''}</p>
       ${f._bad ? `<p class="bad">${esc(f._bad)}</p>` : codeRow(f.code, 'formation code')}
+      <button class="btn" data-act="famPick" data-id="${f.id}">Family · <b>${esc(famOf(f))}</b> ›</button>
       <button class="btn pri" data-act="tplFrom" data-id="${f.id}">New set from this</button>
       <div class="row"><button class="btn" data-act="logFrom" data-id="${f.id}">Log a play</button><button class="btn" data-act="designFrom" data-id="${f.id}">Draw a play</button></div>
       ${f.base ? '' : `<div class="row"><button class="btn" data-act="fmEdit" data-id="${f.id}">Edit or rename</button><button class="btn danger" data-act="fmDel" data-id="${f.id}">Delete</button></div>`}
@@ -8720,9 +8857,12 @@ Object.assign(ACT, {
   enPick(d){ hideSheet(); if (EN) enPick(d.id); },
   enMoreSets(){
     if (!EN) return;
-    const all = enCands();
-    showSheet(`<h3>Start from</h3><p>${esc(W.pers)} personnel · ${esc(QB_LABEL[W.qb])} · this game first, then most-logged</p>
-      <div class="fl-grid">${all.map(x => `<button class="fl-set" data-act="enPick" data-id="${esc(x.f.id)}"><span class="fl-art" style="height:72px">${QZ.set(offFromSet(x.f, W.pers), {w:147, h:72, letters:false})}</span><b>${esc(fmFiled(x.f, W.pers))}</b><small>${esc(candSub(x))}</small></button>`).join('')}</div>
+    const all = enCands(), order = famList(), by = new Map();   // 0.15.0: grouped by family, the family's best first
+    all.forEach(x => { const k = famOf(x.f); if (!by.has(k)) by.set(k, []); by.get(k).push(x); });
+    const keys = [...by.keys()].sort((a, b) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99));
+    const tile = x => `<button class="fl-set" data-act="enPick" data-id="${esc(x.f.id)}"><span class="fl-art" style="height:72px">${QZ.set(offFromSet(x.f, W.pers), {w:147, h:72, letters:false})}</span><b>${esc(fmFiled(x.f, W.pers))}</b><small>${esc(candSub(x))}</small></button>`;
+    showSheet(`<h3>Start from</h3><p>${esc(W.pers)} personnel · ${esc(QB_LABEL[W.qb])} · by family; in each, this game first, then most-logged</p>
+      ${keys.map(k => `<div class="lbl" style="margin:12px 0 6px">${esc(k)} · ${by.get(k).length}</div><div class="fl-grid">${by.get(k).map(tile).join('')}</div>`).join('')}
       <button class="btn" data-act="closeSheet">Cancel</button>`);
   },
   enPlaceGo(){
@@ -8821,6 +8961,7 @@ Object.assign(ACT, {
       return;
     }
     if (k === 'place'){ enGoPlace(); renderFlow(); $('#flow').scrollTop = 0; return; }
+    if (k === 'fam'){ famSheet('Family for this set', enFamNow().v, 'enFamSet'); return; }
     W.wiz = {}; wizInfer();
     EN.askKeys[k] = true; if (k === 'sp'){ EN.askKeys.as = true; EN.askKeys.aw = true; }
     const qs = enWalk(), hit = qs.find(x => x.k === k) || qs.find(x => x.k.slice(0, 2) === k.slice(0, 2));
@@ -8895,9 +9036,16 @@ Object.assign(ACT, {
     W.tokens.forEach(t => { delete t.fixed; });
     const off = offObject(), errs = validateOffense(off);
     if (errs.length){ fail('engine.saveSet', 'a valid offense', errs.join('; '), off); return; }
-    const nm = enNameNow(), mine = String(W.myName || '').trim();
-    const f = upsertFormation(off, mine || nm, null);
+    const nm = enNameNow(), mine = String(W.myName || '').trim(), fam = enFamNow(), code = formationCodeOf(off);
+    const twin = !mine && !S.formations.some(x => x.code === code) ? baseByCode(code) : null;
+    if (twin){   // 0.15.0: one formation, one set — it's already in the book
+      if (EN.famYou && EN.fam && famOf(twin) !== EN.fam) famApply(twin, EN.fam);
+      diag('engine', `set not saved: it is the NFL base set ${twin.id}`);
+      toast(`Already in the book: ${esc(fmName(twin))} · ${esc(famOf(twin))}`); enExit('book'); return;
+    }
+    const f = upsertFormation(off, mine || nm, null, fam.v);
     if (mine) f.myName = mine;
+    if (EN.famYou && EN.fam) f.family = famAdd(EN.fam) || f.family;   // a set already in the book that you moved
     f.nf = 1;
     if (!saveStore('engine.saveSet')) return;
     pushBaseline('formation', f); dbPut('formations', f, 'engine.saveSet');
@@ -8945,6 +9093,33 @@ Object.assign(ACT, {
   },
   bank(){ ACT.tab({v:'bank'}); }
 });
+/* ================= 0.15.0 actions: families ================= */
+Object.assign(ACT, {
+  famPick(d){ const f = fmGet(d.id); if (!f) return; famSheet(`Family for ${fmName(f)}`, famOf(f), 'famSet', f.id); },
+  famSet(d){
+    const f = fmGet(d.id), v = famTyped(d); if (!f) return;
+    if (!v){ toast('Type the new family’s name first.'); return; }
+    if (famApply(f, v)){ toast(`${esc(fmName(f))} is in ${esc(famKnown(v) || v)} now.`); ACT.fmCard({id:f.id}); renderHome(); }
+  },
+  famNew(){
+    showSheet(`<h3>A new family</h3><p>Name it. Move sets in from their cards, or pick it on the card when you log a new set.</p>
+      <input id="famNew" class="txt" placeholder="Family name" autocomplete="off" autocapitalize="words" spellcheck="false">
+      <div class="row"><button class="btn" data-act="closeSheet">Cancel</button><button class="btn pri" data-act="famNewDo">Add</button></div>`);
+  },
+  famNewDo(){
+    const v = String($('#famNew') ? $('#famNew').value : '').trim();
+    if (!v){ toast('Type a name first.'); return; }
+    const k = famKnown(v); if (k){ toast(`${esc(k)} is already a family.`); return; }
+    S.famList.push(v);
+    if (saveStore('family.new')){ diag('family', `new family "${v}"`); hideSheet(); toast(`New family: ${esc(v)}`); renderHome(); }
+  },
+  enFamSet(d){   // the engine's card: the family this set goes in
+    if (!EN) return;
+    const v = famTyped(d); if (!v){ toast('Type the new family’s name first.'); return; }
+    const k = famAdd(v); if (S.famList.includes(k)) saveStore('family.new');
+    EN.fam = k; EN.famYou = true; diag('engine', `family → ${k}`); hideSheet(); renderFlow();
+  }
+});
 /* ================= 0.14.0 actions: three ways to place, the drag ================= */
 Object.assign(ACT, {
   enHow(d){   // switch now: the questions, the grid or the field — the men stay where they are
@@ -8990,6 +9165,7 @@ if (EMBED) embedBoot();
 else {
   loadStore();
   namesMigrate();
+  noDirMigrate();
   NAMING = lsGetRaw('pb.naming') === 'desc' ? 'desc' : 'pro';
   { const pk = lsGetJSON('pb.parked', []); if (Array.isArray(pk)) pk.forEach(k => { if (typeof k === 'string') PARK.add(k); }); }
   { const al = lsGetJSON('pb.adopted', []); if (Array.isArray(al)) ADOPT.log = al.filter(a => a && a.at).slice(0, 30); }

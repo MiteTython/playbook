@@ -1,14 +1,14 @@
 {
  "v": 1,
  "at": "2026-10-12T06:30:08.047Z",
- "note": "Base book for chalk and Playbook — strength right (the tight end’s side; no tight end, more receivers); the apps mirror. Sources: Wikipedia, List of formations in American football; NFL staples.",
+ "note": "Base book for chalk and Playbook — strength right (the tight end’s side; no tight end, more receivers); the apps mirror, and a set never names a side: a set and its mirror are one set. Families are the calling words — Gun, Ace, Pro, I, T. Sources: Wikipedia, List of formations in American football; NFL staples.",
  "formations": [
   {
    "id": "base-o-i-rt",
-   "name": "I Rt",
-   "pro": "I Rt",
-   "desc": "Under center · 21 personnel · pro right · I backfield · TE inline right",
-   "family": "I formation",
+   "name": "I",
+   "pro": "I",
+   "desc": "Under center · 21 personnel · pro · I backfield · TE inline strong",
+   "family": "I",
    "aliases": [
     "Pro I",
     "I formation"
@@ -46,10 +46,10 @@
   },
   {
    "id": "base-o-i-rt-slot",
-   "name": "I Rt Slot",
-   "pro": "I Rt Slot",
-   "desc": "Under center · 21 personnel · twins left · I backfield · TE inline right",
-   "family": "I formation",
+   "name": "I Slot",
+   "pro": "I Slot",
+   "desc": "Under center · 21 personnel · twins weak · I backfield · TE inline strong",
+   "family": "I",
    "aliases": [
     "I Twins",
     "Pro Slot"
@@ -87,10 +87,10 @@
   },
   {
    "id": "base-o-strong-i-rt",
-   "name": "Strong I Rt",
-   "pro": "Strong I Rt",
-   "desc": "Under center · 21 personnel · pro right · offset I strong · TE inline right",
-   "family": "I formation",
+   "name": "Strong I",
+   "pro": "Strong I",
+   "desc": "Under center · 21 personnel · pro · offset I strong · TE inline strong",
+   "family": "I",
    "aliases": [
     "Offset I strong"
    ],
@@ -127,10 +127,10 @@
   },
   {
    "id": "base-o-weak-i-rt",
-   "name": "Weak I Rt",
-   "pro": "Weak I Rt",
-   "desc": "Under center · 21 personnel · pro right · offset I weak · TE inline right",
-   "family": "I formation",
+   "name": "Weak I",
+   "pro": "Weak I",
+   "desc": "Under center · 21 personnel · pro · offset I weak · TE inline strong",
+   "family": "I",
    "aliases": [
     "Offset I weak"
    ],
@@ -167,10 +167,10 @@
   },
   {
    "id": "base-o-power-i-rt",
-   "name": "Power I Rt",
-   "pro": "Power I Rt",
-   "desc": "Under center · 31 personnel · balanced · three backs · TE inline right",
-   "family": "I formation",
+   "name": "Power I",
+   "pro": "Power I",
+   "desc": "Under center · 31 personnel · balanced · three backs · TE inline strong",
+   "family": "I",
    "aliases": [
     "Power I",
     "Maryland I (three backs in a line — the third sits beside here)"
@@ -208,10 +208,10 @@
   },
   {
    "id": "base-o-pro-rt",
-   "name": "Pro Rt",
-   "pro": "Pro Rt",
-   "desc": "Under center · 21 personnel · pro right · split backs · TE inline right",
-   "family": "Split backs",
+   "name": "Pro",
+   "pro": "Pro",
+   "desc": "Under center · 21 personnel · pro · split backs · TE inline strong",
+   "family": "Pro",
    "aliases": [
     "Split backs",
     "Pro set",
@@ -252,8 +252,8 @@
    "id": "base-o-ace",
    "name": "Ace",
    "pro": "Ace",
-   "desc": "Under center · 12 personnel · doubles · single back · TE inline left · TE inline right",
-   "family": "Singleback",
+   "desc": "Under center · 12 personnel · doubles · single back · TE inline weak · TE inline strong",
+   "family": "Ace",
    "aliases": [
     "Singleback",
     "Single set back"
@@ -291,10 +291,10 @@
   },
   {
    "id": "base-o-ace-twins-rt",
-   "name": "Ace Twins Rt",
-   "pro": "Ace Twins Rt",
-   "desc": "Under center · 12 personnel · trey right · single back · TE inline left · TE inline right",
-   "family": "Singleback",
+   "name": "Ace Twins",
+   "pro": "Ace Twins",
+   "desc": "Under center · 12 personnel · trey · single back · TE inline weak · TE inline strong",
+   "family": "Ace",
    "aliases": [
     "Singleback twins"
    ],
@@ -331,10 +331,10 @@
   },
   {
    "id": "base-o-ace-trey-rt",
-   "name": "Ace Trey Rt",
-   "pro": "Ace Trey Rt",
-   "desc": "Under center · 11 personnel · trey right · single back · TE inline right",
-   "family": "Singleback",
+   "name": "Ace Trey",
+   "pro": "Ace Trey",
+   "desc": "Under center · 11 personnel · trey · single back · TE inline strong",
+   "family": "Ace",
    "aliases": [
     "Singleback trips (TE)"
    ],
@@ -371,10 +371,10 @@
   },
   {
    "id": "base-o-ace-trips-rt",
-   "name": "Ace Trips Rt",
-   "pro": "Ace Trips Rt",
-   "desc": "Under center · 11 personnel · trips right · single back · TE flexed right",
-   "family": "Singleback",
+   "name": "Ace Trips",
+   "pro": "Ace Trips",
+   "desc": "Under center · 11 personnel · trips · single back · TE flexed strong",
+   "family": "Ace",
    "aliases": [
     "Singleback trips, Y flexed"
    ],
@@ -413,8 +413,8 @@
    "id": "base-o-ace-doubles",
    "name": "Ace Doubles",
    "pro": "Ace Doubles",
-   "desc": "Under center · 11 personnel · doubles · single back · TE inline right",
-   "family": "Singleback",
+   "desc": "Under center · 11 personnel · doubles · single back · TE inline strong",
+   "family": "Ace",
    "aliases": [
     "Singleback 2x2"
    ],
@@ -451,10 +451,10 @@
   },
   {
    "id": "base-o-ace-wing-rt",
-   "name": "Ace Wing Rt",
-   "pro": "Ace Wing Rt",
-   "desc": "Under center · 12 personnel · pro right · single back · TE inline right · H-back right",
-   "family": "Singleback",
+   "name": "Ace Wing",
+   "pro": "Ace Wing",
+   "desc": "Under center · 12 personnel · pro · single back · TE inline strong · H-back strong",
+   "family": "Ace",
    "aliases": [
     "Two tight end / H-back set",
     "Y-Off",
@@ -496,7 +496,7 @@
    "name": "Ace Spread",
    "pro": "Ace Spread",
    "desc": "Under center · 10 personnel · doubles · single back",
-   "family": "Singleback",
+   "family": "Ace",
    "aliases": [
     "Spread formation (four wide, no TE)"
    ],
@@ -533,9 +533,9 @@
   },
   {
    "id": "base-o-tank-rt",
-   "name": "Tank Rt",
-   "pro": "Tank Rt",
-   "desc": "Under center · 13 personnel · pro right · single back · TE inline left · TE inline right · H-back right",
+   "name": "Tank",
+   "pro": "Tank",
+   "desc": "Under center · 13 personnel · pro · single back · TE inline weak · TE inline strong · H-back strong",
    "family": "Heavy",
    "aliases": [
     "13 personnel",
@@ -576,7 +576,7 @@
    "id": "base-o-jumbo",
    "name": "Jumbo",
    "pro": "Jumbo",
-   "desc": "Under center · 23 personnel · balanced · I backfield · TE inline left · TE inline right · H-back right",
+   "desc": "Under center · 23 personnel · balanced · I backfield · TE inline weak · TE inline strong · H-back strong",
    "family": "Goal line",
    "aliases": [
     "Goal line",
@@ -618,8 +618,8 @@
    "id": "base-o-full-house",
    "name": "Full House",
    "pro": "Full House",
-   "desc": "Under center · 32 personnel · balanced · three backs · TE inline left · TE inline right",
-   "family": "T formation",
+   "desc": "Under center · 32 personnel · balanced · three backs · TE inline weak · TE inline strong",
+   "family": "T",
    "aliases": [
     "T formation",
     "Power T",
@@ -660,10 +660,10 @@
   },
   {
    "id": "base-o-t-rt",
-   "name": "T Rt",
-   "pro": "T Rt",
-   "desc": "Under center · 31 personnel · balanced · three backs · TE inline right",
-   "family": "T formation",
+   "name": "T",
+   "pro": "T",
+   "desc": "Under center · 31 personnel · balanced · three backs · TE inline strong",
+   "family": "T",
    "aliases": [
     "T formation (split end)",
     "Wishbone (the halfbacks sit a step deeper)",
@@ -702,10 +702,10 @@
   },
   {
    "id": "base-o-t-rt-unbalanced",
-   "name": "T Rt Unbalanced",
-   "pro": "T Rt Unbalanced",
-   "desc": "Under center · 31 personnel · 1x0 · three backs · TE flexed right · unbalanced",
-   "family": "T formation",
+   "name": "T Unbalanced",
+   "pro": "T Unbalanced",
+   "desc": "Under center · 31 personnel · 1x0 · three backs · TE flexed strong · unbalanced",
+   "family": "T",
    "aliases": [
     "Unbalanced T",
     "Unbalanced line"
@@ -745,7 +745,7 @@
    "id": "base-o-flexbone",
    "name": "Flexbone",
    "pro": "Flexbone",
-   "desc": "Under center · 30 personnel · balanced · fullback · wing left · wing right",
+   "desc": "Under center · 30 personnel · balanced · fullback · wing weak · wing strong",
    "family": "Option",
    "aliases": [
     "Flexbone",
@@ -784,9 +784,9 @@
   },
   {
    "id": "base-o-wing-t-rt",
-   "name": "Wing-T Rt",
-   "pro": "Wing-T Rt",
-   "desc": "Under center · 31 personnel · pro right · 2 backs · TE inline right",
+   "name": "Wing-T",
+   "pro": "Wing-T",
+   "desc": "Under center · 31 personnel · pro · 2 backs · TE inline strong",
    "family": "Wing-T",
    "aliases": [
     "Delaware Wing-T",
@@ -827,7 +827,7 @@
    "id": "base-o-double-wing",
    "name": "Double Wing",
    "pro": "Double Wing",
-   "desc": "Under center · 32 personnel · balanced · fullback · wing left · wing right · TE inline left · TE inline right",
+   "desc": "Under center · 32 personnel · balanced · fullback · wing weak · wing strong · TE inline weak · TE inline strong",
    "family": "Wing-T",
    "aliases": [
     "Double wing (Markham)"
@@ -867,7 +867,7 @@
    "id": "base-o-victory",
    "name": "Victory",
    "pro": "Victory",
-   "desc": "Under center · 32 personnel · balanced · three backs · TE inline left · TE inline right",
+   "desc": "Under center · 32 personnel · balanced · three backs · TE inline weak · TE inline strong",
    "family": "Victory",
    "aliases": [
     "Victory (kneel)",
@@ -909,8 +909,8 @@
    "id": "base-o-gun-doubles",
    "name": "Gun Doubles",
    "pro": "Gun Doubles",
-   "desc": "Shotgun · 11 personnel · doubles · back beside the QB · TE inline right",
-   "family": "Shotgun",
+   "desc": "Shotgun · 11 personnel · doubles · back beside the QB · TE inline strong",
+   "family": "Gun",
    "aliases": [
     "Shotgun 2x2",
     "Lonesome Quarterback"
@@ -948,10 +948,10 @@
   },
   {
    "id": "base-o-gun-trey-rt",
-   "name": "Gun Trey Rt",
-   "pro": "Gun Trey Rt",
-   "desc": "Shotgun · 11 personnel · trey right · back beside the QB · TE inline right",
-   "family": "Shotgun",
+   "name": "Gun Trey",
+   "pro": "Gun Trey",
+   "desc": "Shotgun · 11 personnel · trey · back beside the QB · TE inline strong",
+   "family": "Gun",
    "aliases": [
     "Shotgun trips (TE)",
     "Trey"
@@ -989,10 +989,10 @@
   },
   {
    "id": "base-o-gun-trips-rt",
-   "name": "Gun Trips Rt",
-   "pro": "Gun Trips Rt",
-   "desc": "Shotgun · 11 personnel · trips right · back beside the QB · TE flexed right",
-   "family": "Shotgun",
+   "name": "Gun Trips",
+   "pro": "Gun Trips",
+   "desc": "Shotgun · 11 personnel · trips · back beside the QB · TE flexed strong",
+   "family": "Gun",
    "aliases": [
     "Shotgun trips, Y flexed",
     "Trips"
@@ -1030,10 +1030,10 @@
   },
   {
    "id": "base-o-gun-bunch-rt",
-   "name": "Gun Bunch Rt",
-   "pro": "Gun Bunch Rt",
-   "desc": "Shotgun · 11 personnel · bunch right · back beside the QB · TE flexed right",
-   "family": "Shotgun",
+   "name": "Gun Bunch",
+   "pro": "Gun Bunch",
+   "desc": "Shotgun · 11 personnel · bunch · back beside the QB · TE flexed strong",
+   "family": "Gun",
    "aliases": [
     "Bunch",
     "Cluster"
@@ -1071,10 +1071,10 @@
   },
   {
    "id": "base-o-gun-trey-rt-stack",
-   "name": "Gun Trey Rt Stack",
-   "pro": "Gun Trey Rt Stack",
-   "desc": "Shotgun · 11 personnel · stack right · back beside the QB · TE inline right",
-   "family": "Shotgun",
+   "name": "Gun Trey Stack",
+   "pro": "Gun Trey Stack",
+   "desc": "Shotgun · 11 personnel · stack strong · back beside the QB · TE inline strong",
+   "family": "Gun",
    "aliases": [
     "Stack",
     "Gun twins stack"
@@ -1112,10 +1112,10 @@
   },
   {
    "id": "base-o-gun-wing-rt",
-   "name": "Gun Wing Rt",
-   "pro": "Gun Wing Rt",
-   "desc": "Shotgun · 12 personnel · pro right · back beside the QB · TE inline right · H-back right",
-   "family": "Shotgun",
+   "name": "Gun Wing",
+   "pro": "Gun Wing",
+   "desc": "Shotgun · 12 personnel · pro · back beside the QB · TE inline strong · H-back strong",
+   "family": "Gun",
    "aliases": [
     "Gun 12 wing",
     "H-back"
@@ -1156,7 +1156,7 @@
    "name": "Gun Spread",
    "pro": "Gun Spread",
    "desc": "Shotgun · 10 personnel · doubles · back beside the QB",
-   "family": "Shotgun",
+   "family": "Gun",
    "aliases": [
     "4 wide",
     "Spread",
@@ -1197,8 +1197,8 @@
    "id": "base-o-gun-split",
    "name": "Gun Split",
    "pro": "Gun Split",
-   "desc": "Shotgun · 20 personnel · twins right · backs both sides of the QB",
-   "family": "Shotgun",
+   "desc": "Shotgun · 20 personnel · twins strong · backs both sides of the QB",
+   "family": "Gun",
    "aliases": [
     "Pony",
     "Gun split backs"
@@ -1236,9 +1236,9 @@
   },
   {
    "id": "base-o-empty-rt",
-   "name": "Empty Rt",
-   "pro": "Empty Rt",
-   "desc": "Shotgun · 10 personnel · trips right, two backside · empty backfield",
+   "name": "Empty",
+   "pro": "Empty",
+   "desc": "Shotgun · 10 personnel · trips, two backside · empty backfield",
    "family": "Empty",
    "aliases": [
     "Empty backfield",
@@ -1278,9 +1278,9 @@
   },
   {
    "id": "base-o-empty-quads-rt",
-   "name": "Empty Quads Rt",
-   "pro": "Empty Quads Rt",
-   "desc": "Shotgun · 10 personnel · quads right · empty backfield",
+   "name": "Empty Quads",
+   "pro": "Empty Quads",
+   "desc": "Shotgun · 10 personnel · quads · empty backfield",
    "family": "Empty",
    "aliases": [
     "Quads",
@@ -1321,7 +1321,7 @@
    "id": "base-o-pistol-doubles",
    "name": "Pistol Doubles",
    "pro": "Pistol Doubles",
-   "desc": "Pistol · 11 personnel · doubles · back behind the QB · TE inline right",
+   "desc": "Pistol · 11 personnel · doubles · back behind the QB · TE inline strong",
    "family": "Pistol",
    "aliases": [
     "Pistol",
@@ -1360,9 +1360,9 @@
   },
   {
    "id": "base-o-pistol-trey-rt",
-   "name": "Pistol Trey Rt",
-   "pro": "Pistol Trey Rt",
-   "desc": "Pistol · 11 personnel · trey right · back behind the QB · TE inline right",
+   "name": "Pistol Trey",
+   "pro": "Pistol Trey",
+   "desc": "Pistol · 11 personnel · trey · back behind the QB · TE inline strong",
    "family": "Pistol",
    "aliases": [
     "Pistol trips (TE)"
@@ -1400,9 +1400,9 @@
   },
   {
    "id": "base-o-pistol-wing-rt",
-   "name": "Pistol Wing Rt",
-   "pro": "Pistol Wing Rt",
-   "desc": "Pistol · 12 personnel · pro right · back behind the QB · TE inline right · H-back right",
+   "name": "Pistol Wing",
+   "pro": "Pistol Wing",
+   "desc": "Pistol · 12 personnel · pro · back behind the QB · TE inline strong · H-back strong",
    "family": "Pistol",
    "aliases": [
     "Pistol Ace wing"
@@ -1481,9 +1481,9 @@
   },
   {
    "id": "base-o-wildcat-rt",
-   "name": "Wildcat Rt",
-   "pro": "Wildcat Rt",
-   "desc": "Shotgun · 11 personnel · doubles · back beside the QB · TE inline right",
+   "name": "Wildcat",
+   "pro": "Wildcat",
+   "desc": "Shotgun · 11 personnel · doubles · back beside the QB · TE inline strong",
    "family": "Wildcat",
    "aliases": [
     "Wildcat",
@@ -1523,9 +1523,9 @@
   },
   {
    "id": "base-o-single-wing-rt",
-   "name": "Single Wing Rt",
-   "pro": "Single Wing Rt",
-   "desc": "Shotgun · 31 personnel · twins right, nothing backside · offset I strong · TE flexed right · unbalanced",
+   "name": "Single Wing",
+   "pro": "Single Wing",
+   "desc": "Shotgun · 31 personnel · twins strong, nothing backside · offset I strong · TE flexed strong · unbalanced",
    "family": "Single wing",
    "aliases": [
     "Single wing",
@@ -1564,9 +1564,9 @@
   },
   {
    "id": "base-o-notre-dame-box-rt",
-   "name": "Notre Dame Box Rt",
-   "pro": "Notre Dame Box Rt",
-   "desc": "Shotgun · 32 personnel · balanced · offset I strong · wing right · TE inline left · TE inline right",
+   "name": "Notre Dame Box",
+   "pro": "Notre Dame Box",
+   "desc": "Shotgun · 32 personnel · balanced · offset I strong · wing strong · TE inline weak · TE inline strong",
    "family": "Single wing",
    "aliases": [
     "Notre Dame Box",
@@ -1607,7 +1607,7 @@
    "id": "base-o-a-formation",
    "name": "A Formation",
    "pro": "A Formation",
-   "desc": "Shotgun · 21 personnel · balanced · offset I weak · TE flexed right · unbalanced",
+   "desc": "Shotgun · 21 personnel · balanced · offset I weak · TE flexed strong · unbalanced",
    "family": "Single wing",
    "aliases": [
     "A formation (Steve Owen)"
@@ -1647,7 +1647,7 @@
    "id": "base-o-short-punt",
    "name": "Short Punt",
    "pro": "Short Punt",
-   "desc": "Shotgun · 32 personnel · balanced · three backs · TE inline left · TE inline right",
+   "desc": "Shotgun · 32 personnel · balanced · three backs · TE inline weak · TE inline strong",
    "family": "Single wing",
    "aliases": [
     "Short punt"
@@ -1685,9 +1685,9 @@
   },
   {
    "id": "base-o-swinging-gate-rt",
-   "name": "Swinging Gate Rt",
-   "pro": "Swinging Gate Rt",
-   "desc": "Shotgun · 11 personnel · quads right, nothing backside · back beside the QB · TE flexed right",
+   "name": "Swinging Gate",
+   "pro": "Swinging Gate",
+   "desc": "Shotgun · 11 personnel · quads, nothing backside · back beside the QB · TE flexed strong",
    "family": "Trick",
    "aliases": [
     "Swinging gate"
