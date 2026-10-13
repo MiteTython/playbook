@@ -690,7 +690,7 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
 <script>
 (() => {
 'use strict';
-const VERSION = '0.14.0';
+const VERSION = '0.14.1';
 const KEYS = {store:'pb.store', diag:'pb.diag', dumps:'pb.dumps', base:'pb.baseline', bad:'pb.store.bad'};
 const LETTER_COLOR = {X:'#FF5A4E', Y:'#FFD23F', Z:'#B78CFF', H:'#4DA3FF', F:'#3DDC84'};
 const PERS = ['11','12','10','13','21','22','20','23','01','02','00','31','30'];
@@ -1141,10 +1141,11 @@ function pushBaseline(kind, obj){
    is open (an unchanged gist answers 304 and costs nothing); writes wait 1.5 s so a burst becomes one save. */
 const GIST_DESC = 'chalk-playbook sync v1';
 const SYNC = {token:null, id:null, etag:null, state:'off', err:null, lastPull:0, lastPush:0, ipad:{queue:[], tags:[], adds:[], at:null},
-  hold:null, timer:null, wtimer:null, writing:false, dirty:false, deleted:[], merged:false, failed:false};
+  hold:null, timer:null, wtimer:null, writing:false, dirty:false, deleted:[], merged:false, failed:false, framesCleared:null};
 function syncLoadCfg(){
   SYNC.token = lsGetRaw('pb.gh.token') || null;
   SYNC.id = lsGetRaw('pb.gh.gist') || null;
+  SYNC.framesCleared = lsGetRaw('pb.frames.cleared') || null;
   const d = lsGetJSON('pb.deleted', []); SYNC.deleted = Array.isArray(d) ? d : [];
   const ip = lsGetJSON('pb.ipad', null); if (ip && Array.isArray(ip.queue)) SYNC.ipad = Object.assign({tags:[], adds:[], facts:{}}, ip);
 }
@@ -1166,7 +1167,7 @@ async function gh(method, path, body, etag){
 const strip = (k,v) => (k === '_bad' || k === '_sync' || k === '_conv') ? undefined : v;
 function phoneJSON(){
   return JSON.stringify({v:1, at:new Date().toISOString(), names:NAMES.cfg(), formations:S.formations, fronts:S.fronts, designs:S.designs, plays:S.plays,
-    deleted:SYNC.deleted.slice(-5000), hold:SYNC.hold}, strip);
+    deleted:SYNC.deleted.slice(-5000), hold:SYNC.hold, framesCleared:SYNC.framesCleared || null}, strip);
 }
 function tomb(id){ SYNC.deleted.push(id); lsSetRaw('pb.deleted', JSON.stringify(SYNC.deleted.slice(-5000))); }
 const stamp = o => String(o.updated || o.created || o.t || '');
@@ -1247,6 +1248,9 @@ async function syncPull(){
   if (!SYNC.merged){
     const ph = await readFile(files['phone.json']);
     if (ph) mergeStore(ph, 'sync.merge');
+    if (ph && typeof ph.framesCleared === 'string' && (!SYNC.framesCleared || ph.framesCleared > SYNC.framesCleared)){   // cleared on another copy of the app
+      SYNC.framesCleared = ph.framesCleared; lsSetRaw('pb.frames.cleared', ph.framesCleared); FRM.cache.clear(); diag('frames.clear', `the shared file says frames were cleared ${ph.framesCleared}`);
+    }
     SYNC.merged = true;
     syncMark();
   }
@@ -5691,6 +5695,7 @@ function framesCheck(obj, key, name){
   const img = {}; let bad = 0;
   FRAME_NAMES.forEach(([n]) => { if (obj.img[n] == null) return; if (okImg(obj.img[n])) img[n] = obj.img[n]; else bad++; });
   if (bad) diag('frames.check', `${name}: ${bad} picture(s) were not image data, skipped`);
+  if (SYNC.framesCleared && obj.at && String(obj.at) <= SYNC.framesCleared){ diag('frames.check', `${name}: kept ${obj.at}, before the clear at ${SYNC.framesCleared} — not shown`); return null; }
   if (obj.key && obj.key !== key) diag('frames.check', `${name}: made for ${obj.key}, shown for ${key}`);
   return Object.keys(img).length ? {key, img, t:obj.t || {}, at:obj.at || null} : null;
 }
@@ -5731,6 +5736,46 @@ function framesBlock(key, cur){
 }
 const FILMV = {open:false, shot:'snap'};
 function filmBtnSync(){ const b = $('#filmBtn'); if (b) b.hidden = !(VIEW === 'editor' && W && W.qkey && framesNow(W.qkey)); }
+/* ---- 0.14.1: clear every frame. Every frames-<play>.json leaves the gist (it lists 300 files at most, so: list, delete,
+   list again until none are left); the plays, sets, tags and the iPad's facts stay. When it happened goes into phone.json
+   as framesCleared: chalk forgets the frames it holds in memory from before then, and the phone never shows one kept
+   before then, even if an old copy gets sent back up. ---- */
+const FRC = {busy:false};
+const frameNames = files => Object.keys(files || {}).filter(n => /^frames-/.test(n));
+function framesClearAsk(){
+  if (!SYNC.token){ toast('Link GitHub first — the frames live in the shared file.', 'err'); return; }
+  if (FRC.busy){ toast('Already clearing the frames.'); return; }
+  const n = FRM.files.size;
+  showSheet(`<h3>Clear every frame?</h3><p>${n ? `${n} play${n === 1 ? ' has' : 's have'} frames` : 'Every frame'} from the iPad — set, shift, snap, +1 s, +2 s, end zone — get deleted from the shared file, and the iPad forgets the ones it’s holding. Your plays, sets, tags and the iPad’s personnel stay. Fresh frames come the next time you mark a snap. This can’t be undone.</p>
+    <div class="row"><button class="btn" data-act="closeSheet">Keep them</button><button class="btn danger" data-act="framesClear">Clear frames</button></div>`);
+}
+async function framesClearAll(){
+  if (FRC.busy || !SYNC.token) return;
+  FRC.busy = true; toast('Clearing the frames…'); if (VIEW === 'home') renderHome();
+  const at = new Date().toISOString();
+  let gone = 0;
+  try {
+    await syncFind();
+    SYNC.framesCleared = at; lsSetRaw('pb.frames.cleared', at); FRM.cache.clear(); syncMark(0);   // first the word to chalk, so nothing old goes back up meanwhile
+    for (let round = 1; round <= 12; round++){
+      const r = await gh('GET', `/gists/${SYNC.id}`);
+      const names = frameNames(r.json && r.json.files);
+      if (!names.length) break;
+      const files = {}; names.forEach(n => { files[n] = null; });   // null deletes the file
+      await gh('PATCH', `/gists/${SYNC.id}`, {files});
+      gone += names.length;
+      diag('frames.clear', `round ${round}: ${names.length} frame files deleted (${gone} so far)`);
+    }
+    const r = await gh('GET', `/gists/${SYNC.id}`), files = (r.json && r.json.files) || {}, left = frameNames(files);
+    FRM.files = new Map(left.map(n => [n, files[n]])); FRM.cache.clear(); SYNC.etag = null;
+    if (left.length) fail('frames.clear', 'no frame files left in the shared file', `${left.length} still there after ${gone} deleted`, {left:left.slice(0, 20)});
+    else { diag('frames.clear', `done: ${gone} frame files deleted, none left · cleared at ${at}`); toast(gone ? `Cleared ${gone} play${gone === 1 ? '’s' : 's’'} frames.` : 'No frames to clear — the shared file had none.'); }
+  } catch(e){
+    fail('frames.clear', 'every frame file deleted from the shared file', `${(e && e.status) || 'no answer'}: ${(e && e.msg) || e}`, {deleted:gone, body:e && e.body});
+  } finally {
+    FRC.busy = false; framesSoon(); if (VIEW === 'home') renderHome();
+  }
+}
 
 /* ---- 0.11.0 the frame up close: pinch to zoom, one finger pans, double-tap in and out, the other frames along the foot ---- */
 const ZM = {key:null, shot:'snap', s:1, fit:1, tx:0, ty:0, w:0, h:0, ptrs:new Map(), pinch:null, pan:null, lastTap:0, lastXY:null};
@@ -6463,6 +6508,7 @@ function moreTabHTML(){
       ${li('gloss', 'What the words mean', 'The glossary: sets, fronts, coverages', NAMING)}
       ${li('tend', 'Tendencies', 'Run/pass and strong/weak by down & distance, field zone, personnel, set')}
       ${li('topR', 'Diagnostics', 'The log, dumps and baselines')}
+      ${li('framesClearAsk', 'Clear all frames', FRC.busy ? 'Clearing…' : !SYNC.token ? 'Link GitHub first — the frames live in the shared file' : `${FRM.files.size} play${FRM.files.size === 1 ? '' : 's'} with frames from the iPad${SYNC.framesCleared ? ' · last cleared ' + new Date(SYNC.framesCleared).toLocaleDateString([], {month:'short', day:'numeric'}) : ''}`)}
       ${li('wipeAsk', 'Start clean', 'Clear logged plays, sets, drawn plays and fronts. The NFL base stays.')}
     </div>
     <div class="ver" style="margin-top:16px">Playbook v${VERSION}</div>`;
@@ -8430,6 +8476,8 @@ Object.assign(ACT, {
   },
   pf(d){ HOMEV.pf = d.v; renderHome(); },
   wipeAsk(){ if (!Object.keys(WIPE).some(k => (S[k] || []).length)){ toast('Nothing to clear — the book is the NFL base alone.'); return; } lsSetRaw('pb.clear0101', ''); clearPrompt(); },
+  framesClearAsk(){ framesClearAsk(); },
+  framesClear(){ hideSheet(); framesClearAll(); },
   logNow(){   // 0.11.0: the wizard's one key — the neutral name, the play logged, the defense next (Skip is there)
     const st = offStatus();
     if (st.left){ toast(`${st.left} ${st.left === 1 ? 'man has' : 'men have'} no spot yet.`, 'err'); return; }
