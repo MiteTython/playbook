@@ -86,6 +86,27 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .tile b{font-size:15px}
 .tile small{font-size:12.5px;color:var(--fg2);line-height:16px}
 .chev{color:var(--fg2);flex:none;font-size:18px}
+/* 0.12.0 the three doors */
+.door{display:flex;flex-direction:column;gap:9px;width:100%;padding:14px 16px;border-radius:22px;border:1px solid var(--line);background:var(--panel);color:var(--fg);text-align:left;box-sizing:border-box;margin-bottom:12px}
+.door.one{background:var(--fg);color:var(--bg);border-color:transparent}
+.door.one .door-k,.door.one .door-s{color:inherit;opacity:.72}
+.door.one .btn{background:var(--accent);color:var(--on-accent)}
+.door.two{background:var(--raise)}
+.door-k{font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--fg2)}
+.door-t{font-size:20px;font-weight:800;letter-spacing:-.01em;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.door-t small{font-size:13px;font-weight:700;color:var(--fg2);white-space:nowrap}
+.door-s{font-size:13px;color:var(--fg2);line-height:18px}
+.door .row .btn{height:44px;font-size:15px}
+.bar{height:6px;border-radius:3px;background:var(--bg);overflow:hidden}
+.bar i{display:block;height:6px;background:var(--accent)}
+.lately{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px 20px;padding:0 16px}
+.lately::-webkit-scrollbar{display:none}
+.lately .chip{height:32px;font-size:13px;font-weight:700}
+.drive summary{font-size:14px}
+.drive summary span{font-size:12px}
+.li.on{background:var(--raise)}
+.li.done .li-n{color:var(--ok)}
+.li.np{opacity:.6}
 /* designer */
 .pick{flex:1;min-width:0;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--raise);color:var(--fg);font-size:13.5px;font-weight:600;padding:0 10px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
@@ -349,7 +370,7 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
   </section>
   <section id="diag" class="view scroll diag" hidden></section>
   <nav id="tabs" class="tabs" hidden aria-label="Sections">
-    <button data-act="tab" data-v="inbox" aria-label="Inbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l2.5-8h13L21 13v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M3 13h5l1.5 3h5L16 13h5"/></svg>Inbox<span class="bdg" id="tabBadge" hidden></span></button>
+    <button data-act="tab" data-v="home" aria-label="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>Home<span class="bdg" id="tabBadge" hidden></span></button>
     <button data-act="tab" data-v="plays" aria-label="Plays"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>Plays</button>
     <button data-act="tab" data-v="book" aria-label="Book"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg>Book</button>
     <button data-act="tab" data-v="more" aria-label="More"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>More</button>
@@ -366,7 +387,7 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
 <script>
 (() => {
 'use strict';
-const VERSION = '0.11.0';
+const VERSION = '0.12.0';
 const KEYS = {store:'pb.store', diag:'pb.diag', dumps:'pb.dumps', base:'pb.baseline', bad:'pb.store.bad'};
 const LETTER_COLOR = {X:'#FF5A4E', Y:'#FFD23F', Z:'#B78CFF', H:'#4DA3FF', F:'#3DDC84'};
 const PERS = ['11','12','10','13','21','22','20','23','01','02','00','31','30'];
@@ -2920,7 +2941,14 @@ function renderTop(){
   let title = 'Playbook', sub = '';
   if (VIEW === 'home'){
     L.hidden = !EMBED; if (EMBED){ icon.setAttribute('d', 'M6 6l12 12M18 6L6 18'); L.setAttribute('aria-label','Close'); }
-    else { title = TAB_NAME[HOMEV.tab] || 'Playbook'; sub = HOMEV.tab === 'inbox' ? `${inboxSplit().live.length} waiting · ${syncWord()}` : HOMEV.tab === 'plays' ? `${S.plays.length} logged · ${S.plays.filter(p => !p.def && !p._bad).length} without a defense` : HOMEV.tab === 'book' ? `${allSets().length} sets · ${allFronts().length} fronts · ${S.designs.length} drawn` : `v${VERSION} · ${syncWord()}`; }
+    else if (HOMEV.tab === 'home'){
+      const pg = HOMEV.page, row = pg === 'game' && GAMEV.gid ? gameRow(GAMEV.gid) : null;
+      L.hidden = pg === 'doors'; icon.setAttribute('d', 'M15 5l-7 7 7 7'); L.setAttribute('aria-label', 'Back');
+      title = row ? `${row.away} at ${row.home}` : PAGE_NAME[pg] || 'Playbook';
+      sub = pg === 'doors' ? `${inboxSplit().live.length} waiting · ${syncWord()}` : pg === 'watch' ? `${inboxSplit().live.length} waiting · ${syncWord()}`
+        : pg === 'games' ? (GAMES.state === 'on' ? `${GAMES.index.games.length} games · ${S.plays.length} logged` : 'loading…') : row ? `Week ${row.week} · ${row.date}` : '';
+    }
+    else { title = TAB_NAME[HOMEV.tab] || 'Playbook'; sub = HOMEV.tab === 'plays' ? `${S.plays.length} logged · ${S.plays.filter(p => !p.def && !p._bad).length} without a defense` : HOMEV.tab === 'book' ? `${allSets().length} sets · ${allFronts().length} fronts · ${S.designs.length} drawn` : `v${VERSION} · ${syncWord()}`; }
   }
   else if (VIEW === 'diag'){ L.hidden = false; icon.setAttribute('d', 'M15 5l-7 7 7 7'); L.setAttribute('aria-label','Back'); title = 'Diagnostics'; sub = `v${VERSION}`; }
   else {
@@ -3246,10 +3274,11 @@ function startQueued(q){
   const qb = {U:'under', S:'gun', P:'pistol', under:'under', gun:'gun', pistol:'pistol'}[q.qb];
   if (qb) W.qb = qb;
   if (q.sit && q.sit.yard != null) W.spot = yardToSpot(q.sit.yard);
+  W.fromGame = !!q.fromGame;
   wizEnter();
   setStep('off'); setView('editor'); refresh();
-  setHold(q.key, 'snap');
-  diag('flow', `queue: logging ${q.key} (${sitWord(q.sit)})`);
+  if (!q.fromGame) setHold(q.key, 'snap');
+  diag('flow', `${q.fromGame ? 'game' : 'queue'}: logging ${q.key} (${sitWord(q.sit)})`);
 }
 function goHome(){ if (SYNC.hold) setHold(null); W = null; drag = null; bubble = null; setView('home'); refresh(); }
 function startLog(f){
@@ -3293,6 +3322,11 @@ function upsertFormation(off, name, editId){
   return f;
 }
 function startNext(keep){
+  if (keep.game){   // 0.12.0: a drive logged in order — the next open snap of it, then back to the game
+    const nx = gameNextOpen(keep.game);
+    if (nx){ startQueued(nx); W.gameRun = keep.game; return; }
+    toast(`Drive ${keep.game.drive} logged, every snap.`); goHome(); return;
+  }
   if (EMBED || keep.card){ goHome(); return; }
   if (keep.queue){
     const nx = queueOpen()[0];
@@ -3330,7 +3364,7 @@ function saveOff(after){
   dbPut('plays', play, 'save.play');
   embedPost('formation', Object.assign({}, f, {play:{strength:play.strength, hash:play.hash, spot:play.spot}}));
   /* the next play keeps personnel, QB depth, hash and spot */
-  const keep = {pers:W.pers, xol:W.xol, qb:W.qb, hash:W.hash, spot:W.spot, queue:!!W.qkey && !W.fromCard, card:!!W.fromCard};
+  const keep = {pers:W.pers, xol:W.xol, qb:W.qb, hash:W.hash, spot:W.spot, queue:!!W.qkey && !W.fromCard && !W.fromGame, card:!!W.fromCard || (!!W.fromGame && !W.gameRun), game:W.gameRun || null};
   if (after === 'def'){
     W.playId = play.id; W.strength = play.strength; W.mode = 'log'; W.chain = keep;
     W.tokens.forEach((t,i) => { t.fixed = play.off.tokens[i] ? (play.off.tokens[i].letter || null) : null; });
@@ -5821,9 +5855,196 @@ function cardHTML(q){
   </div>`;
 }
 
-/* ---- home: the inbox, then the book as feeds of Polaroids ---- */
-const HOMEV = {allPlays:false, tab:(['inbox','plays','book','more'].includes(lsGetRaw('pb.tab')) ? lsGetRaw('pb.tab') : 'inbox'), pf:'all'};
-const TAB_NAME = {inbox:'Inbox', plays:'Plays', book:'Book', more:'More'};
+/* ================= 0.12.0 the games: every snap of every game, from the repo (data/games.json, data/pbp/<season>/<game>.json) ================= */
+const GAMES = {index:null, state:'off', err:null, cache:new Map(), busy:new Set()};
+const GAMEV = {season:null, week:null, gid:lsGetRaw('pb.game.cur') || null, side:lsGetRaw('pb.game.side') || null, key:null};
+const GAME_LS_MAX = 8;
+async function fetchJSON(url){
+  const r = await fetch(url, {cache:'no-cache'});
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+function gamesCheck(idx){
+  const bad = [];
+  if (!idx || typeof idx !== 'object') bad.push('not an object');
+  else {
+    if (idx.v !== 1) bad.push(`v: expected 1, got ${idx.v}`);
+    if (!Array.isArray(idx.games)) bad.push(`games: expected array, got ${typeof idx.games}`);
+    else idx.games.slice(0, 3).forEach(g => { if (!g || typeof g.id !== 'string' || !g.away || !g.home || !g.teams) bad.push(`game row missing id/away/home/teams: ${JSON.stringify(g).slice(0, 80)}`); });
+    if (!idx.seasons || typeof idx.seasons !== 'object') bad.push('seasons: missing');
+  }
+  return bad;
+}
+async function gamesLoad(){
+  if (EMBED) return;
+  GAMES.state = 'loading';
+  let idx = null, from = 'repo';
+  try { idx = await fetchJSON('data/games.json'); }
+  catch(e){ idx = lsGetJSON('pb.games', null); from = 'this phone'; GAMES.err = String(e && e.message); diag('games', `index not fetched (${GAMES.err}); ${idx ? 'using the copy on this phone' : 'no copy on this phone'}`); }
+  if (!idx){ GAMES.state = 'error'; GAMES.err = 'no connection, and no copy on this phone yet'; if (VIEW === 'home') renderHome(); return; }
+  const bad = gamesCheck(idx);
+  if (bad.length){ GAMES.state = 'error'; GAMES.err = bad[0]; fail('games.index', 'data/games.json with v 1, seasons{} and games[]', bad.join('; '), JSON.stringify(idx).slice(0, 300)); if (VIEW === 'home') renderHome(); return; }
+  GAMES.index = idx; GAMES.state = 'on'; GAMES.err = null;
+  if (from === 'repo') lsSetRaw('pb.games', JSON.stringify(idx));
+  diag('games', `${idx.games.length} games from ${from}, built ${idx.built}`, Object.fromEntries(Object.entries(idx.seasons).map(([s, v]) => [s, v.games])));
+  if (GAMEV.gid && gameRow(GAMEV.gid)) gameLoad(GAMEV.gid);
+  if (VIEW === 'home') renderHome();
+}
+const gameRow = gid => GAMES.index ? GAMES.index.games.find(g => g.id === gid) || null : null;
+function gameCheck(g, gid){
+  const bad = [];
+  if (!g || typeof g !== 'object') return ['not an object'];
+  if (g.id !== gid) bad.push(`id: expected ${gid}, got ${g.id}`);
+  if (!Array.isArray(g.drives) || !g.drives.length) bad.push('drives: expected a non-empty array');
+  else g.drives.forEach((d, i) => { if (!d || !Array.isArray(d.plays) || !d.pos) bad.push(`drive ${i}: needs pos and plays[]`); else if (d.plays.some(p => !p || typeof p.key !== 'string' || !p.res)) bad.push(`drive ${i}: a play without key/res`); });
+  return bad;
+}
+function gameLsPut(gid, g){
+  const list = (lsGetJSON('pb.g.list', []) || []).filter(k => k !== gid); list.push(gid);
+  while (list.length > GAME_LS_MAX){ const k = list.shift(); try { localStorage.removeItem('pb.g.' + k); } catch(e){} }
+  lsSetRaw('pb.g.list', JSON.stringify(list));
+  if (lsSetRaw('pb.g.' + gid, JSON.stringify(g)) !== true) diag('games', `${gid} not kept on this phone (storage full?)`);
+}
+async function gameLoad(gid){
+  if (GAMES.cache.has(gid) || GAMES.busy.has(gid)) return GAMES.cache.get(gid) || null;
+  const row = gameRow(gid); if (!row){ diag('games', `${gid}: not in the index`); return null; }
+  GAMES.busy.add(gid);
+  let g = null, from = 'repo';
+  try { g = await fetchJSON(`data/pbp/${row.season}/${gid}.json`); }
+  catch(e){ g = lsGetJSON('pb.g.' + gid, null); from = 'this phone'; diag('games', `${gid} not fetched (${e && e.message}); ${g ? 'using the copy on this phone' : 'no copy on this phone'}`); }
+  GAMES.busy.delete(gid);
+  const bad = g ? gameCheck(g, gid) : ['nothing loaded'];
+  if (bad.length){ fail('games.load', `data/pbp/${row.season}/${gid}.json with drives[] of plays[]`, bad.join('; '), g ? JSON.stringify(g).slice(0, 300) : null); if (VIEW === 'home') renderHome(); return null; }
+  GAMES.cache.set(gid, g);
+  if (from === 'repo') gameLsPut(gid, g);
+  diag('games', `${gid}: ${g.drives.length} drives, ${g.drives.reduce((n, d) => n + d.plays.length, 0)} snaps, from ${from}`);
+  if (VIEW === 'home') renderHome();
+  return g;
+}
+const gameQ = p => ({key:p.key, sit:{down:p.down, dist:p.dist, yard:p.yard, qtr:p.q, clock:p.clock, pos:p.pos}, desc:p.desc || '', pers:null, qb:p.gun ? 'gun' : 'under', res:p.res || null, at:null, fromGame:true, np:!!p.np});
+const gameDrives = (g, side) => g.drives.filter(d => d.pos === side);
+const gamePlays = (g, side) => gameDrives(g, side).flatMap(d => d.plays);
+const loggedKey = key => S.plays.some(p => p.key === key && !p._bad);
+const playOpen = p => !loggedKey(p.key) && !PARK.has(p.key);
+function gameSide(g){ const row = gameRow(g.id) || g; if (GAMEV.side === row.away || GAMEV.side === row.home) return GAMEV.side; return row.away; }
+function gameProgress(g, side){ const all = gamePlays(g, side); const n = all.filter(p => loggedKey(p.key)).length; return {n, total:all.length, left:all.length - n}; }
+function gameFind(key){
+  const gid = String(key || '').split(':')[0], g = GAMES.cache.get(gid); if (!g) return null;
+  for (const d of g.drives){ const p = d.plays.find(x => x.key === key); if (p) return {g, d, p}; }
+  return null;
+}
+function gameNextOpen(run){   // the next unlogged, unparked snap: in this drive, else in the game
+  const g = GAMES.cache.get(run.gid); if (!g) return null;
+  const side = run.side || gameSide(g);
+  const inDrive = run.drive != null ? gameDrives(g, side).filter(d => d.n === run.drive).flatMap(d => d.plays).find(playOpen) : null;
+  const p = inDrive || (run.drive != null ? null : gamePlays(g, side).find(playOpen));
+  return p ? gameQ(p) : null;
+}
+function gameTop(){   // the card on the game page: the play you tapped, else the next open one
+  if (HOMEV.tab !== 'home' || HOMEV.page !== 'game' || !GAMEV.gid) return null;
+  const g = GAMES.cache.get(GAMEV.gid); if (!g) return null;
+  const side = gameSide(g);
+  let hit = GAMEV.key ? gameFind(GAMEV.key) : null;
+  if (hit && (hit.d.pos !== side || !playOpen(hit.p))){
+    const after = gameDrives(g, side).filter(d => d.n >= hit.d.n).flatMap(d => d.plays), i = after.findIndex(p => p.key === hit.p.key);
+    const nx = after.slice(i + 1).find(playOpen) || gamePlays(g, side).find(playOpen);
+    hit = nx ? gameFind(nx.key) : null;
+  }
+  if (!hit){ const nx = gamePlays(g, side).find(playOpen); hit = nx ? gameFind(nx.key) : null; }
+  GAMEV.key = hit ? hit.p.key : null;
+  if (hit && CARDV.key !== hit.p.key){ CARDV.key = hit.p.key; CARDV.shot = 'snap'; }
+  return hit ? Object.assign(gameQ(hit.p), {drive:hit.d}) : null;
+}
+function setGame(gid, side){
+  GAMEV.gid = gid || null; lsSetRaw('pb.game.cur', GAMEV.gid || '');
+  if (side){ GAMEV.side = side; lsSetRaw('pb.game.side', side); }
+  GAMEV.key = null;
+  if (gid) gameLoad(gid);
+}
+const scoreLine = row => row.score && row.score[row.away] != null ? `${row.away} ${row.score[row.away]}, ${row.home} ${row.score[row.home]}` : '';
+const resWords = r => !r ? '' : [r.ptype === 'run' ? 'Run' : 'Pass', r.ptype === 'run' ? [r.loc, r.gap && r.gap !== 'middle' ? r.gap : ''].filter(Boolean).join(' ') : [r.len, r.loc].filter(Boolean).join(' '),
+  r.yds == null ? '' : (r.yds > 0 ? '+' : '') + r.yds, r.td ? 'TD' : r.int ? 'INT' : r.sack ? 'sack' : r.fd ? '1st down' : ''].filter(Boolean).join(' · ');
+
+/* ---- the three doors ---- */
+function doorsHTML(){
+  const {live, top} = inboxSplit();
+  const s = top && top.sit || {};
+  const d1 = top ? `<span class="door-t"><span>${esc(sitWord(s))}${s.yard != null ? ' · ' + esc(spotLabel(yardToSpot(s.yard))) : ''}</span><small>${s.qtr ? 'Q' + esc(s.qtr) + ' ' : ''}${esc(clockWord(s.clock))}</small></span>
+      <span class="door-s">${esc(top.desc || (top.fromTag ? 'Tagged on the iPad' : 'Waiting from the iPad'))}${live > 1 ? ` · ${live} waiting` : ''}</span>
+      <div class="row"><button class="btn pri" data-act="door1">Log it →</button><button class="btn slim" data-act="logNew">By hand</button></div>`
+    : `<span class="door-t"><span>Nothing waiting</span></span>
+      <span class="door-s">${SYNC.token ? 'Tap Later on the iPad and the play lands here. Or place a set and log it by hand.' : 'Connect Sync in More and the iPad\'s plays land here. Or log one by hand.'}</span>
+      <div class="row"><button class="btn pri" data-act="logNew">Log a play by hand</button><button class="btn slim" data-act="door1">Inbox</button></div>`;
+  let d2;
+  const row = GAMEV.gid ? gameRow(GAMEV.gid) : null, g = GAMEV.gid ? GAMES.cache.get(GAMEV.gid) : null;
+  if (row){
+    const side = gameSide(row), pr = g ? gameProgress(g, side) : null;
+    const nextQ = g ? gameNextOpen({gid:row.id, side}) : null, nd = nextQ ? gameFind(nextQ.key).d : null;
+    d2 = `<span class="door-t"><span>${esc(row.away)} at ${esc(row.home)} · Wk ${row.week}</span><small>${pr ? `${pr.n} of ${pr.total}` : (g === null && GAMES.state === 'on' ? 'loading…' : '')}</small></span>
+      <div class="bar"><i style="width:${pr && pr.total ? Math.round(100 * pr.n / pr.total) : 0}%"></i></div>
+      <span class="door-s">${esc(side)} offense${nd ? ` · next: Drive ${nd.n}, ${sitWord(nextQ.sit)}` : (pr && !pr.left ? ' · every snap logged' : '')}</span>
+      <div class="row"><button class="btn pri" data-act="door2">${pr && !pr.left ? 'Open' : nd ? `Continue · Drive ${nd.n}` : 'Continue'} →</button><button class="btn slim" data-act="games">Other games</button></div>`;
+  } else d2 = `<span class="door-t"><span>Pick a game</span></span>
+      <span class="door-s">${GAMES.state === 'on' ? `${GAMES.index.games.length} games loaded · every snap, drive by drive. Log at your own pace; it syncs.` : GAMES.state === 'error' ? 'The games did not load: ' + esc(GAMES.err || '') : 'Loading the games…'}</span>
+      <div class="row"><button class="btn pri" data-act="games">${GAMES.state === 'error' ? 'Try again' : 'Games'} →</button></div>`;
+  const lately = S.plays.slice().sort((a,b) => b.n - a.n).slice(0, 6);
+  return `
+    <div class="door one"><span class="door-k">1 · Log what I'm watching</span>${d1}</div>
+    <div class="door two"><span class="door-k">2 · Log a game</span>${d2}</div>
+    <div class="door"><span class="door-k">3 · Just build</span>
+      <span class="door-s">A formation or a front for the book. No play needed.</span>
+      <div class="row"><button class="btn" data-act="tplNew">Formation</button><button class="btn" data-act="frontNew">Front</button></div></div>
+    ${lately.length ? `<span class="lbl" style="display:block;margin:4px 0 8px">Lately</span><div class="lately">${lately.map(p => `<button class="chip" data-act="openPlay" data-id="${esc(p.id)}">${esc(callLine(p, 'pro'))}${p.def && p.def.front ? ' vs ' + esc(p.def.front) : ''}</button>`).join('')}</div>` : ''}`;
+}
+/* ---- door 2: the games by week, then one game drive by drive ---- */
+function gamesHTML(){
+  if (GAMES.state !== 'on'){
+    return `<div class="zero"><b>${GAMES.state === 'error' ? 'The games did not load' : 'Loading the games…'}</b><small>${esc(GAMES.err || 'Every snap of every game, from the public play-by-play in the repo.')}</small></div>
+      ${GAMES.state === 'error' ? '<button class="btn small wide" data-act="gamesRetry">Try again</button>' : ''}`;
+  }
+  const idx = GAMES.index, seasons = Object.keys(idx.seasons).sort((a,b) => b - a);
+  const season = seasons.includes(String(GAMEV.season)) ? String(GAMEV.season) : seasons[0];
+  const weeks = idx.seasons[season].weeks, week = weeks.includes(GAMEV.week) ? GAMEV.week : weeks[weeks.length - 1];
+  const list = idx.games.filter(g => String(g.season) === season && g.week === week).sort((a,b) => String(a.date).localeCompare(String(b.date)) || a.id.localeCompare(b.id));
+  const logged = gid => S.plays.filter(p => !p._bad && String(p.key || '').split(':')[0] === gid).length;
+  const row = g => { const n = logged(g.id), on = g.id === GAMEV.gid; return `<button class="li ${on ? 'on' : ''}" data-act="gOpen" data-id="${esc(g.id)}">
+      <span class="li-main"><span class="li-t">${esc(g.away)} at ${esc(g.home)}</span>
+      <span class="li-s">${esc(scoreLine(g) ? 'final · ' + scoreLine(g) : g.date)} · ${g.teams[g.away] ? g.teams[g.away].plays : '?'} + ${g.teams[g.home] ? g.teams[g.home].plays : '?'} snaps${n ? ` · ${n} logged` : ''}</span></span>
+      <span class="li-b" style="display:flex;align-items:center">${n ? 'Open' : 'Log'}</span></button>`; };
+  return `<div class="fchips" style="margin-top:6px">${seasons.length > 1 ? seasons.map(s => `<button class="chip ${s === season ? 'on' : ''}" data-act="gSeason" data-v="${s}">${s}</button>`).join('') : ''}
+      ${weeks.map(w => `<button class="chip ${w === week ? 'on' : ''}" data-act="gWeek" data-v="${w}">Wk ${w}</button>`).join('')}</div>
+    <p class="sub" style="margin:10px 0 12px">${idx.games.filter(g => String(g.season) === season).length} games in ${esc(season)} · built ${esc(String(idx.built || '').slice(0, 10))} · a game lands after its final</p>
+    <section class="sec"><h2><span>Week ${week} · ${list.length} games</span></h2><div class="list">${list.map(row).join('') || '<div class="empty">No games this week yet.</div>'}</div></section>`;
+}
+function gameHTML(){
+  const row = gameRow(GAMEV.gid), g = GAMES.cache.get(GAMEV.gid);
+  if (!row) return GAMES.state === 'on' ? `<div class="zero"><b>That game is not in the list</b></div><button class="btn small wide" data-act="games">Games</button>` : gamesHTML();
+  if (!g) return `<div class="zero"><b>${esc(row.away)} at ${esc(row.home)}</b><small>${GAMES.busy.has(row.id) ? 'Loading the snaps…' : 'The snaps did not load. Check Diagnostics.'}</small></div>${GAMES.busy.has(row.id) ? '' : `<button class="btn small wide" data-act="gOpen" data-id="${esc(row.id)}">Try again</button>`}`;
+  const side = gameSide(g), pr = gameProgress(g, side), top = gameTop();
+  const head = `<div class="card" style="gap:8px">
+      <div class="card-h"><b>${esc(row.away)} at ${esc(row.home)} · Wk ${row.week}</b><span>${esc(scoreLine(row) || row.date)}</span></div>
+      <div class="row">${seg('gSide', [[row.away, row.away + ' offense'],[row.home, row.home + ' offense']], side)}</div>
+      <div class="bar"><i style="width:${pr.total ? Math.round(100 * pr.n / pr.total) : 0}%"></i></div>
+      <div class="card-f">${pr.n} of ${pr.total} logged${pr.left ? ` · ${pr.left} to go, whenever` : ' · every snap logged'}</div>
+    </div>`;
+  const cur = top ? `<p class="sub" style="margin:0 0 8px">Drive ${top.drive.n} · Q${top.drive.q} ${esc(top.drive.start || '')} from ${esc(top.drive.from || '?')} → ${esc(top.drive.result || '?')} · play ${top.drive.plays.indexOf(top.drive.plays.find(p => p.key === top.key)) + 1} of ${top.drive.plays.length}</p>${cardHTML(top)}` : '';
+  const prow = (p, d) => { const pl = S.plays.find(x => x.key === p.key && !x._bad), on = top && top.key === p.key;
+    return `<button class="li ${on ? 'on' : ''} ${pl ? 'done' : ''} ${p.np ? 'np' : ''}" data-act="gPlay" data-key="${esc(p.key)}">
+      <span class="li-n" style="width:auto;min-width:58px;font-size:14px">${pl ? '✓ ' : ''}${esc(sitWord({down:p.down, dist:p.dist}))}</span>
+      <span class="li-main"><span class="li-t">${esc(p.yard != null ? spotLabel(yardToSpot(p.yard)) : '')} · ${esc(p.clock || '')} · ${esc(resWords(p.res))}${p.np ? ' · no play' : ''}</span>
+      <span class="li-s">${pl ? esc(callLine(pl) + (pl.def ? ' vs ' + (pl.def.cov ? pl.def.cov.name : pl.def.front || 'front') : '')) : PARK.has(p.key) ? 'parked' : esc(String(p.desc || '').replace(/^\(\d+:\d+\)\s*/, '').slice(0, 90))}</span></span></button>`; };
+  const drives = gameDrives(g, side).map(d => { const n = d.plays.filter(p => loggedKey(p.key)).length, open = d.plays.filter(playOpen).length, cur = top && top.drive.n === d.n;
+    return `<details class="game drive" ${cur ? 'open' : ''}><summary>Drive ${d.n} · Q${d.q} ${esc(d.start || '')} · ${esc(d.from || '')} → ${esc(d.result || '?')}<span>${n} of ${d.plays.length}</span></summary>
+      <div class="list" style="margin-top:8px">${d.plays.map(p => prow(p, d)).join('')}</div>
+      ${open ? `<button class="btn small wide" data-act="gRun" data-n="${d.n}" style="margin-top:8px">Log the ${open === d.plays.length ? '' : 'rest, '}${open} in order →</button>` : ''}</details>`; }).join('');
+  return head + cur + `<section class="sec"><h2><span>${esc(side)} · ${gameDrives(g, side).length} drives</span><span>${pr.n} logged</span></h2>${drives || '<div class="empty">No snaps for that side.</div>'}</section>`;
+}
+
+/* ---- home: the three doors, then plays and the book ---- */
+const HOMEV = {allPlays:false, tab:(['home','plays','book','more'].includes(lsGetRaw('pb.tab')) ? lsGetRaw('pb.tab') : 'home'), page:'doors', pf:'all'};
+const TAB_NAME = {home:'Home', plays:'Plays', book:'Book', more:'More'};
+const PAGE_NAME = {doors:'Playbook', watch:'Watching', games:'Games', game:'Game'};
+function homeNav(page){ HOMEV.tab = 'home'; HOMEV.page = page; diag('home', page); refresh(); $('#home').scrollTop = 0; }
 /* ---- 0.11.0 what happened on the snap, from the play's own words when the iPad sent no result ---- */
 function parseDesc(desc){
   const d = String(desc || '').toLowerCase().replace(/^\(\d+:\d+\)\s*/, ''); if (!d) return null;
@@ -5858,8 +6079,9 @@ const gameOf = key => { const g = String(key || '').split(':')[0], p = g.split('
 
 function renderHome(){
   if (EMBED){ renderEmbedHome(); return; }
-  const tab = HOMEV.tab;
-  const html = tab === 'plays' ? playsTabHTML() : tab === 'book' ? bookTabHTML() : tab === 'more' ? moreTabHTML() : inboxTabHTML();
+  const tab = HOMEV.tab, page = HOMEV.page;
+  const html = tab === 'plays' ? playsTabHTML() : tab === 'book' ? bookTabHTML() : tab === 'more' ? moreTabHTML()
+    : page === 'watch' ? inboxTabHTML() : page === 'games' ? gamesHTML() : page === 'game' ? gameHTML() : doorsHTML();
   $('#home').innerHTML = html;
   $('#tabs').querySelectorAll('button[data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === tab));
   const live = inboxSplit().live.length, bd = $('#tabBadge'); bd.hidden = !live; bd.textContent = live > 99 ? '99+' : String(live);
@@ -5938,6 +6160,7 @@ const ACT = {
   topL(){
     if (VIEW === 'diag'){ setView(PREV_VIEW === 'diag' ? 'home' : PREV_VIEW); refresh(); return; }
     if (EMBED && VIEW === 'home'){ try { parent.postMessage({type:'pb-close'}, '*'); } catch(e){ diag('embed', 'pb-close not sent'); } return; }
+    if (VIEW === 'home'){ homeNav(HOMEV.page === 'game' ? 'games' : 'doors'); return; }
     if (VIEW !== 'editor' || !W) return goHome();
     const placed = W.tokens.some(t => t.slot) && (W.touched || !W.wizOn);   // 0.11.0: the wizard's defaults alone are nothing to lose
     if (W.mode === 'design' && (W.dirty || (W.step === 'off' && placed))){
@@ -6443,7 +6666,7 @@ const ACT = {
   clearLog(){ DIAG = []; lsSetRaw(KEYS.diag, '[]'); lsSetRaw(KEYS.dumps, '[]'); diag('diag', 'log and dumps cleared'); refresh(); }
 };
 /* ================= 0.9.0 actions: the inbox cards, the base book, the frames, chalk's frame ================= */
-const topCard = () => inboxSplit().top;
+const topCard = () => gameTop() || inboxSplit().top;   // 0.12.0: on the game page the card is the game's play
 Object.assign(ACT, {
   cardTo(d){ PARK.delete(d.key); parkSave(); CARDV.key = d.key; CARDV.shot = 'snap'; renderHome(); $('#home').scrollTop = 0; },
   unparkAll(){ const n = PARK.size; PARK.clear(); parkSave(); diag('card.park', `${n} unparked`); renderHome(); },
@@ -6563,7 +6786,35 @@ function cardRes(q, v, st){
 Object.assign(ACT, {
   noop(){},
   allPlays(){ HOMEV.allPlays = !HOMEV.allPlays; renderHome(); },
-  tab(d){ if (!TAB_NAME[d.v]) return; HOMEV.tab = d.v; lsSetRaw('pb.tab', d.v); diag('tab', d.v); refresh(); $('#home').scrollTop = 0; },
+  tab(d){ if (!TAB_NAME[d.v]) return; if (d.v === 'home') HOMEV.page = 'doors'; HOMEV.tab = d.v; lsSetRaw('pb.tab', d.v); diag('tab', d.v); refresh(); $('#home').scrollTop = 0; },
+  /* 0.12.0 the doors and the games */
+  door1(){ homeNav('watch'); },
+  door2(){ if (!GAMEV.gid){ homeNav('games'); return; } homeNav('game'); },
+  games(){ homeNav('games'); },
+  gamesRetry(){ GAMES.state = 'off'; GAMES.err = null; gamesLoad(); renderHome(); },
+  gSeason(d){ GAMEV.season = +d.v; GAMEV.week = null; renderHome(); },
+  gWeek(d){ GAMEV.week = +d.v; renderHome(); },
+  gOpen(d){
+    const row = gameRow(d.id); if (!row){ toast('That game is not in the list.'); return; }
+    const mine = S.plays.filter(p => !p._bad && String(p.key || '').split(':')[0] === row.id);
+    const side = GAMEV.gid === row.id && (GAMEV.side === row.away || GAMEV.side === row.home) ? GAMEV.side
+      : mine.length ? (mine.filter(p => p.sit && p.sit.pos === row.home).length > mine.length / 2 ? row.home : row.away) : row.away;
+    setGame(row.id, side); diag('games', `open ${row.id} · ${side} offense`); homeNav('game');
+  },
+  gSide(d){ const row = gameRow(GAMEV.gid); if (!row || (d.v !== row.away && d.v !== row.home)) return; GAMEV.side = d.v; lsSetRaw('pb.game.side', d.v); GAMEV.key = null; renderHome(); },
+  gPlay(d){
+    const hit = gameFind(d.key); if (!hit) return;
+    const pl = S.plays.find(p => p.key === d.key && !p._bad);
+    if (pl){ ACT.openPlay({id:pl.id}); return; }
+    PARK.delete(d.key); parkSave(); GAMEV.key = d.key; renderHome(); $('#home').scrollTop = 0;
+  },
+  gRun(d){
+    const g = GAMES.cache.get(GAMEV.gid); if (!g){ toast('The snaps are still loading.'); return; }
+    const run = {gid:GAMEV.gid, side:gameSide(g), drive:+d.n};
+    const q = gameNextOpen(run); if (!q){ toast('Every snap of that drive is logged.'); return; }
+    startQueued(q); W.gameRun = run;
+    diag('flow', `game run: ${run.gid} drive ${run.drive}, ${run.side} offense`);
+  },
   pf(d){ HOMEV.pf = d.v; renderHome(); },
   wipeAsk(){ if (!Object.keys(WIPE).some(k => (S[k] || []).length)){ toast('Nothing to clear — the book is the NFL base alone.'); return; } lsSetRaw('pb.clear0101', ''); clearPrompt(); },
   logNow(){   // 0.11.0: the wizard's one key — the neutral name, the play logged, the defense next (Skip is there)
@@ -6794,6 +7045,7 @@ else {
   connectDb();
   syncStart();
   baseLoad();
+  gamesLoad();
   clearPrompt();
 }
 })();
