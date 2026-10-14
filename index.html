@@ -728,7 +728,7 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
 <script>
 (() => {
 'use strict';
-const VERSION = '0.16.2';
+const VERSION = '0.16.3';
 const KEYS = {store:'pb.store', diag:'pb.diag', dumps:'pb.dumps', base:'pb.baseline', bad:'pb.store.bad'};
 const LETTER_COLOR = {X:'#FF5A4E', Y:'#FFD23F', Z:'#B78CFF', H:'#4DA3FF', F:'#3DDC84'};
 const PERS = ['11','12','10','13','21','22','20','23','01','02','00','31','30'];
@@ -1519,7 +1519,7 @@ function clampCam(){
 }
 function viewForStep(){
   if (!W) return;
-  if (W.step === 'box'){ V.z = 2.4; V.camX = bx(); V.camY = 3.4; }
+  if (W.step === 'box'){ const ext = Math.max(4, ...W.tokens.filter(t => t.slot).map(t => Math.abs(dispXY(t).x))); V.z = clamp(28 / (ext + 2.5), 1, 2.4); V.camX = bx(); V.camY = 3.4; }   // 0.16.3: in as far as the whole set you logged still shows — never cut off at the box
   else if (W.step === 'rest' || W.step === 'djobs'){ V.z = 1; V.camX = FW / 2; V.camY = 6; }
   else if (W.step === 'view'){ V.z = 1; V.camX = FW / 2; V.camY = 4; }
   else if (W.step === 'routes'){ V.z = 1; V.camX = FW / 2; V.camY = 8; }
@@ -1589,7 +1589,15 @@ function lettersNow(){
   if (W.step !== 'off' && W.tokens.every(t => t.type === 'L' || t.fixed)){
     const L = {}; W.tokens.forEach(t => { if (t.fixed) L[t.id] = t.fixed; }); return L;
   }
+  if (W.step !== 'off'){ const E = engLetters(); if (E) return E; }   // 0.16.3: the defense screens letter the set the way the logging screens did
   return assignLetters(placedPlayers());
+}
+function engLetters(){   // the engine's letters for W's men (what QZ draws while logging), keyed by token id
+  try {
+    const E = QZ.lettersOf({qb:W.qb, xol:!!W.xol, tokens:W.tokens.map(t => ({type:t.type, slot:t.slot}))}), out = {}; let n = 0;
+    W.tokens.forEach((t, i) => { if (t.type !== 'L' && E[i]){ out[t.id] = E[i]; n++; } });
+    return n ? out : null;
+  } catch(e){ return null; }
 }
 function offStatus(){
   const placed = W.tokens.filter(t => t.slot);
@@ -1623,7 +1631,7 @@ function suggestNames(){
 
 /* ================= 0.11.0 the wizard: say where every man is, the set draws itself =================
    Rows of words: the strong side, the backs, each tight end, how the receivers split and how each side is spread.
-   Every tap rebuilds the slots. The line rule puts the right men on the ball: 7 on the line, the outside man of the
+   A fresh set is drawn from the answers; after that (0.16.3) a tap moves only the men it's about (wizEdit). The line rule puts the right men on the ball: 7 on the line, the outside man of the
    side with no tight end first, then the other side, then inside men. Drag anyone after. "By hand" is the old flow. */
 const WIZ_LS = 'pb.wiz';
 const wizPref = () => lsGetRaw(WIZ_LS) !== '0';
@@ -1718,6 +1726,56 @@ function wizApply(stage){
   const i = W.tokens.findIndex(t => !t.slot); W.cur = i >= 0 ? i : 0;
   W.wizFit = true;
   diag('wiz', `${stage || 'apply'}: ${JSON.stringify(W.wiz)} → ${codeBody(W.tokens, strengthOf(W.tokens))}${i >= 0 ? ' · ' + W.tokens.filter(t => !t.slot).length + ' unplaced' : ''}`);
+}
+/* 0.16.3 (Jimbo: "The formations don't stay the same when logging plays … even during questions it changes. We start
+   with an empty backfield but then by time we place all receivers the backfield is split."): an answer moves only the men
+   it's about — the backs for Backs, that tight end for his row, the receivers for Split and each side — and anyone else
+   the answers drew right where he stands. A man placed some other way (backs split out wide, a set the wizard has no words
+   for) stays exactly where he is. Strength is a mirror: everyone flips, nobody else moves. */
+function wizAbout(k){   // the men a question is about, by index
+  const T = W.tokens, idx = type => T.map((t, i) => t.type === type ? i : -1).filter(i => i >= 0);
+  if (k === 'bk') return new Set(idx('B'));
+  if (/^te\d$/.test(k)){ const te = idx('T'), i = te[+k.slice(2)]; return new Set(i == null ? [] : [i]); }
+  if (k === 'sp' || k === 'as' || k === 'aw') return new Set(idx('W'));
+  return new Set();
+}
+function wizFits(){ const s = wizBuild(W.wiz); return W.tokens.every((t, i) => t.slot === s[i]); }
+function wizMove(before, after, about){   // who goes where the new answers draw him; a spot held by a man who stays keeps whoever was headed there where he was
+  const T = W.tokens, go = new Set();
+  T.forEach((t, i) => { const to = after[i]; if (to && to !== t.slot && slotOK(to, t.type, W.qb) && (about.has(i) || !t.slot || t.slot === before[i])) go.add(i); });
+  for (let again = true; again;){
+    again = false;
+    const held = new Set(T.filter((t, i) => t.slot && !go.has(i)).map(t => t.slot));
+    for (const i of [...go]) if (held.has(after[i])){ go.delete(i); again = true; }
+  }
+  go.forEach(i => { T[i].slot = after[i]; });
+  const j = T.findIndex(t => !t.slot); W.cur = j >= 0 ? j : 0;
+  return go.size;
+}
+function wizEdit(k, v, stage){   // one answer changed: only what it's about moves
+  if (k === 'str'){
+    const was = W.wiz.str === 'L' ? 'L' : 'R', now = v === 'L' ? 'L' : 'R';
+    W.wiz.str = now; if (was !== now) W.tokens.forEach(t => { if (t.slot) t.slot = mirrorKey(t.slot); });
+    wizRows(); W.wizFit = wizFits();
+    diag('wiz', `${stage}: strength ${now} — the set mirrored, nobody else moved → ${codeBody(W.tokens, strengthOf(W.tokens))}`);
+    return;
+  }
+  wizRows(); const before = wizBuild(W.wiz);
+  W.wiz[k] = v; wizRows(); const after = wizBuild(W.wiz);
+  const n = wizMove(before, after, wizAbout(k));
+  W.wizFit = wizFits();
+  diag('wiz', `${stage}: ${JSON.stringify(W.wiz)} → ${codeBody(W.tokens, strengthOf(W.tokens))} · ${n} moved${W.wizFit ? '' : ' · everyone else stays as placed'}`);
+}
+function wizFill(stage){   // men with no spot yet take the answers' spots; everyone placed stays put
+  wizRows(); const s = wizBuild(W.wiz), T = W.tokens, taken = new Set(T.filter(t => t.slot).map(t => t.slot)); let n = 0;
+  T.forEach((t, i) => {
+    if (t.slot) return;
+    const k = [s[i]].concat(s).find(x => x && !taken.has(x) && slotOK(x, t.type, W.qb));
+    if (k){ t.slot = k; taken.add(k); n++; }
+  });
+  const j = T.findIndex(t => !t.slot); W.cur = j >= 0 ? j : 0;
+  W.wizFit = wizFits();
+  diag('wiz', `${stage}: ${n} placed from the answers, everyone else kept → ${codeBody(T, strengthOf(T))}${j >= 0 ? ' · ' + T.filter(t => !t.slot).length + ' unplaced' : ''}`);
 }
 function wizInfer(){   // a set already on the field: the answers that redraw it, or come closest
   const want = W.tokens.map(t => t.type + ':' + t.slot);
@@ -7068,8 +7126,9 @@ const QZ = (() => {
   function box(def, off, o){
     o = o || {};
     const sg = o.mirror ? -1 : 1, roles = defRoles(def), out = [];
-    const keep = (off && Array.isArray(off.tokens) ? off.tokens : []).map(t => t && t.slot && (/:(I|T):[01]$/.test(t.slot) || /:HB$/.test(t.slot)) ? t : {type:t ? t.type : 'W', slot:null});
-    out.push(offBody({qb:(off && off.qb) || 'gun', xol:!!(off && off.xol), tokens:keep}, {letters:true}));
+    const keep = (off && Array.isArray(off.tokens) ? off.tokens : []).filter(Boolean);   // 0.16.3: every man of the set you logged, not just the tight ends and wings
+    const offW = {qb:(off && off.qb) || 'gun', xol:!!(off && off.xol), tokens:keep}, M = offMen(offW);
+    out.push(offBody(offW, {letters:true}));
     (def.box || []).forEach((b, i) => {
       const w = o.was && o.was.box ? o.was.box[i] : null;
       if (w && (w.x !== b.x || (w.dep || 5) !== (b.dep || 5))){ const p = defXY(w), q = defXY(b); out.push(`<path class="tri ghost" d="${tri(p.x * sg, p.y)}"/><path class="mv" d="M${f1(p.x * sg)} ${f1(p.y)}L${f1(q.x * sg)} ${f1(q.y)}"/>`); }
@@ -7080,7 +7139,8 @@ const QZ = (() => {
       out.push(`<path class="tri ${dl ? 'dl' : 'lb'}${dl && b.hand === 'up' ? ' up' : ''}${sel ? ' hi' : ''}" d="${tri(x, p.y)}"/><text class="dt" x="${f1(x)}" y="${f1(p.y + 0.02)}" font-size="0.82">${esc(roles['b' + i] || '')}</text>`);
       out.push(`<text class="tl" x="${f1(x)}" y="${f1(p.y - 1.25)}" font-size="0.66">${dl ? techOf(b.x) : String(Math.round(Math.abs(b.x)) * 10)}</text>`);
     });
-    return frame({x0:-8.6, x1:8.6, y0:-7.4, y1:2.4}, o.w || 358, o.h || 118, out.join(''), o.label || 'The box');
+    const hx = Math.max(8.6, ...M.map(m => Math.abs(m.x) + 1.3)), y1 = Math.max(2.4, ...M.map(m => m.y + 1.1), (QBY[offW.qb] || 5.6) + 1.1);   // 0.16.3: wide enough and deep enough for all of them
+    return frame({x0:-hx, x1:hx, y0:-7.4, y1}, o.w || 358, o.h || 118, out.join(''), o.label || 'The box');
   }
   function zoneOf(info, x){
     const Lx = -FWD / 2, Rx = FWD / 2, s = Math.sign(x) || 1;
@@ -7520,8 +7580,7 @@ function enHowSeg(cur, act){
 function enGoAsk(){
   W.wiz = {};
   if (W.tokens.some(t => t.slot)) wizInfer();
-  if (W.tokens.some(t => !t.slot)) wizApply('engine fill');
-  else if (!W.wizFit) toast('The questions can’t draw this exact set — answering one redraws it from the answers.');
+  if (W.tokens.some(t => !t.slot)) wizFill('engine fill');   // 0.16.3: only the men with no spot; an answer moves only who it's about, so the set stays the set
   EN.askAll = !(EN.start && !EN.placed);
   let qs = enWalk();
   if (!qs.length && !EN.askAll){ EN.askAll = true; qs = enWalk(); }
@@ -7978,7 +8037,7 @@ function enTechsHTML(){
   const note = [`Box ${D.box.length}${K.box ? (K.box.v === D.box.length ? ' · data' : ` · the data says ${K.box.v}`) : ''}`].concat(ch).join(' · ');
   return top + `<h1 class="fl-h">Where’s each man in the box?</h1>
     <div class="frs"><b>FROM</b>${chips}</div>
-    <span class="fl-art" style="height:118px;margin-bottom:10px">${QZ.box(D, off, {w:358, h:118, sel:EN.sel, was:EN.defStart, mirror:mir})}</span>
+    <span class="fl-art" style="height:150px;margin-bottom:10px">${QZ.box(D, off, {w:358, h:150, sel:EN.sel, was:EN.defStart, mirror:mir})}</span>
     <div class="tt-h"><span style="width:54px">MAN</span><span style="flex:1">TECH</span><span style="width:64px">HAND · DEPTH</span></div>${rows}
     <p class="fl-note">${esc(note)}${EN.sel != null ? ' · tap the man again to flip sides' : ''}</p>
     ${front ? `<div class="fl-row"><button class="fb pri" data-act="enSaveFront">Save the front</button></div>`
@@ -8372,7 +8431,7 @@ const ACT = {
     W.qb = d.v;
     W.tokens.forEach(t => { if (t.slot && !slotOK(t.slot, t.type, W.qb)){ diag('off.qb', `${TYPE_LABEL[t.type]} at ${t.slot} does not fit with ${W.qb}, unplaced`); t.slot = null; } });
     diag('off.qb', `QB → ${W.qb}`);
-    if (W.wizOn && W.step === 'off') wizApply('qb');
+    if (W.wizOn && W.step === 'off') wizFill('qb');   // 0.16.3: everyone who still fits stays put
     refresh();
   },
   hash(d){ W.hash = d.v; diag('off.hash', `ball on ${W.hash} hash`); refresh(); },
@@ -8383,7 +8442,7 @@ const ACT = {
     W.tokens = buildTokens(W.pers, W.xol, W.tokens);
     const i = W.tokens.findIndex(t => !t.slot); W.cur = i >= 0 ? i : 0;
     diag('off.pers', `${persStr(W.pers, W.xol)}: queue ${before} → ${W.tokens.map(t => t.type).join('')}`);
-    if (W.wizOn && W.step === 'off') wizApply('pers');
+    if (W.wizOn && W.step === 'off') wizFill('pers');   // 0.16.3: everyone who still fits stays put
     refresh();
   },
   xol(){
@@ -8392,11 +8451,11 @@ const ACT = {
     W.tokens = buildTokens(W.pers, W.xol, W.tokens);
     const i = W.tokens.findIndex(t => !t.slot); W.cur = i >= 0 ? i : 0;
     diag('off.xol', `sixth lineman ${W.xol ? 'on' : 'off'}`);
-    if (W.wizOn && W.step === 'off') wizApply('xol');
+    if (W.wizOn && W.step === 'off') wizFill('xol');   // 0.16.3: everyone who still fits stays put
     refresh();
   },
   flip(){ W.tokens.forEach(t => { if (t.slot) t.slot = mirrorKey(t.slot); }); if (W.wiz) W.wiz.str = W.wiz.str === 'L' ? 'R' : 'L'; diag('off.flip', 'set mirrored'); refresh(); },
-  wiz(d){ W.wiz[d.k] = d.v; W.touched = true; wizApply('tap ' + d.k); refresh(); },
+  wiz(d){ W.touched = true; wizEdit(d.k, d.v, 'tap ' + d.k); refresh(); },   // 0.16.3: only the men the answer is about move
   wizMode(){
     W.wizOn = !W.wizOn; lsSetRaw(WIZ_LS, W.wizOn ? '1' : '0');
     if (W.wizOn){ if (W.tokens.some(t => t.slot)) wizInfer(); else wizApply('defaults'); }
@@ -9254,7 +9313,7 @@ Object.assign(ACT, {
     if (!EN) return;
     const k = d.k, v = d.v;
     if (W.wiz[k] !== v){
-      W.wiz[k] = v; wizApply('engine ' + k); EN.changed[k] = true; W.touched = true; diag('engine', `answer ${k} = ${v}`);
+      wizEdit(k, v, 'engine ' + k); EN.changed[k] = true; W.touched = true; diag('engine', `answer ${k} = ${v}`);   // 0.16.3: only the men the answer is about move
       if (k === 'sp'){ EN.askKeys.as = true; EN.askKeys.aw = true; }   // a new split: how each side sets is a new question
     }
     enNextQ(k);
@@ -9291,7 +9350,7 @@ Object.assign(ACT, {
     if (!EN) return;
     W.wiz = {};
     if (W.tokens.some(t => t.slot)) wizInfer();
-    if (W.tokens.some(t => !t.slot)) wizApply('engine fill');
+    if (W.tokens.some(t => !t.slot)) wizFill('engine fill');
     EN.askAll = true; EN.how = 'ask';
     EN.qs = enWalk(); EN.qk = EN.qs.length ? EN.qs[0].k : null; EN.step = EN.qs.length ? 'ask' : 'card';
     renderFlow(); $('#flow').scrollTop = 0;
