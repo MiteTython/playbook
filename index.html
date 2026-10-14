@@ -728,7 +728,7 @@ table.tend td:first-child,table.tend th:first-child{text-align:left;white-space:
 <script>
 (() => {
 'use strict';
-const VERSION = '0.16.3';
+const VERSION = '0.17.0';
 const KEYS = {store:'pb.store', diag:'pb.diag', dumps:'pb.dumps', base:'pb.baseline', bad:'pb.store.bad'};
 const LETTER_COLOR = {X:'#FF5A4E', Y:'#FFD23F', Z:'#B78CFF', H:'#4DA3FF', F:'#3DDC84'};
 const PERS = ['11','12','10','13','21','22','20','23','01','02','00','31','30'];
@@ -769,6 +769,26 @@ const mirrorKey = k => { const p = k.split(':'); p[0] = p[0] === 'L' ? 'R' : p[0
 /* inside chalk on the iPad (window.PB_EMBED set by chalk): no sync, nothing written to that page's storage */
 const EMBED = window.PB_EMBED && typeof window.PB_EMBED === 'object' ? window.PB_EMBED : null;
 const MEM = new Map();
+/* 0.17.0 Log mode: the whole app inside chalk on the iPad, beside the film (window.PB_HOST set by chalk). Everything works as on
+   the phone. chalk carries the GitHub calls (the token never comes in here), says which play is on the film, and takes the film
+   where a card points. This copy writes tablet.json, the phone phone.json; each reads the other's on every pull. */
+const HOST = !EMBED && window.PB_HOST && typeof window.PB_HOST === 'object' ? window.PB_HOST : null;
+const HOSTV = {seq:0, wait:new Map(), here:null, item:null, on:true, ipadSaved:0, nav:null};
+const MYFILE = HOST ? 'tablet.json' : 'phone.json', THEIRFILE = HOST ? 'phone.json' : 'tablet.json';
+function hostSend(m){ if (!HOST) return false; try { window.parent.postMessage(m, '*'); return true; } catch(e){ return false; } }
+function hostAsk(type, body, ms){   // a question for chalk, answered by message (GitHub, a file)
+  return new Promise((res, rej) => {
+    const id = ++HOSTV.seq;
+    const t = setTimeout(() => { HOSTV.wait.delete(id); rej({status:0, msg:`chalk didn’t answer in ${Math.round(ms / 1000)} s`}); }, ms);
+    HOSTV.wait.set(id, {res, rej, t});
+    if (!hostSend(Object.assign({type, id}, body))){ clearTimeout(t); HOSTV.wait.delete(id); rej({status:0, msg:'no line to chalk'}); }
+  });
+}
+async function hostGet(url){   // a file through chalk (the base book, the games, a gist file over 1 MB): its text, or an Error
+  const abs = new URL(url, document.baseURI).href;
+  try { const r = await hostAsk('pb-net', {url:abs}, 95000); return String(r.text || ''); }
+  catch(e){ throw new Error(`${(e && e.status) || ''} ${(e && (e.msg || e.message)) || e}`.trim() + ' (through chalk)'); }
+}
 
 /* ================= diagnostics: always on ================= */
 let DIAG = [];
@@ -802,7 +822,7 @@ function fail(stage, expected, got, extra){
   if (failing) return 0;
   failing = true;
   let n = 0;
-  try { n = dump(stage, expected, got, extra); toast(`<b>${esc(stage)}</b>: expected ${esc(expected)}, got ${esc(got)}. Dump #${n} in Diagnostics.`, 'err'); }
+  try { n = dump(stage, expected, got, extra); toast(`<b>${esc(stage)}</b>: expected ${esc(expected)}, got ${esc(got)}. Dump #${n} in Diagnostics.`, 'err'); if (HOST) hostSend({type:'pb-err', stage, msg:`expected ${expected}, got ${got} (dump #${n})`}); }   // 0.17.0: chalk's log has it too
   finally { failing = false; }
   return n;
 }
@@ -948,7 +968,7 @@ function inferTypes(out, pers){
 }
 
 /* ================= store ================= */
-let S = {v:1, seq:0, formations:[], plays:[], fronts:[], designs:[], famList:[], famOv:{}};
+let S = {v:1, seq:0, formations:[], plays:[], fronts:[], designs:[], famList:[], famOv:{}, famOvAt:{}};
 /* older grids → slots */
 function toYards(skill){ return skill.map(p => ({type:p.type, letter:p.letter, x:p.x != null ? p.x : Math.round(p.c * 2 / 3), r:p.r})); }
 function nearestOffSlots(skill, hash, qb){
@@ -1055,7 +1075,8 @@ function loadStore(){
   S = {v:1, seq:obj.seq|0, formations:obj.formations.map(normFormation), plays:obj.plays.map(normPlay), fronts:Array.isArray(obj.fronts) ? obj.fronts : [],
     designs:Array.isArray(obj.designs) ? obj.designs : [],
     famList:Array.isArray(obj.famList) ? obj.famList.filter(x => typeof x === 'string' && x.trim()) : [],   // 0.15.0: families you added
-    famOv:obj.famOv && typeof obj.famOv === 'object' && !Array.isArray(obj.famOv) ? obj.famOv : {}};       // and NFL base sets you moved to another family
+    famOv:obj.famOv && typeof obj.famOv === 'object' && !Array.isArray(obj.famOv) ? obj.famOv : {},        // and NFL base sets you moved to another family
+    famOvAt:obj.famOvAt && typeof obj.famOvAt === 'object' && !Array.isArray(obj.famOvAt) ? obj.famOvAt : {}};   // 0.17.0: when each move was made — two copies, the later move wins
   let flagged = 0, conv = 0;
   S.designs.forEach(d => { if (checkDesign(d).length){ flagged++; diag('boot.validate', `design ${d.id}: ${d._bad}`); } });
   S.fronts.forEach(f => { if (checkFront(f).length){ flagged++; diag('boot.validate', `front ${f.id}: ${f._bad}`); } });
@@ -1065,22 +1086,22 @@ function loadStore(){
     if (checkPlay(p).length){ flagged++; diag('boot.validate', `play ${p.id}: ${p._bad}`); }
     if (p.n > S.seq) S.seq = p.n;
   });
-  if (restrength()) lsSetRaw(KEYS.store, JSON.stringify(S, (k,v) => (k === '_bad' || k === '_conv') ? undefined : v));
+  if (restrength(sumsCarry)){ SYNC.storeOk = lsSetRaw(KEYS.store, JSON.stringify(S, (k,v) => (k === '_bad' || k === '_conv') ? undefined : v)) === true; sumsSave(); }   // 0.17.0: what every copy redoes on its own isn't an edit to send — and sums only follow a write that worked
   diag('boot.store', `ok: ${S.formations.length} formations, ${S.plays.length} plays, ${S.designs.length} designs, ${conv} converted to slots, ${flagged} flagged, ${raw.length} bytes, ${(performance.now()-t0).toFixed(1)} ms`);
   if (flagged) toast(`<b>boot.validate</b>: ${flagged} saved item(s) failed checks. See Diagnostics.`, 'err');
 }
 /* 0.9.2: strength is the tight end's side. Sets are kept strength-right, plays carry their strength and code: redo both. */
-function restrength(){
+function restrength(onChange){   // 0.17.0 onChange(coll, item, sumBefore): told about each item it changes
   let n = 0;
   S.formations.forEach(f => {
     if (!f || f._bad || !Array.isArray(f.tokens) || validateOffense(f).length) return;
     const tokens = strongRight(f.tokens.map(t => ({type:t.type, slot:t.slot}))), code = formationCodeOf(Object.assign({}, f, {tokens}));
-    if (code !== f.code){ f.tokens = tokens; f.code = code; n++; }
+    if (code !== f.code){ const was = onChange ? sumOf(f) : null; f.tokens = tokens; f.code = code; n++; if (onChange) onChange('formations', f, was); }
   });
   S.plays.forEach(p => {
     if (!p || p._bad || !p.off || !Array.isArray(p.off.tokens) || validateOffense(p.off).length) return;
     const st = strengthOf(p.off.tokens), fc = formationCodeOf(p.off);
-    if (st !== p.strength || fc !== p.fcode){ p.strength = st; p.fcode = fc; n++; }
+    if (st !== p.strength || fc !== p.fcode){ const was = onChange ? sumOf(p) : null; p.strength = st; p.fcode = fc; n++; if (onChange) onChange('plays', p, was); }
   });
   if (n) diag('restrength', `${n} sets and plays moved to the tight-end strength rule`);
   return n;
@@ -1089,9 +1110,11 @@ function saveStore(stage){
   const t0 = performance.now();
   const clean = JSON.stringify(S, (k,v) => (k === '_bad' || k === '_conv') ? undefined : v);
   const r = lsSetRaw(KEYS.store, clean);
+  SYNC.storeOk = r === true;   // 0.17.0: sync's sums follow only a book write that worked
   if (r !== true){ fail(stage + '.write', 'storage write ok', String(r && r.name || r), {bytes:clean.length}); return false; }
+  sumsSave();
   diag(stage, `local write ok, ${clean.length} bytes, ${(performance.now()-t0).toFixed(1)} ms`);
-  if (stage !== 'db.snapshot') syncMark();
+  if (stage !== 'db.snapshot' && stage !== 'sync.stamp') syncMark();   // 0.17.0: a stamp is written on the way up already
   return true;
 }
 /* ---- Claude account storage (db capability); this device's copy is the cache. Off the Claude page it stays on this device. ---- */
@@ -1174,17 +1197,21 @@ function pushBaseline(kind, obj){
   lsSetRaw(KEYS.base, JSON.stringify(arr));
 }
 
-/* ================= sync: one private GitHub Gist, one file per device =================
-   phone.json — written only by this app: formations, fronts, designs, plays, deleted ids, hold.
-   ipad.json  — written only by chalk on the iPad: queue (plays waiting to be logged), tags (sets picked there).
-   Neither side ever writes the other's file, so nothing gets overwritten. Pull every 4 s while the app
-   is open (an unchanged gist answers 304 and costs nothing); writes wait 1.5 s so a burst becomes one save. */
+/* ================= sync: one private GitHub Gist, one file per writer =================
+   phone.json  — written only by this app on the phone: formations, fronts, designs, plays, deleted ids, hold.
+   tablet.json — 0.17.0: written only by this app in chalk's Log mode on the iPad: the same book, no hold.
+   ipad.json   — written only by chalk on the iPad: queue (plays waiting to be logged), tags (sets picked there).
+   Nobody writes another's file, so nothing gets overwritten. Each copy of the app reads the other copy's file on every pull
+   and takes what's newer; an edit gets a fresh stamp (updated) the first time sync sees it changed. Pull every 4 s while the
+   app is open (an unchanged gist answers 304 and costs nothing); writes wait 1.5 s so a burst becomes one save. */
 const GIST_DESC = 'chalk-playbook sync v1';
 const SYNC = {token:null, id:null, etag:null, state:'off', err:null, lastPull:0, lastPush:0, ipad:{queue:[], tags:[], adds:[], at:null},
-  hold:null, timer:null, wtimer:null, writing:false, dirty:false, deleted:[], merged:false, failed:false, framesCleared:null, backoffUntil:0};
+  hold:null, timer:null, wtimer:null, writing:false, dirty:false, deleted:[], merged:false, failed:false, framesCleared:null, backoffUntil:0,
+  theirAt:null, theirSrc:null, sums:null, sumsDirty:false, storeOk:undefined, ticking:false, again:false, tickAt:0, gen:0};
+const THEIRNAME = HOST ? 'the phone' : 'the iPad’s Log mode';
 function syncLoadCfg(){
-  SYNC.token = lsGetRaw('pb.gh.token') || null;
-  SYNC.id = lsGetRaw('pb.gh.gist') || null;
+  SYNC.token = HOST ? 'chalk' : (lsGetRaw('pb.gh.token') || null);   // 0.17.0: in Log mode chalk holds the token — this copy never sees it
+  SYNC.id = (HOST && typeof HOST.gist === 'string' && /^[0-9a-f]{8,}$/i.test(HOST.gist) ? HOST.gist : null) || lsGetRaw('pb.gh.gist') || null;
   SYNC.framesCleared = lsGetRaw('pb.frames.cleared') || null;
   const d = lsGetJSON('pb.deleted', []); SYNC.deleted = Array.isArray(d) ? d : [];
   const ip = lsGetJSON('pb.ipad', null); if (ip && Array.isArray(ip.queue)) SYNC.ipad = Object.assign({tags:[], adds:[], facts:{}}, ip);
@@ -1192,6 +1219,7 @@ function syncLoadCfg(){
 async function gh(method, path, body, etag){
   const wait = (SYNC.backoffUntil || 0) - Date.now();
   if (wait > 0) throw {status:0, msg:`GitHub asked for a pause — back in ${Math.ceil(wait / 1000)} s`, paused:true};
+  if (HOST) return ghHost(method, path, body, etag);
   const t0 = performance.now(), lim = method === 'GET' ? 45000 : 30000;   // 0.16.0: a slow GitHub isn't a dead one, but a hung request doesn't wait forever
   const headers = {'Accept':'application/vnd.github+json', 'Authorization':'Bearer ' + SYNC.token, 'X-GitHub-Api-Version':'2022-11-28'};
   if (etag) headers['If-None-Match'] = etag;
@@ -1213,6 +1241,19 @@ async function gh(method, path, body, etag){
   }
   return {status:res.status, json, etag:res.headers.get('ETag')};
 }
+async function ghHost(method, path, body, etag){   // 0.17.0 Log mode: chalk makes the call with its token and hands the answer back
+  const t0 = performance.now(), lim = method === 'GET' ? 45000 : 30000;
+  let r;
+  try { r = await hostAsk('pb-gh', {method, path, body:body || null, etag:etag || null}, lim + 5000); }
+  catch(e){
+    const err = {status:(e && e.status) || 0, msg:(e && e.msg) || String(e), body:(e && e.body) || '', left:e && e.left != null ? e.left : null, retry:e && e.retry != null ? e.retry : null, reset:e && e.reset != null ? e.reset : null};
+    diag('sync.http', `${method} ${path.replace(/\?.*/, '')} → ${err.status || 'no answer'} through chalk in ${(performance.now() - t0).toFixed(0)} ms: ${err.msg}`);
+    ghBackoff(err); throw err;
+  }
+  if (r.status === 304) return {status:304};
+  diag('sync.http', `${method} ${path.replace(/\?.*/, '')} → ${r.status} through chalk in ${(performance.now() - t0).toFixed(0)} ms`);
+  return {status:r.status, json:r.json, etag:r.etag || null};
+}
 function ghBackoff(e){   // 0.16.0: GitHub said slow down — a secondary limit (403/429, maybe with a wait) or the hour's calls spent: every request waits it out
   if (!e || !(e.status === 403 || e.status === 429)) return;
   if (!(/rate limit|abuse|too many|secondary/i.test(String(e.msg || '')) || e.retry != null || String(e.left) === '0')) return;
@@ -1224,14 +1265,59 @@ function ghBackoff(e){   // 0.16.0: GitHub said slow down — a secondary limit 
   diag('sync.pause', `GitHub asked for a pause: ${Math.round(wait / 1000)} s (${e.status} ${e.msg})`);
 }
 const strip = (k,v) => (k === '_bad' || k === '_sync' || k === '_conv') ? undefined : v;
-function phoneJSON(){
-  return JSON.stringify({v:1, at:new Date().toISOString(), names:NAMES.cfg(), formations:S.formations, fronts:S.fronts, designs:S.designs, plays:S.plays,
-    deleted:SYNC.deleted.slice(-5000), hold:SYNC.hold, framesCleared:SYNC.framesCleared || null, families:{list:S.famList, ov:S.famOv}}, strip);
+function bookJSON(){   // this copy's file: the book, the deleted ids, and the hold — the phone's only (Log mode tells chalk by message)
+  return JSON.stringify({v:1, at:new Date().toISOString(), by:HOST ? 'tablet' : 'phone', names:NAMES.cfg(), formations:S.formations, fronts:S.fronts, designs:S.designs, plays:S.plays,
+    deleted:SYNC.deleted.slice(-5000), hold:HOST ? null : SYNC.hold, framesCleared:SYNC.framesCleared || null, families:{list:S.famList, ov:S.famOv, ovAt:S.famOvAt || {}}}, strip);
 }
 function tomb(id){ SYNC.deleted.push(id); lsSetRaw('pb.deleted', JSON.stringify(SYNC.deleted.slice(-5000))); }
 const stamp = o => String(o.updated || o.created || o.t || '');
-/* bring in another copy (the gist's, or pasted data): union by id, the newer copy wins, deleted ids stay deleted */
-function mergeStore(src, stage){
+/* 0.17.0: two writers, so an edit has to carry a newer stamp or the other copy keeps its own. Sync keeps a short sum of every
+   set, front, drawn play and logged play as it last saw it; one whose sum moved gets updated = now, before each read of the
+   other copy's file and before each write. First sight of one (made here, come in from the other file, or the first run of
+   this version) records it without a stamp. */
+const SUMS_KEY = 'pb.sums', SUM_SKIP = new Set(['updated', '_bad', '_sync', '_conv', '_code']), SUM_COLL = {formations:'F', fronts:'R', designs:'D', plays:'P'};
+function sumOf(o){
+  const s = JSON.stringify(o, (k, v) => SUM_SKIP.has(k) ? undefined : v) || '';
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return (h >>> 0).toString(36) + '.' + s.length.toString(36);
+}
+function sumsMap(){
+  if (!SYNC.sums){ const o = lsGetJSON(SUMS_KEY, null); SYNC.sums = new Map(o && typeof o === 'object' && !Array.isArray(o) ? Object.entries(o).filter(([, v]) => typeof v === 'string') : []); }
+  return SYNC.sums;
+}
+function sumsWalk(stampIt){
+  const m = sumsMap(), seen = new Set(), t = isoNow(); let n = 0, ch = 0;
+  Object.keys(SUM_COLL).forEach(coll => (S[coll] || []).forEach(o => {
+    if (!o || !o.id) return;
+    const k = SUM_COLL[coll] + ':' + o.id, h = sumOf(o), was = m.get(k); seen.add(k);
+    if (was === h) return;
+    if (stampIt && was != null){ o.updated = t; n++; }
+    m.set(k, h); ch++;
+  }));
+  for (const k of [...m.keys()]) if (!seen.has(k)){ m.delete(k); ch++; }
+  if (ch) SYNC.sumsDirty = true;
+  return n;
+}
+function sumsSave(){   // the sums on disk never run ahead of the book on disk: written only while the last book write worked
+  if (!SYNC.sumsDirty || SYNC.storeOk === false || !SYNC.sums) return;
+  if (lsSetRaw(SUMS_KEY, JSON.stringify(Object.fromEntries(SYNC.sums))) === true) SYNC.sumsDirty = false;
+}
+function stampDirty(stage){
+  const n = sumsWalk(true);
+  if (n){ saveStore('sync.stamp'); diag(stage, `${n} item${n === 1 ? '' : 's'} edited here since sync last looked — stamped newer`); }
+  else sumsSave();
+  return n;
+}
+function sumsCarry(coll, o, before){   // a change the app makes by itself at boot (the same on every copy): sync goes on seeing the item as it was — unless it already differed
+  const m = sumsMap(), k = SUM_COLL[coll] + ':' + o.id;
+  if (m.get(k) === before){ m.set(k, sumOf(o)); SYNC.sumsDirty = true; }
+}
+const storeSig = () => sumOf({f:S.formations, r:S.fronts, d:S.designs, p:S.plays, fl:S.famList, fo:S.famOv, fa:S.famOvAt});
+/* bring in another copy (the gist's, or pasted data): union by id, the newer copy wins, deleted ids stay deleted.
+   quiet (0.17.0, the other copy's file on every pull): saved — and so written back up — only when it changed something here */
+function mergeStore(src, stage, quiet){
+  const sig0 = quiet ? storeSig() : null;
   if (src && src.names) namesAdopt(src.names);
   const dead = new Set(SYNC.deleted.concat(Array.isArray(src.deleted) ? src.deleted : []));
   SYNC.deleted = [...dead]; lsSetRaw('pb.deleted', JSON.stringify(SYNC.deleted.slice(-5000)));
@@ -1254,22 +1340,40 @@ function mergeStore(src, stage){
   S.seq = Math.max(S.seq, ...S.plays.map(p => p.n | 0), 0);
   if (src.families && typeof src.families === 'object'){   // 0.15.0: families travel in phone.json too
     (Array.isArray(src.families.list) ? src.families.list : []).forEach(x => { if (typeof x === 'string' && x.trim() && !S.famList.includes(x)) S.famList.push(x); });
-    const ov = src.families.ov && typeof src.families.ov === 'object' ? src.families.ov : {};
-    Object.keys(ov).forEach(k => { if (S.famOv[k] == null && typeof ov[k] === 'string') S.famOv[k] = ov[k]; });
+    const ov = src.families.ov && typeof src.families.ov === 'object' ? src.families.ov : {}, oat = src.families.ovAt && typeof src.families.ovAt === 'object' ? src.families.ovAt : {};
+    S.famOvAt = S.famOvAt || {};
+    Object.keys(ov).forEach(k => {   // 0.17.0: a move you haven't got, or a later one than yours
+      if (typeof ov[k] !== 'string') return;
+      const ta = String(oat[k] || ''), ma = String(S.famOvAt[k] || '');
+      if (S.famOv[k] == null || (ta && ta > ma)){ S.famOv[k] = ov[k]; if (ta) S.famOvAt[k] = ta; }
+    });
   }
   restrength();
   namesMigrate();
   setsTidy();
-  saveStore(stage);
-  diag(stage, 'merged', counts);
+  const changed = !quiet || storeSig() !== sig0;
+  counts.changed = changed;
+  sumsWalk(false);   // what came in is as sync has now seen it — not an edit made here
+  if (changed) saveStore(stage); else sumsSave();
+  diag(stage, changed ? 'merged' : 'merged — nothing new', counts);
   return counts;
+}
+function framesClearedTake(fc){   // cleared on another copy of the app
+  if (typeof fc !== 'string' || (SYNC.framesCleared && fc <= SYNC.framesCleared)) return;
+  SYNC.framesCleared = fc; lsSetRaw('pb.frames.cleared', fc); FRM.cache.clear(); diag('frames.clear', `the shared file says frames were cleared ${fc}`);
+}
+async function rawText(url){   // a gist file over 1 MB, read raw — and given up on after 45 s, like every other call
+  const ctl = typeof AbortController === 'function' ? new AbortController() : null, timer = ctl ? setTimeout(() => ctl.abort(), 45000) : null;
+  try { const r = await fetch(url, {cache:'no-store', signal:ctl ? ctl.signal : undefined}); if (!r.ok) throw {status:r.status, msg:`raw read → ${r.status}`}; return await r.text(); }
+  catch(e){ throw e && e.status ? e : {status:0, msg:e && e.name === 'AbortError' ? 'the raw read took over 45 s' : 'network: ' + String(e && e.message || e)}; }
+  finally { if (timer) clearTimeout(timer); }
 }
 async function readFile(f){
   if (!f) return null;
   let c = f.content;
-  if (f.truncated){ const r = await fetch(f.raw_url, {cache:'no-store'}); c = await r.text(); diag('sync.raw', `${f.filename} was over 1 MB: read raw, ${c.length} bytes`); }
+  if (f.truncated){ c = HOST ? await hostGet(f.raw_url) : await rawText(f.raw_url); diag('sync.raw', `${f.filename} was over 1 MB: read raw, ${c.length} bytes`); }
   try { return JSON.parse(c); }
-  catch(e){ fail('sync.parse', `${f.filename} as JSON`, String(e), c.slice(0, 300)); return null; }
+  catch(e){ fail('sync.parse', `${f.filename} as JSON`, String(e), String(c).slice(0, 300)); return null; }
 }
 async function syncFind(){
   if (SYNC.id) return;
@@ -1279,10 +1383,46 @@ async function syncFind(){
     if (hit){ SYNC.id = hit.id; lsSetRaw('pb.gh.gist', hit.id); diag('sync.find', `found the sync gist ${hit.id}`); return; }
     if (!r.json || r.json.length < 100) break;
   }
+  if (HOST) throw {status:0, msg:'no shared file yet — chalk makes it once its link is on'};   // 0.17.0: one gist; never a second one made from here
   const r = await gh('POST', '/gists', {description:GIST_DESC, public:false, files:{
-    'phone.json':{content:phoneJSON()}, 'ipad.json':{content:JSON.stringify({v:1, at:new Date().toISOString(), queue:[], tags:[]})}}});
+    'phone.json':{content:bookJSON()}, 'ipad.json':{content:JSON.stringify({v:1, at:new Date().toISOString(), queue:[], tags:[]})}}});
   SYNC.id = r.json.id; lsSetRaw('pb.gh.gist', SYNC.id);
   diag('sync.find', `no sync gist yet: made ${SYNC.id}`);
+}
+/* ipad.json — read off the gist, or (Log mode) straight from chalk the moment it changes */
+function ipadTake(ip, src){
+  const bad = [];
+  if (!ip || typeof ip !== 'object') bad.push(`expected an object, got ${typeof ip}`);
+  else {
+    if (!Array.isArray(ip.queue)) bad.push(`queue: expected array, got ${typeof ip.queue}`);
+    if (ip.tags != null && !Array.isArray(ip.tags)) bad.push(`tags: expected array, got ${typeof ip.tags}`);
+    if (ip.adds != null && !Array.isArray(ip.adds)) bad.push(`adds: expected array, got ${typeof ip.adds}`);
+    if (ip.facts != null && (typeof ip.facts !== 'object' || Array.isArray(ip.facts))) bad.push(`facts: expected an object keyed by play, got ${Array.isArray(ip.facts) ? 'array' : typeof ip.facts}`);
+  }
+  if (bad.length){ fail('sync.ipad', 'ipad.json with queue[], tags[] and facts{}', bad.join('; '), JSON.stringify(ip).slice(0, 400)); return false; }
+  if (HOST && SYNC.ipad.at && ip.at && String(ip.at) < String(SYNC.ipad.at)) return false;   // 0.17.0: chalk already said something newer
+  const before = SYNC.ipad.queue.length, tagsBefore = (SYNC.ipad.tags || []).length;
+  /* 0.13.0: facts — what chalk read off NFL's 22 for every play it showed: personnel, package, QB spot, backs, box, rush */
+  const facts = {}; let nf = 0, badf = 0;
+  Object.entries(ip.facts || {}).forEach(([k, f]) => { if (f && typeof f === 'object' && /^\d{4}_\d{2}_[A-Z]{2,3}_[A-Z]{2,3}:\d+$/.test(k)){ facts[k] = f; nf++; } else badf++; });
+  if (badf && src === 'gist') diag('sync.ipad', `facts: ${badf} entries skipped (key not "<game>:<play>" or not an object)`);
+  /* 0.16.0: frames{} names each play's strip gist; here is the play on the iPad; ack is where the last hold landed */
+  const frames = {}; let nfr = 0;
+  if (ip.frames && typeof ip.frames === 'object' && !Array.isArray(ip.frames)) Object.entries(ip.frames).forEach(([k, e]) => { if (e && typeof e.g === 'string' && /^[0-9a-f]{8,}$/i.test(e.g) && (e.sl || e.ez)){ frames[k] = e; nfr++; } });
+  let here = ip.here && typeof ip.here === 'object' && (ip.here.key == null || typeof ip.here.key === 'string') ? ip.here : null;
+  if (HOST && HOSTV.here && (!here || String(HOSTV.here.at || '') >= String(here.at || ''))) here = HOSTV.here;   // 0.17.0: the film's play, said straight to this copy, is the fresher word
+  const ack = ip.ack && typeof ip.ack === 'object' && typeof ip.ack.key === 'string' ? ip.ack : null;
+  SYNC.ipad = {queue:ip.queue, tags:ip.tags || [], adds:ip.adds || [], facts, frames, here, ack, at:ip.at || null};
+  const now = Date.now();
+  if (src === 'gist' || now - HOSTV.ipadSaved > 10000){ HOSTV.ipadSaved = now; lsSetRaw('pb.ipad', JSON.stringify(SYNC.ipad)); }   // chalk says it often in Log mode: kept on this device every 10 s
+  if (here && (here.key !== HEREV.key || here.at !== HEREV.at)){ HEREV.key = here.key; HEREV.at = here.at; HEREV.seenAt = Date.now(); if (src === 'gist') diag('sync.here', `the iPad is on ${here.key || 'nothing (chalk off)'}`); }
+  if (ack && ack.at !== HEREV.ackAt){ HEREV.ackAt = ack.at; diag('sync.ack', `${ack.key}: ${ack.ok ? 'the iPad is on it' : 'the iPad couldn’t get there — ' + (ack.why || '?')}${ack.here && !ack.ok ? ' (on ' + ack.here + ')' : ''}`); }
+  qSeenNote(ip.queue);
+  if (src === 'gist'){
+    pushBaseline('ipad', SYNC.ipad);
+    diag('sync.pull', `iPad: ${ip.queue.length} queued (was ${before}), ${(ip.tags || []).length} tags, ${(ip.adds || []).length} adds, ${nf} plays with facts, ${nfr} strips, ${FRM.files.size} old frame files, on ${here && here.key ? here.key : '—'}, written ${ip.at}`);
+  } else if (ip.queue.length !== before || (ip.tags || []).length !== tagsBefore) diag('host.ipad', `from chalk: ${ip.queue.length} queued (was ${before}), ${(ip.tags || []).length} tags (was ${tagsBefore})`);
+  return true;
 }
 async function syncPull(){
   const r = await gh('GET', `/gists/${SYNC.id}`, null, SYNC.etag);
@@ -1291,41 +1431,27 @@ async function syncPull(){
   const files = (r.json && r.json.files) || {};
   FRM.files = new Map(Object.entries(files).filter(([n]) => /^frames-/.test(n)));
   const ip = await readFile(files['ipad.json']);
-  if (ip){
-    const bad = [];
-    if (!Array.isArray(ip.queue)) bad.push(`queue: expected array, got ${typeof ip.queue}`);
-    if (ip.tags != null && !Array.isArray(ip.tags)) bad.push(`tags: expected array, got ${typeof ip.tags}`);
-    if (ip.adds != null && !Array.isArray(ip.adds)) bad.push(`adds: expected array, got ${typeof ip.adds}`);
-    if (ip.facts != null && (typeof ip.facts !== 'object' || Array.isArray(ip.facts))) bad.push(`facts: expected an object keyed by play, got ${Array.isArray(ip.facts) ? 'array' : typeof ip.facts}`);
-    if (bad.length) fail('sync.ipad', 'ipad.json with queue[], tags[] and facts{}', bad.join('; '), JSON.stringify(ip).slice(0, 400));
-    else {
-      const before = SYNC.ipad.queue.length;
-      /* 0.13.0: facts — what chalk read off NFL's 22 for every play it showed: personnel, package, QB spot, backs, box, rush */
-      const facts = {}; let nf = 0, badf = 0;
-      Object.entries(ip.facts || {}).forEach(([k, f]) => { if (f && typeof f === 'object' && /^\d{4}_\d{2}_[A-Z]{2,3}_[A-Z]{2,3}:\d+$/.test(k)){ facts[k] = f; nf++; } else badf++; });
-      if (badf) diag('sync.ipad', `facts: ${badf} entries skipped (key not "<game>:<play>" or not an object)`);
-      /* 0.16.0: frames{} names each play's strip gist; here is the play on the iPad; ack is where the last hold landed */
-      const frames = {}; let nfr = 0;
-      if (ip.frames && typeof ip.frames === 'object' && !Array.isArray(ip.frames)) Object.entries(ip.frames).forEach(([k, e]) => { if (e && typeof e.g === 'string' && /^[0-9a-f]{8,}$/i.test(e.g) && (e.sl || e.ez)){ frames[k] = e; nfr++; } });
-      const here = ip.here && typeof ip.here === 'object' && (ip.here.key == null || typeof ip.here.key === 'string') ? ip.here : null;
-      const ack = ip.ack && typeof ip.ack === 'object' && typeof ip.ack.key === 'string' ? ip.ack : null;
-      SYNC.ipad = {queue:ip.queue, tags:ip.tags || [], adds:ip.adds || [], facts, frames, here, ack, at:ip.at || null};
-      lsSetRaw('pb.ipad', JSON.stringify(SYNC.ipad));
-      if (here && (here.key !== HEREV.key || here.at !== HEREV.at)){ HEREV.key = here.key; HEREV.at = here.at; HEREV.seenAt = Date.now(); diag('sync.here', `the iPad is on ${here.key || 'nothing (chalk off)'}`); }
-      if (ack && ack.at !== HEREV.ackAt){ HEREV.ackAt = ack.at; diag('sync.ack', `${ack.key}: ${ack.ok ? 'the iPad is on it' : 'the iPad couldn’t get there — ' + (ack.why || '?')}${ack.here && !ack.ok ? ' (on ' + ack.here + ')' : ''}`); }
-      qSeenNote(ip.queue);
-      pushBaseline('ipad', SYNC.ipad);
-      diag('sync.pull', `iPad: ${ip.queue.length} queued (was ${before}), ${(ip.tags || []).length} tags, ${(ip.adds || []).length} adds, ${nf} plays with facts, ${nfr} strips, ${FRM.files.size} old frame files, on ${here && here.key ? here.key : '—'}, written ${ip.at}`);
-    }
-  }
-  if (!SYNC.merged){
-    const ph = await readFile(files['phone.json']);
-    if (ph) mergeStore(ph, 'sync.merge');
-    if (ph && typeof ph.framesCleared === 'string' && (!SYNC.framesCleared || ph.framesCleared > SYNC.framesCleared)){   // cleared on another copy of the app
-      SYNC.framesCleared = ph.framesCleared; lsSetRaw('pb.frames.cleared', ph.framesCleared); FRM.cache.clear(); diag('frames.clear', `the shared file says frames were cleared ${ph.framesCleared}`);
-    }
+  if (ip) ipadTake(ip, 'gist');
+  if (!SYNC.merged){   // this copy's own file, once: a new phone (or a cleared iPad) gets its book back
+    const mine = await readFile(files[MYFILE]);
+    stampDirty('sync.stamp');   // 0.17.0: edits made while offline (or left unsent at the last close) stamped before anything comes in
+    if (mine){ mergeStore(mine, 'sync.merge'); framesClearedTake(mine.framesCleared); }
     SYNC.merged = true;
     syncMark();
+  }
+  /* 0.17.0: the other copy's book, each time it changes. The gist changes for lots of reasons (chalk writes ipad.json often):
+     the file is parsed only when its text (or, over 1 MB, its address) moved, and merged only when its own stamp did */
+  const tf = files[THEIRFILE], tsrc = tf ? (tf.truncated ? 'url:' + tf.raw_url : String(tf.content || '')) : null;
+  if (tf && tsrc !== SYNC.theirSrc){
+    const th = await readFile(tf);
+    if (th && String(th.at || '') !== String(SYNC.theirAt || '')){
+      stampDirty('sync.stamp');   // first: what you changed here wins over an older copy from there
+      const c = mergeStore(th, 'sync.merge.' + (HOST ? 'phone' : 'tablet'), true);
+      SYNC.theirAt = String(th.at || '');
+      framesClearedTake(th.framesCleared);
+      if (c.changed) diag('sync.pull', `${THEIRNAME}: ${['formations','fronts','designs','plays'].map(k => `${k} ${c[k]}`).join(' · ')}`);
+    }
+    SYNC.theirSrc = tsrc;   // merged, unchanged, or unreadable (said once): not read again until it moves
   }
   adoptIpad();
   return true;
@@ -1341,11 +1467,12 @@ async function syncPush(){
   const wait = (SYNC.backoffUntil || 0) - Date.now(); if (wait > 0){ SYNC.wtimer = setTimeout(syncPush, wait + 500); return; }   // 0.16.0
   if (!SYNC.id || !SYNC.merged || SYNC.writing){ SYNC.wtimer = setTimeout(syncPush, 1500); return; }
   SYNC.writing = true; SYNC.dirty = false;
-  const content = phoneJSON();
+  stampDirty('sync.stamp');   // 0.17.0: every edit since the last write goes up newer than the other copy's
+  const content = bookJSON();
   try {
-    await gh('PATCH', `/gists/${SYNC.id}`, {files:{'phone.json':{content}}});
+    await gh('PATCH', `/gists/${SYNC.id}`, {files:{[MYFILE]:{content}}});
     SYNC.lastPush = Date.now(); syncOk();
-    diag('sync.push', `phone.json saved, ${content.length} bytes`);
+    diag('sync.push', `${MYFILE} saved, ${content.length} bytes`);
   } catch(e){ syncFail('push', e); SYNC.dirty = true; }
   SYNC.writing = false;
   if (SYNC.dirty) syncMark(SYNC.state === 'error' ? 15000 : 1500);
@@ -1362,26 +1489,81 @@ function syncFail(stage, e){
 }
 async function syncTick(){
   clearTimeout(SYNC.timer);
-  if (SYNC.token && document.visibilityState !== 'hidden' && Date.now() >= (SYNC.backoffUntil || 0)){
-    try { await syncFind(); const changed = await syncPull(); SYNC.lastPull = Date.now(); syncOk(); if (changed && VIEW === 'home') homeSoon(); }
-    catch(e){ syncFail('pull', e); if (VIEW === 'home') homeSoon(); }
+  if (SYNC.ticking){   // 0.17.0: one pull at a time — a nudge in the middle of one runs right after it
+    if (Date.now() - SYNC.tickAt < 120000){ SYNC.again = true; return; }
+    diag('sync', 'a pull hung for 2 minutes — starting a fresh one');   // a stuck one never holds sync up for good
   }
-  if (SYNC.token) SYNC.timer = setTimeout(syncTick, Math.max(SYNC.state === 'on' ? 4000 : 20000, (SYNC.backoffUntil || 0) - Date.now() + 500));
+  const gen = ++SYNC.gen; SYNC.ticking = true; SYNC.tickAt = Date.now();
+  try {
+    if (SYNC.token && document.visibilityState !== 'hidden' && Date.now() >= (SYNC.backoffUntil || 0)){
+      try { await syncFind(); const changed = await syncPull(); SYNC.lastPull = Date.now(); syncOk(); if (changed && VIEW === 'home') homeSoon(); }
+      catch(e){ syncFail('pull', e); if (VIEW === 'home') homeSoon(); }
+    }
+  } finally { if (gen === SYNC.gen) SYNC.ticking = false; }
+  if (gen !== SYNC.gen) return;   // a fresh pull took over while this one hung: it keeps the timer
+  if (SYNC.again){ SYNC.again = false; if (SYNC.token) SYNC.timer = setTimeout(syncTick, 50); return; }
+  const gap = HOST && !HOSTV.on ? 30000 : SYNC.state === 'on' ? 4000 : 20000;   // 0.17.0: behind the film in chalk, it looks every 30 s
+  if (SYNC.token) SYNC.timer = setTimeout(syncTick, Math.max(gap, (SYNC.backoffUntil || 0) - Date.now() + 500));
 }
 function syncStart(){
   syncLoadCfg();
   if (!SYNC.token){ SYNC.state = 'off'; diag('sync', 'no token: this phone only'); return; }
-  SYNC.state = 'connecting'; SYNC.merged = false; SYNC.etag = null;
+  SYNC.state = 'connecting'; SYNC.merged = false; SYNC.etag = null; SYNC.theirAt = null; SYNC.theirSrc = null;
   syncTick();
 }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && SYNC.token) syncTick(); });
 /* the iPad follows the phone: while a queued play is open here, chalk holds it on the snap */
-function setHold(key, frame){
+function setHold(key, frame, auto){
   const t = key && snapsMap().has(key) ? snapsMap().get(key) : null;   // 0.16.0: the snap you picked here — the iPad sits on it
   SYNC.hold = key ? Object.assign({key, frame:frame || 'snap', at:new Date().toISOString()}, t != null ? {t} : {}) : null;
   diag('sync.hold', key ? `iPad: hold ${key} on the ${SYNC.hold.frame}${t != null ? ' at ' + t + ' s' : ''}` : 'iPad: let go');
+  if (HOST){   // 0.17.0 Log mode: the film is right beside this — chalk hears it now
+    if (key && SYNC.dirty && !SYNC.writing && SYNC.merged){ clearTimeout(SYNC.wtimer); syncPush(); }   // the film may open another game's page: what's waiting goes up first
+    const h = SYNC.ipad.here && SYNC.ipad.here.key;
+    if (key && !auto && (!h || keyGame(h) !== keyGame(key))) HOSTV.nav = {key, at:Date.now()};   // a card's pick into another game: its page opens
+    hostSend({type:'pb-hold', hold:SYNC.hold && auto ? Object.assign({auto:true}, SYNC.hold) : SYNC.hold}); return;
+  }
   syncMark(300);
 }
+const keyGame = k => String(k || '').split(':')[0];
+function holdAuto(key){   // a play opened in the editor: the film follows it. In Log mode only inside the film's own game — another game means
+  if (HOST){               // NFL's page reloads, and the play you're entering goes with it. Go there, on its card, still takes the film anywhere.
+    const h = SYNC.ipad.here && SYNC.ipad.here.key;
+    if (!h || String(key).startsWith('clip:') || keyGame(h) !== keyGame(key)){ diag('host.hold', `${key}: not the film's game (${h || 'nothing on it'}) — the film stays put`); return; }
+    setHold(key, 'snap', true); return;   // auto: chalk takes the film there only if it's on this page
+  }
+  setHold(key, 'snap');
+}
+function hostNavBusy(key){   // Log mode: a card you just picked is opening its game's page — the editor waits for it, or the reload would take what you enter
+  if (!HOST || !HOSTV.nav || HOSTV.nav.key !== key || Date.now() - HOSTV.nav.at > 8000) return false;
+  const h = SYNC.ipad.here && SYNC.ipad.here.key; if (h && keyGame(h) === keyGame(key)) return false;
+  toast('Opening that game on the film — a moment, then open it.'); diag('host.hold', `${key}: its game is opening — the editor waits`); return true;
+}
+/* 0.17.0 Log mode: what chalk says — GitHub's answers, the play on the film, its ipad.json, whether you can see this app */
+function hostHere(m){
+  const h = m.here && typeof m.here === 'object' && (m.here.key == null || typeof m.here.key === 'string') ? m.here : null;
+  if (!h) return;
+  HOSTV.here = h;
+  HOSTV.item = h.key && m.item && typeof m.item === 'object' && m.item.key === h.key ? m.item : null;
+  SYNC.ipad.here = h;
+  if (h.key !== HEREV.key || h.at !== HEREV.at){ HEREV.key = h.key; HEREV.at = h.at; HEREV.seenAt = Date.now(); }
+  if (VIEW === 'home') homeSoon();
+}
+if (HOST) window.addEventListener('message', ev => {
+  if (ev.source !== window.parent && ev.origin !== window.origin) return;
+  const m = ev.data; if (!m || typeof m !== 'object' || typeof m.type !== 'string' || !m.type.startsWith('pb-')) return;
+  try {
+    if (m.type === 'pb-gh-r' || m.type === 'pb-net-r'){
+      const w = HOSTV.wait.get(m.id); if (!w) return;
+      HOSTV.wait.delete(m.id); clearTimeout(w.t);
+      if (m.ok) w.res(m); else w.rej(m.err || {status:0, msg:'chalk said no'});
+    }
+    else if (m.type === 'pb-here') hostHere(m);
+    else if (m.type === 'pb-ipad'){ if (m.ipad && ipadTake(m.ipad, 'chalk') && VIEW === 'home') homeSoon(); }
+    else if (m.type === 'pb-vis'){ const was = HOSTV.on; HOSTV.on = !!m.on; diag('host', HOSTV.on ? 'on screen in Log mode' : 'behind the film'); if (HOSTV.on && !was && SYNC.token) syncTick(); }
+    else if (m.type === 'pb-gist'){ if (typeof m.gist === 'string' && /^[0-9a-f]{8,}$/i.test(m.gist) && m.gist !== SYNC.id){ SYNC.id = m.gist; SYNC.etag = null; lsSetRaw('pb.gh.gist', m.gist); diag('host', `chalk’s shared file: ${m.gist}`); if (SYNC.token) syncTick(); } }
+  } catch(e){ fail('host.' + m.type, 'chalk’s message handled', String(e && e.message), String(e && e.stack || '')); }
+});
 /* 0.16.0: the inbox keeps its order — when a play was first queued (chalk's qat), else when this phone first saw it — so a
    snap, a shift or a frame sent later never reshuffles it; the iPad's own play comes to the top when you move there */
 const HEREV = {key:null, at:null, seenAt:0, ackAt:null};
@@ -1879,7 +2061,7 @@ const RT = {Go:[[0,0],[0,18]], Slant:[[0,0],[0,1.5],[-5,6]], Hitch:[[0,0],[0,6],
   Flat:[[0,0],[6,1.5]], Drag:[[0,0],[0,1.5],[-12,2.5]], Wheel:[[0,0],[5,1],[6,16]], Swing:[[0,0],[3,-1.5],[7,-1]], Angle:[[0,0],[3,1],[0.5,7]]};
 const RABBR = {Go:'GO', Seam:'SM', Stick:'ST', Slant:'SL', 'Skinny post':'SK', Fade:'FD', Arrow:'AR', Flat:'FL', Drag:'DR', Swing:'SW', Wheel:'WH', Angle:'AN',
   Sluggo:'SG', Hitch:'HI', Curl:'CU', Comeback:'CB', 'Quick out':'QO', Out:'OU', 'Deep out':'DO', In:'IN', Dig:'DG', Post:'PO', Corner:'CO',
-  'Post-corner':'PC', 'Corner-post':'CP', 'Out & up':'OG', 'Stop & go':'HG', Whip:'WP', Check:'CK'};
+  'Post-corner':'PC', 'Corner-post':'CP', 'Out & up':'OG', 'Stop & go':'HG', Whip:'WP', Check:'CK', Snag:'SN', Sail:'SA', Cross:'XR', Shallow:'SH', Choice:'CH'};
 const BABBR = {Base:'BA', Down:'DN', Reach:'RE', Zone:'ZN', Climb:'CL', Combo:'CO', Double:'DB', Kick:'KO', Trap:'TR', Wrap:'WR', Lead:'LD',
   Pro:'PR', Hinge:'HI', Stalk:'ST', Crack:'CR', Arc:'AR', Split:'SP', Wham:'WH', Seal:'SE', Iso:'IS', Insert:'IN'};
 const MABBR = {Jet:'JT', Orbit:'OR', Across:'AC', Zip:'ZP', Return:'RT', Out:'OT', Shift:'SH'};
@@ -2071,7 +2253,8 @@ function artInfo(m, dbl){
   if (!a || a.pts.length < 2) return null;
   if (a.kind === 'route'){
     const r = routeName(a.pts, outSignM(m, a), INSIDE_COLS.includes(m.colKey));
-    return {kind:'route', name:r.name, code:(RABBR[r.name] || 'XX') + Math.round(Math.max(0, r.D)), D:r.D, top:r.top};
+    const nm = a.rname && CALL.ROUTES[a.rname] ? a.rname : r.name;   // 0.17.0: a pass concept's route keeps its name until you reshape it
+    return {kind:'route', name:nm, code:(RABBR[nm] || 'XX') + Math.round(Math.max(0, r.D)), D:r.D, top:r.top};
   }
   if (a.kind === 'block'){
     const name = a.label || ((dbl || doubleIds()).has(m.id) ? 'Double' : blockName(m, a));
@@ -2252,6 +2435,62 @@ function setRoute(m, name){
   const tpl = RT[name]; if (!tpl) return;
   const x = snapAbs(m)[0], o = Math.abs(x) > 0.01 ? Math.sign(x) : weakSign();
   W.routes[m.id] = {kind:'route', pts:tpl.map(([a,b]) => [a * o, b]), side:Math.sign(m.x) || 0};
+}
+/* ---- 0.17.0 pass concepts by size (Jimbo: "split up passing concepts into 2 3 or 4 man concepts"). A 2-man or 3-man concept
+   goes on one side — the play side, or the side of the man you drop it on — on its men counted from the outside in (#1 widest,
+   a back last, on his side; one in the middle counts to the strength). A 4-man concept takes the field: two and two, or three
+   and one. Each man gets the concept's route under its own name, so the play reads back as the concept. ---- */
+const PASS_CONCEPTS = [
+  [2, 'Smash', ['Hitch','Corner']], [2, 'Curl-Flat', ['Curl','Flat']], [2, 'Slant-Flat', ['Slant','Flat']], [2, 'Double Slant', ['Slant','Slant']],
+  [2, 'Levels', ['Dig','In']], [2, 'Mills', ['Dig','Post']], [2, 'Dagger', ['Dig','Seam']], [2, 'Drive', ['Dig','Drag']], [2, 'Post-Wheel', ['Post','Wheel']],
+  [2, 'Hitch', ['Hitch','Hitch']], [2, 'Choice', ['Go','Choice']],
+  [3, 'Flood', ['Go','Sail','Flat']], [3, 'Snag', ['Snag','Corner','Flat']], [3, 'Stick', ['Go','Flat','Stick']], [3, 'Spacing', ['Hitch','Stick','Hitch']],
+  [4, 'Four Verts', {two:[['Go','Seam'], ['Go','Seam']], three:[['Go','Seam','Seam'], ['Go']]}],
+  [4, 'Mesh', {two:[['Corner','Shallow'], ['Corner','Drag']], three:[['Corner','Stick','Shallow'], ['Drag']]}],
+  [4, 'Y-Cross', {two:[['Go','Flat'], ['Post','Cross']], three:[['Go','Flat','Cross'], ['Post']]}],
+  [4, 'Shallow', {two:[['Go','Shallow'], ['Dig','Seam']], three:[['Go','Seam','Shallow'], ['Dig']]}]];
+function passSides(){   // {'1': the right side's men, '-1': the left's}, numbered exactly as the play's read numbers them — so a stamp always reads back
+  const A = NAMES.read(offObject(), W.strength === 'L' ? 'L' : 'R'), N = CALL.numbered(A), sS = A.strong === 'L' ? -1 : 1;
+  const byI = new Map(); men().forEach(m => { if (m.kind === 'skill' && m.t) byI.set(W.tokens.indexOf(m.t), m); });
+  const pick = list => list.map(a => byI.get(a.i)).filter(Boolean);
+  return {[String(sS)]:pick(N.S), [String(-sS)]:pick(N.W)};
+}
+function setPassRoute(m, rname, side){   // the designer's own shape for the route when it has one, the call's otherwise — kept by name
+  const tpl = RT[rname] || CALL.ROUTES[rname]; if (!tpl) return false;
+  const x = snapAbs(m)[0], o = Math.abs(x) > 0.01 ? Math.sign(x) : (side || weakSign());
+  W.routes[m.id] = {kind:'route', pts:tpl.map(([a,b]) => [a * o, b]), side:Math.sign(m.x) || 0, rname};
+  return true;
+}
+function stampPass(name, ps){   // → {put:[[man, route]]} or {err}
+  const c = PASS_CONCEPTS.find(x => x[1] === name); if (!c) return {err:`no pass concept called ${name}`};
+  const n = c[0], R = c[2], L = passSides(), P = L[String(ps)], B = L[String(-ps)], put = [], sideW = ps > 0 ? 'right' : 'left';
+  if (n < 4){
+    if (P.length < n) return {err:`${name} takes ${n} men — the ${sideW} side has ${P.length}. Flip the side, or drop it on a man over there.`};
+    R.forEach((r, i) => put.push([P[i], r, ps]));
+  } else if (P.length >= 2 && B.length >= 2){
+    R.two[0].forEach((r, i) => put.push([P[i], r, ps])); R.two[1].forEach((r, i) => put.push([B[i], r, -ps]));
+  } else {
+    const T = P.length >= 3 && B.length >= 1 ? P : B.length >= 3 && P.length >= 1 ? B : null;
+    if (!T) return {err:`${name} takes four men out — two and two, or three and one. This set has ${L['1'].length} right of the ball, ${L['-1'].length} left.`};
+    const one = T === P ? B : P, ts = T === P ? ps : -ps;
+    R.three[0].forEach((r, i) => put.push([T[i], r, ts])); R.three[1].forEach((r, i) => put.push([one[i], r, -ts]));
+  }
+  const mine = new Set(put.map(p => p[0].id));   // what an earlier stamp left on those men goes — so the side reads as this one
+  (n < 4 ? P : P.concat(B)).forEach(m => { const a = W.routes[m.id]; if (!mine.has(m.id) && a && a.rname) delete W.routes[m.id]; });
+  put.forEach(([m, r, s]) => setPassRoute(m, r, s));
+  return {put, n};
+}
+let PASSRD = {key:'', v:null};
+function passNow(){   // what the routes read as right now — the same read that names the play
+  const arts = men().filter(m => m.kind === 'skill' && m.t).map(m => { const i = artInfo(m); return i && i.kind === 'route' ? {who:m.t.slot, kind:'route', name:i.name} : null; }).filter(Boolean);
+  if (!arts.length) return null;
+  const key = JSON.stringify(arts) + '|' + W.strength + '|' + W.tokens.map(t => t.slot || '').join(',');
+  if (key === PASSRD.key) return PASSRD.v;
+  let v = null;
+  try { const V = NAMES.playView({off:offObject(), strength:W.strength, hash:W.hash, spot:W.spot, def:null, call:null, sit:null, res:null}, {design:{arts}}); v = V && V.pass && V.pass.text ? V.pass : null; }
+  catch(e){ diag('pass.read', `the routes didn't read: ${e && e.message}`); }
+  PASSRD = {key, v};
+  return v;
 }
 function setMotion(m, name){
   const x0 = m.x, r0 = m.r, s = Math.abs(x0) > 0.5 ? Math.sign(x0) : -W.pside;
@@ -3270,7 +3509,7 @@ function routeMove(p){
   if (!drag.hist){ pushRHist(); drag.hist = true; if (a.kind === 'block'){ a.target = null; a.t2 = null; } }
   drag.dX = dX; drag.dY = dY;
   a.pts = drag.orig.map((q,i) => i < drag.i ? q.slice() : [q[0] + dX, q[1] + dY]);
-  delete a.label; delete a.cname;
+  delete a.label; delete a.cname; delete a.rname;
   drag.moved = true; W.dirty = true; touchSide(m, a);
   render(); updRouteMsg();
 }
@@ -3290,9 +3529,10 @@ function routeUp(){
   diag('art.shape', `${m.tag} → ${i ? i.name + ' ' + i.code : '-'}${mn ? ' · motion ' + mn : ''}${a.target ? ' on ' + a.target : ''}`, a.pts);
 }
 /* chips: tap one to give it to the picked man, or drag it onto any man. Whole-play chips stamp all 11. */
+const wholeChip = g => g === 'concept' || /^pass[234]$/.test(g);   // 0.17.0: stamps for the whole play (or a whole side) need no man picked
 function chipTargets(g){
   const M = men();
-  if (g === 'route' || g === 'motion') return M.filter(m => m.kind === 'skill');
+  if (g === 'route' || g === 'motion' || /^pass[234]$/.test(g)) return M.filter(m => m.kind === 'skill');
   if (g === 'run' || g === 'concept') return M.filter(m => m.kind !== 'ol');
   return M;
 }
@@ -3307,6 +3547,15 @@ function dropTarget(cx, cy, g){
 function applyChip(g, name, m){
   const ps = W.pside;
   pushRHist();
+  if (/^pass[234]$/.test(g)){   // 0.17.0: a pass concept on a side (the play side, or the side of the man you dropped it on), or the whole field
+    const x = m ? m.x : 0, side = m && Math.abs(x) > 0.01 ? Math.sign(x) : ps;   // where he lines up — the side the read numbers him on
+    const r = stampPass(name, side);
+    if (r.err){ W.rhist.pop(); toast(esc(r.err)); diag('chip', `pass ${name}: ${r.err}`); return; }
+    W.concept = null; W.dirty = true;
+    const pr = passNow();
+    diag('chip', `pass ${name} (${r.n}-man${r.n < 4 ? ', ' + (side > 0 ? 'right' : 'left') : ''}): ${r.put.map(([q, rt]) => q.tag + ' ' + rt).join(', ')} → reads ${pr ? pr.text : 'nothing'}`);
+    return;
+  }
   if (g === 'concept'){
     if (name === 'Pass pro'){ men().filter(q => q.kind === 'ol').forEach(q => setArt(q, 'block', BLK.pro(q))); W.concept = null; }
     else { const c = CONCEPTS.find(q => q[1] === name); if (!c){ W.rhist.pop(); fail('chip', 'a known concept', name); return; } buildConcept(c[0], ps, m ? m.id : null); }
@@ -3341,8 +3590,8 @@ function endChip(e, cancel){
   if (c.ghost) c.ghost.remove();
   if (!W || W.step !== 'routes' || cancel){ render(); return; }
   let m = null;
-  if (c.moved){ m = c.target ? manById(c.target) : null; if (!m && c.g !== 'concept'){ toast('Drop it on a man.'); refresh(); return; } }
-  else if (c.g !== 'concept'){ m = W.rsel ? manById(W.rsel) : null; if (!m){ toast('Tap a man first.'); refresh(); return; } }
+  if (c.moved){ m = c.target ? manById(c.target) : null; if (!m && !wholeChip(c.g)){ toast('Drop it on a man.'); refresh(); return; } }
+  else if (!wholeChip(c.g)){ m = W.rsel ? manById(W.rsel) : null; if (!m){ toast('Tap a man first.'); refresh(); return; } }
   applyChip(c.g, c.name, m);
   refresh();
 }
@@ -3437,6 +3686,7 @@ function renderTop(){
 function renderPanel(){
   const P = $('#panel');
   const keep = ['#manRow', '.rgrid'].map(q => { const el = P.querySelector(q); return el ? el.scrollLeft : 0; });
+  const keepG = [...P.querySelectorAll('.rgrid')].map(g => g.scrollLeft);   // 0.17.0: every row of chips keeps its place
   const sameTab = W.step === 'routes' && P.dataset.tab === `${W.rsel}|${W.rmode}`;
   const wk = {}; P.querySelectorAll('.wopts').forEach(w => { wk[w.dataset.k] = w.scrollLeft; });
   const top = P.scrollTop;
@@ -3463,7 +3713,7 @@ function renderPanel(){
     P.dataset.tab = `${W.rsel}|${W.rmode}`;
     const row = P.querySelector('#manRow'), gr = P.querySelector('.rgrid');
     if (row) row.scrollLeft = keep[0];
-    if (gr && sameTab) gr.scrollLeft = keep[1];
+    if (gr && sameTab) P.querySelectorAll('.rgrid').forEach((g, i) => { if (keepG[i] != null) g.scrollLeft = keepG[i]; });
     if (W.scrollMan && row){ const cur = row.querySelector('.cur'); if (cur) row.scrollLeft = Math.max(0, cur.offsetLeft - row.clientWidth / 2 + cur.offsetWidth / 2); W.scrollMan = false; }
   }
   else P.innerHTML = panelView();
@@ -3613,7 +3863,12 @@ function panelRest(){
 }
 function routeMsg(){
   const m = W.rsel ? manById(W.rsel) : null;
-  if (!m) return W.concept ? `<b>${esc(W.concept.name)}</b> ${W.concept.ps > 0 ? 'right' : 'left'}. Pick a man above to change his job.` : 'Pick a man above, or tap him on the field. Or stamp a whole play:';
+  if (!m){
+    if (W.concept) return `<b>${esc(W.concept.name)}</b> ${W.concept.ps > 0 ? 'right' : 'left'}. Pick a man above to change his job.`;
+    const pr = W.stampTab === 'pass' ? passNow() : null;   // 0.17.0: what the routes read as
+    if (pr) return `Reads as <b>${esc(pr.text)}</b>. Stamp another on the other side, or pick a man to change his route.`;
+    return W.stampTab === 'pass' ? 'Stamp a pass concept: 2-man and 3-man on the play side (or drag one onto a man), 4-man across the field.' : 'Pick a man above, or tap him on the field. Or stamp a whole play:';
+  }
   const col = m.kind === 'skill' ? m.col : 'var(--fg)';
   const i = artInfo(m), mn = motionName(m), a = W.routes[m.id];
   const job = [mn ? `motion <b>${esc(mn)}</b>` : '', i ? `<b>${esc(i.name)}</b>${i.kind === 'route' ? ` ${i.top ? 'to' : 'at'} ${i.D} yd` : ''}${a && a.target && i.kind === 'block' ? ' on the circled man' : ''}` : ''].filter(Boolean).join(' · ') || 'no job yet';
@@ -3635,6 +3890,12 @@ function manRow(){
       <span class="qdot ${m.tag === 'C' ? 'sq' : ''}" style="${dot};${m.tag.length > 1 ? 'font-size:11px' : ''}">${esc(m.tag)}</span><span class="qjob">${esc(job)}</span></button>`;
   }).join('')}</div>`;
 }
+function passPalette(grid){   // 0.17.0: the pass concepts by size, each lit when the routes read as it
+  const pr = passNow(), side = W.pside > 0 ? 'right' : 'left';
+  const on = n => !!(pr && (pr.full === n || (n === 'Y-Cross' && /-Cross$/.test(pr.full || '')) || pr.S === n || pr.W === n));
+  const row = (k, words) => `<div class="lbl" style="margin:2px 0 -2px">${k}-man · ${words}</div>${grid('pass' + k, PASS_CONCEPTS.filter(c => c[0] === k).map(c => c[1]), on, true)}`;
+  return row(2, `on the ${side}`) + row(3, `on the ${side}`) + row(4, 'the whole field') + `<div class="lbl" style="margin:2px 0 -2px">The line</div>${grid('concept', ['Pass pro'], () => false, true)}`;
+}
 function panelRoutes(){
   syncBlocks();
   const m = W.rsel ? manById(W.rsel) : null;
@@ -3643,7 +3904,8 @@ function panelRoutes(){
   if (!m) return `${manRow()}
     <div class="row"><button class="pick" data-act="dset" aria-label="Change the set">Set · ${esc(W.setName || '')}</button><button class="pick" data-act="dfront" aria-label="Change the defense">vs ${esc(W.defName)}</button></div>
     <div class="row"><div class="status rinfo" id="rinfo" role="status" style="flex:1">${routeMsg()}</div>${sideBtn}</div>
-    ${grid('concept', WHOLE_PALETTE, n => !!(W.concept && W.concept.name === n))}
+    <div class="row">${seg('stampTab', [['run','Run plays'],['pass','Pass concepts']], W.stampTab === 'pass' ? 'pass' : 'run')}</div>
+    ${W.stampTab === 'pass' ? passPalette(grid) : grid('concept', WHOLE_PALETTE, n => !!(W.concept && W.concept.name === n))}
     <div class="row"><button class="btn slim" data-act="rundo" ${W.rhist.length ? '' : 'disabled'}>Undo</button><button class="btn slim" data-act="rclear">Clear</button><button class="btn pri" data-act="saveDesignAsk">Save play</button></div>`;
   const tabs = m.kind === 'ol' ? [['block','Block']] : m.kind === 'qb' ? [['run','Ball'],['route','Route']] : [['route','Route'],['block','Block'],['run','Run'],['motion','Motion']];
   if (!tabs.some(t => t[0] === W.rmode)) W.rmode = tabs[0][0];
@@ -3733,6 +3995,7 @@ const ORD = ['', '1st', '2nd', '3rd', '4th'];
 const sitWord = q => q && q.down ? `${ORD[q.down] || q.down} & ${q.dist == null ? '?' : q.dist}` : 'Play';
 const yardToSpot = y => { y = Math.round(+y); if (!(y > 0 && y < 100)) return -35; return y === 50 ? 50 : (y > 50 ? -(100 - y) : y); };
 function startQueued(q){
+  if (hostNavBusy(q.key)){ if (VIEW !== 'home'){ W = null; setView('home'); refresh(); } return; }   // 0.17.0: home (the card's hold stays — its page is opening)
   W = newWork('log');
   W.qkey = q.key; W.qsit = q.sit || null; W.qdesc = q.desc || ''; W.qpers = persOf(q.pers); W.qres = resOf(q);
   if (q.pers && PERS.includes(String(q.pers))){ W.pers = String(q.pers); W.tokens = buildTokens(W.pers, false, []); }
@@ -3742,7 +4005,7 @@ function startQueued(q){
   W.fromGame = !!q.fromGame;
   wizEnter();
   setStep('off'); setView('editor'); refresh();
-  if (!q.fromGame) setHold(q.key, 'snap');
+  if (!q.fromGame) holdAuto(q.key);
   diag('flow', `${q.fromGame ? 'game' : 'queue'}: logging ${q.key} (${sitWord(q.sit)})`);
 }
 function goHome(){ if (SYNC.hold) setHold(null); W = null; drag = null; bubble = null; setView('home'); refresh(); }
@@ -3968,7 +4231,7 @@ function openDesign(dz){
     if (r.mo) W.motion[m.id] = {pts:r.mo.map(q => [q.x, q.y]), side:Math.sign(m.x) || 0};
     if (r.pts && r.kind){
       const a = W.routes[m.id] = {kind:r.kind, pts:r.pts.map(q => [q.x, q.y]), side:Math.sign(m.x) || 0};
-      ['label','target','t2','tx','tY','tl','cname'].forEach(k => { if (r[k] != null) a[k] = r[k]; });
+      ['label','target','t2','tx','tY','tl','cname','rname'].forEach(k => { if (r[k] != null) a[k] = r[k]; });
       if (r.pull != null) a.pull = r.pull;
     }
   });
@@ -3990,7 +4253,7 @@ function saveDesign(name){
     if (!has && !hasM) return;
     const i = has ? artInfo(m, dbl) : null;
     arts.push({who:m.t ? m.t.slot : m.id, tag:m.tag, kind:has ? a.kind : null, name:i ? i.name : null, code:i ? i.code : null, label:(has && a.label) || null,
-      target:(has && a.target) || null, t2:(has && a.t2) || null, pull:has && a.pull != null ? !!a.pull : null, tx:has && a.tx != null ? a.tx : null, tY:has && a.tY != null ? a.tY : null, tl:(has && a.tl) || null, cname:(has && a.cname) || null,
+      target:(has && a.target) || null, t2:(has && a.t2) || null, pull:has && a.pull != null ? !!a.pull : null, tx:has && a.tx != null ? a.tx : null, tY:has && a.tY != null ? a.tY : null, tl:(has && a.tl) || null, cname:(has && a.cname) || null, rname:(has && a.rname) || null,
       pts:has ? a.pts.map(([x,y]) => ({x, y})) : null, mo:hasM ? mo.pts.map(([x,y]) => ({x, y})) : null, mname:hasM ? motionName(m) : null, token:manToken(m, dbl)});
   });
   let def = null;
@@ -4944,26 +5207,29 @@ const CALL = (() => {
     Stick:[[0,0],[0,6],[0.8,5.5]], Snag:[[0,0],[0,3],[-3.2,6],[-3.2,5.2]], Sail:[[0,0],[0,9],[6.5,13]], Cross:[[0,0],[-3,5],[-19,13]], Choice:[[0,0],[0,6]],
     Swing:[[0,0],[2.5,-1],[8,0.8]], Screen:[[0,0],[1.5,-2],[3.5,-2.2]], Bubble:[[0,0],[2,-1.6],[4.5,-1.2]], Check:[[0,0],[0,2.5],[1.5,4]], Block:[[0,0],[0,0.8]]};
   const ROUTE_LIST = ['Go','Seam','Hitch','Slant','Out','In','Dig','Curl','Comeback','Post','Corner','Flat','Arrow','Wheel','Drag','Shallow','Stick','Snag','Sail','Cross','Choice','Swing','Check','Block'];
+  /* 0.17.0 (Jimbo: "split up passing concepts into 2 3 or 4 man concepts"): n is how many men run it — 2 and 3 to one side,
+     4 across the field */
   const CONCEPT = {
-    Smash:{s:'Sm', why:'#1 hitch under a corner from #2 — a high-low on the corner.'},
-    Flood:{s:'Fl', why:'Three levels to one side: a clear-out deep, a sail at 12, a flat underneath.'},
-    Snag:{s:'Sng', why:'A snag sit, a corner over it, a flat under it — a triangle read.'},
-    Stick:{s:'Stk', why:'A 6-yard sit inside, a flat outside; read the flat defender.'},
-    Spacing:{s:'Spc', why:'Three short sits at different widths across the underneath zones.'},
-    'Curl-Flat':{s:'CF', why:'Curl outside, flat inside — a high-low on the curl-flat defender.'},
-    'Slant-Flat':{s:'SF', why:'Slant outside, flat inside — quick game against the flat defender.'},
-    Levels:{s:'Lvl', why:'In-cuts at two depths, a high-low on the hook defender.'},
-    Dagger:{s:'Dgr', why:'A seam clears the safety; the dig comes in underneath behind the backers.'},
-    Mills:{s:'Mls', why:'A post from #2 over a dig from #1 — hits the deep middle against two-high.'},
-    Drive:{s:'Drv', why:'A shallow under a dig — a high-low on the backers.'},
-    'Double Slant':{s:'DS', why:'Two slants — the inside man clears, the outside man fits under.'},
-    Hitch:{s:'Ht', why:'Hitches — take the cushion.'},
-    Choice:{s:'Chc', why:'An option route: break away from the leverage.'},
-    Mesh:{s:'Msh', why:'Two shallow crossers rub at about 6 yards — beats man.'},
-    'Four Verts':{s:'4V', why:'Four vertical routes stretch the deep zones.'},
-    'Y-Cross':{s:'YX', why:'A deep crosser behind the backers, a clear-out over him, a post or dig.'},
-    Shallow:{s:'Shl', why:'A shallow cross underneath with a dig over it from the other side.'},
-    'Post-Wheel':{s:'PW', why:'A post clears the corner; the wheel climbs the sideline behind him.'}};
+    Smash:{s:'Sm', n:2, why:'#1 hitch under a corner from #2 — a high-low on the corner.'},
+    'Curl-Flat':{s:'CF', n:2, why:'Curl outside, flat inside — a high-low on the curl-flat defender.'},
+    'Slant-Flat':{s:'SF', n:2, why:'Slant outside, flat inside — quick game against the flat defender.'},
+    'Double Slant':{s:'DS', n:2, why:'Two slants — the inside man clears, the outside man fits under.'},
+    Levels:{s:'Lvl', n:2, why:'In-cuts at two depths, a high-low on the hook defender.'},
+    Mills:{s:'Mls', n:2, why:'A post from #2 over a dig from #1 — hits the deep middle against two-high.'},
+    Dagger:{s:'Dgr', n:2, why:'A seam clears the safety; the dig comes in underneath behind the backers.'},
+    Drive:{s:'Drv', n:2, why:'A shallow under a dig — a high-low on the backers.'},
+    'Post-Wheel':{s:'PW', n:2, why:'A post clears the corner; the wheel climbs the sideline behind him.'},
+    Hitch:{s:'Ht', n:2, why:'Hitches — take the cushion.'},
+    Choice:{s:'Chc', n:2, why:'An option route: break away from the leverage; the man outside clears.'},
+    Flood:{s:'Fl', n:3, why:'Three levels to one side: a clear-out deep, a sail at 12, a flat underneath.'},
+    Snag:{s:'Sng', n:3, why:'A snag sit, a corner over it, a flat under it — a triangle read.'},
+    Stick:{s:'Stk', n:3, why:'A 6-yard sit inside, a flat outside, a clear-out over both; read the flat defender.'},
+    Spacing:{s:'Spc', n:3, why:'Three short sits at different widths across the underneath zones.'},
+    'Four Verts':{s:'4V', n:4, why:'Four vertical routes stretch the deep zones.'},
+    Mesh:{s:'Msh', n:4, why:'Two shallow crossers rub at about 6 yards — beats man.'},
+    'Y-Cross':{s:'YX', n:4, why:'A deep crosser behind the backers, a clear-out over him, a post or dig.'},
+    Shallow:{s:'Shl', n:4, why:'A shallow cross underneath with a dig over it from the other side.'}};
+  const manWord = c => CONCEPT[c] && CONCEPT[c].n ? CONCEPT[c].n + '-man' : '';
   const SITS = ['Hitch','Stick','Curl','Snag'];
   function sideConcept(list){
     /* list: receivers one side, #1 outside first, each {L, route} */
@@ -5013,13 +5279,13 @@ const CALL = (() => {
     if (!used.length) return {text:'', parts:[], why:'No routes yet.', alts:[]};
     let text, why, alts = [];
     if (full.length){
-      text = full[0]; why = (CONCEPT[full[0]] || CONCEPT['Y-Cross']).why;
+      text = full[0]; why = '4-man: ' + (CONCEPT[full[0]] || CONCEPT['Y-Cross']).why;
       alts = full.slice(1).concat([sS && sS + ' Strong', sW && sW + ' Weak']).filter(Boolean);
     } else if (sS && sW){
-      text = sS + ' Strong, ' + sW + ' Weak'; why = 'Strong side: ' + CONCEPT[sS].why + ' Weak side: ' + CONCEPT[sW].why;
+      text = sS + ' Strong, ' + sW + ' Weak'; why = `Strong side, ${manWord(sS)}: ${CONCEPT[sS].why} Weak side, ${manWord(sW)}: ${CONCEPT[sW].why}`;
       alts = [sS + '-' + sW, sS + ' / ' + sW];
     } else if (sS || sW){
-      const c = sS || sW, sd = sS ? 'Strong' : 'Weak'; text = c + ' ' + sd; why = CONCEPT[c].why;
+      const c = sS || sW, sd = sS ? 'Strong' : 'Weak'; text = c + ' ' + sd; why = `${manWord(c)}: ${CONCEPT[c].why}`;
       alts = [c];
     } else {
       text = used.slice(0, 3).map(x => x.L + ' ' + x.route).join(', '); why = 'No named concept fits; the routes are called by letter.';
@@ -5372,7 +5638,7 @@ function nglossOf(w){
   if (g) return g[1] + (g[2] && g[2] !== '—' ? ' Opposite: ' + g[2] + '.' : '');
   if (ENG.PLAIN[w]) return ENG.PLAIN[w][0].toUpperCase() + ENG.PLAIN[w].slice(1) + '.';
   const r = CALL.RUNS.find(x => String(w).startsWith(x.k)); if (r) return r.why;
-  const cn = Object.keys(CALL.CONCEPT).find(k => String(w).startsWith(k)); if (cn) return CALL.CONCEPT[cn].why;
+  const cn = Object.keys(CALL.CONCEPT).find(k => String(w).startsWith(k)); if (cn) return (CALL.CONCEPT[cn].n ? CALL.CONCEPT[cn].n + '-man concept. ' : '') + CALL.CONCEPT[cn].why;
   const cv = PBA.COVS.find(x => x.name === w); return cv ? cv.note : '';
 }
 function nchipOpen(key, part, explain){
@@ -5634,9 +5900,7 @@ async function baseLoad(){
   const cached = lsGetJSON('pb.base', null);
   if (cached) baseAccept(cached, 'base.cache');
   try {
-    const r = await fetch('base-book.json', {cache:'no-cache'});
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const b = await r.json();
+    const b = HOST ? JSON.parse(await hostGet('base-book.json')) : await (async () => { const r = await fetch('base-book.json', {cache:'no-cache'}); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })();   // 0.17.0: in Log mode, through chalk
     if (baseAccept(b, 'base.fetch')) lsSetRaw('pb.base', JSON.stringify(b));
   } catch(e){ diag('base.fetch', `base book not fetched (${e && e.message})${cached ? ': using the copy on this phone' : ''}`); if (!cached) BASE.state = 'error'; }
   setsTidy();   // 0.15.0: with the base book in, one set per formation and every set in a family
@@ -5686,7 +5950,7 @@ const famKnown = v => famList().concat(FAM_ORDER).find(x => x.toLowerCase() === 
 function famAdd(v){ const k = famKnown(v); if (k) return k; const t = String(v || '').trim(); if (!t) return null; S.famList.push(t); return t; }
 function famApply(f, fam){   // move a set to a family; a base set's move is kept beside the book
   const v = famAdd(fam); if (!f || !v) return false;
-  if (f.base) S.famOv[f.id] = v;
+  if (f.base){ S.famOv[f.id] = v; (S.famOvAt = S.famOvAt || {})[f.id] = isoNow(); }   // 0.17.0: stamped, so the other copy takes the later move
   else { f.family = v; f.updated = isoNow(); }
   if (!saveStore('family.set')) return false;
   if (!f.base) dbPut('formations', f, 'family.set');
@@ -5928,7 +6192,7 @@ function adoptTags(){
   return n;
 }
 function adoptIpad(){
-  if (EMBED || !SYNC.merged || BASE.state === 'off') return;
+  if (EMBED || HOST || !SYNC.merged || BASE.state === 'off') return;   // 0.17.0: the phone files what the iPad tagged — one filer, no doubles
   const t0 = performance.now();
   let a = 0, t = 0;
   try { a = adoptAdds(); t = adoptTags(); }
@@ -6355,6 +6619,8 @@ const CARDV = {key:null, shot:'snap', pickAt:0};   // 0.16.0: pickAt — when yo
 function parkSave(){ lsSetRaw('pb.parked', JSON.stringify([...PARK].slice(-300))); }
 function inboxItems(){
   const out = queueOpen(), have = new Set(out.map(q => q.key));
+  const hi = HOST ? HOSTV.item : null, hk = hi && SYNC.ipad.here && SYNC.ipad.here.key === hi.key ? hi.key : null;   // 0.17.0 Log mode: the play on the film is a card too, queued or not
+  if (hk && !have.has(hk) && !S.plays.some(p => p.key === hk)){ out.unshift(Object.assign({}, hi, {fromHere:true})); have.add(hk); }
   (SYNC.ipad.tags || []).forEach(t => {
     if (!t || !t.key || have.has(t.key) || S.plays.some(p => p.key === t.key)) return;
     const hasOff = !!(t.fcode || t.zid || t.fbase || t.fadd), hasDef = !!(t.dcode || t.dadd || t.dbase);
@@ -6492,7 +6758,7 @@ function renderEmbedHome(){
 function embedBoot(){
   const b = (EMBED && EMBED.book) || {};
   const mine = (arr, base) => (Array.isArray(arr) ? arr : []).filter(x => x && typeof x === 'object' && !!x.base === base);
-  S = {v:1, seq:0, formations:mine(b.formations, false).map(normFormation), plays:[], fronts:mine(b.fronts, false), designs:Array.isArray(b.designs) ? b.designs : [], famList:[], famOv:{}};
+  S = {v:1, seq:0, formations:mine(b.formations, false).map(normFormation), plays:[], fronts:mine(b.fronts, false), designs:Array.isArray(b.designs) ? b.designs : [], famList:[], famOv:{}, famOvAt:{}};
   S.formations.forEach(checkFormation); S.fronts.forEach(checkFront); S.designs.forEach(checkDesign);
   baseAccept({formations:mine(b.formations, true), fronts:mine(b.fronts, true), at:null}, 'embed.base');
   NAMING = EMBED.naming === 'desc' ? 'desc' : 'pro';
@@ -6679,16 +6945,18 @@ function cardArt(q, v){
   if (front) return PBA.frontArt(front, {off, strong:v.c.strength, cid, solid:true});
   return PBA.setArt(off || {qb:qbOf(q.qb) || 'gun', tokens:[]});
 }
+const WHERE_W = HOST ? {on:'On the film', no:'The film couldn’t get there', go:'Sending the film to this play…', is:'The film is on', off:'chalk is off', none:'The film hasn’t said where it is yet', b:'Go there'}   // 0.17.0: Log mode's words — the film is right there
+  : {on:'On the iPad', no:'The iPad couldn’t get there', go:'Sending the iPad to this play…', is:'The iPad is on', off:'chalk is off on the iPad', none:'The iPad hasn’t said where it is yet', b:'Show it there'};
 function ipadWhere(q){   // 0.16.0: the iPad against this card's play
   if (!SYNC.token || !q || !q.key || String(q.key).startsWith('clip:')) return null;
-  const H = SYNC.ipad.here, A = SYNC.ipad.ack, hold = SYNC.hold;
-  if (H && H.key === q.key) return {cls:'on', t:'On the iPad'};
+  const H = SYNC.ipad.here, A = SYNC.ipad.ack, hold = SYNC.hold, w = WHERE_W;
+  if (H && H.key === q.key) return {cls:'on', t:w.on};
   if (hold && hold.key === q.key){
-    if (A && A.key === q.key && A.hold === hold.at && !A.ok) return {cls:'bad', t:`The iPad couldn’t get there: ${A.why || 'no reason given'}`, b:'Try again'};
-    return {cls:'wait', t:'Sending the iPad to this play…'};
+    if (A && A.key === q.key && A.hold === hold.at && !A.ok) return {cls:'bad', t:`${w.no}: ${A.why || 'no reason given'}`, b:'Try again'};
+    return {cls:'wait', t:w.go};
   }
   const hs = H && H.key && H.sit ? [sitWord(H.sit), H.sit.qtr ? `Q${H.sit.qtr} ${clockWord(H.sit.clock)}` : ''].filter(Boolean).join(' · ') : '';
-  return {cls:'off', t:H && H.key ? `The iPad is on ${hs || 'another play'}` : H ? 'chalk is off on the iPad' : 'The iPad hasn’t said where it is yet', b:'Show it there'};
+  return {cls:'off', t:H && H.key ? `${w.is} ${hs || 'another play'}` : H ? w.off : w.none, b:w.b};
 }
 function ipadLine(q){ const w = ipadWhere(q); return w ? `<div class="card-ipad ${w.cls}"><span>${esc(w.t)}</span>${w.b ? `<button class="btn slim" data-act="ipadGo">${w.b}</button>` : ''}</div>` : ''; }
 function cardHTML(q){
@@ -6728,6 +6996,7 @@ const GAMES = {index:null, state:'off', err:null, cache:new Map(), busy:new Set(
 const GAMEV = {season:null, week:null, gid:lsGetRaw('pb.game.cur') || null, side:lsGetRaw('pb.game.side') || null, key:null};
 const GAME_LS_MAX = 8;
 async function fetchJSON(url){
+  if (HOST) return JSON.parse(await hostGet(url));   // 0.17.0: in Log mode, through chalk
   const r = await fetch(url, {cache:'no-cache'});
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
@@ -7025,7 +7294,7 @@ function moreTabHTML(){
 const WIPE = {plays:true, formations:true, designs:true, fronts:true};
 const WIPE_LBL = {plays:'logged plays', formations:'offense sets you entered', designs:'drawn plays', fronts:'defense fronts you entered'};
 function clearPrompt(){
-  if (EMBED || lsGetRaw('pb.clear0101')) return;
+  if (EMBED || HOST || lsGetRaw('pb.clear0101')) return;   // 0.17.0: never from Log mode — a clear there would empty the book everywhere
   const n = k => (S[k] || []).length;
   if (!Object.keys(WIPE).some(k => n(k))){ lsSetRaw('pb.clear0101', 'empty'); return; }
   showSheet(`<h3>Start clean?</h3><p>Everything ticked goes. The NFL base sets and fronts stay — they're the whole book after this. The delete syncs to the iPad. This can't be undone.</p>
@@ -7269,6 +7538,7 @@ function renderFlow(){
 function enOpen(q, o){
   o = o || {};
   if (EMBED){ toast('The engine runs in the phone app.'); return; }
+  if (q && q.key && hostNavBusy(q.key)) return;   // 0.17.0
   hideSheet();
   EN = enFresh(); EN.mode = o.mode || 'log'; EN.q = q || null; EN.chain = o.chain || null; EN.from = o.from || null;
   W = newWork(EN.mode === 'set' ? 'template' : 'log'); W.wizOn = true; W.engine = true;
@@ -7279,7 +7549,7 @@ function enOpen(q, o){
     if (K.qb) W.qb = K.qb.v;
     if (K.hash && BALL_X[K.hash.v] != null) W.hash = K.hash.v;
     if (q.sit && q.sit.yard != null) W.spot = yardToSpot(q.sit.yard);
-    if (q.key && !String(q.key).startsWith('clip:')) setHold(q.key, 'snap');
+    if (q.key && !String(q.key).startsWith('clip:')) holdAuto(q.key);
   }
   diag('engine', `open ${(q && q.key) || EN.mode} · from ${EN.from || '?'} · ${W.pers}${EN.known.pers ? ' (' + EN.known.pers.src + ')' : ''} · ${W.qb}${EN.known.qb ? ' (' + EN.known.qb.src + ')' : ''}`);
   setView('flow');
@@ -8592,6 +8862,7 @@ const ACT = {
   dfill(d){ if (d.v === 'clear'){ W.droles = {}; diag('jobs.clear', 'all jobs cleared'); } else fillJobs(d.v); W.dsel = null; W.dirty = true; refresh(); },
   toJobs(){ const n = defList().length; if (n !== 11){ toast(`Place all 11 first. The defense has ${n}.`); return; } W.dsel = null; setStep('djobs'); diag('flow', 'shell → jobs'); refresh(); },
   toRestJ(){ setStep('rest'); refresh(); },
+  stampTab(d){ W.stampTab = d.v === 'pass' ? 'pass' : 'run'; diag('design.stamps', W.stampTab === 'pass' ? 'pass concepts' : 'run plays'); refresh(); },   // 0.17.0
   pside(d){
     W.pside = +d.v; W.psideSet = true;
     if (W.concept && !W.rsel){ pushRHist(); buildConcept(W.concept.id, W.pside, W.concept.carrier || null); W.dirty = true; }
@@ -8610,7 +8881,7 @@ const ACT = {
     pushRHist();
     if (a.kind === 'block') return;
     if (!deepen(a, +d.v)){ W.rhist.pop(); toast('Can not go shorter.'); return; }
-    delete a.label; delete a.cname; W.dirty = true;
+    delete a.label; delete a.cname; delete a.rname; W.dirty = true;
     const i = artInfo(m);
     diag('art.depth', `${m.tag} ${+d.v > 0 ? '+' : ''}${d.v} yd → ${i ? i.name + ' ' + i.code : ''}`);
     refresh();
@@ -8619,7 +8890,7 @@ const ACT = {
     const m = W.rsel ? manById(W.rsel) : null, a = m && (W.rmode === 'motion' ? W.motion : W.routes)[m.id];
     if (!a || (a.kind === 'block' && W.rmode !== 'motion')) return;
     pushRHist();
-    a.pts = a.pts.map(([x,y]) => [-x, y]); delete a.label; delete a.cname; W.dirty = true;
+    a.pts = a.pts.map(([x,y]) => [-x, y]); delete a.label; delete a.cname; delete a.rname; W.dirty = true;
     const i = artInfo(m), mn = motionName(m);
     diag('art.flip', `${m.tag} → ${W.rmode === 'motion' ? 'motion ' + mn : (i ? i.name + ' ' + i.code : '')}`);
     refresh();
@@ -8641,7 +8912,8 @@ const ACT = {
     if (!Object.keys(W.routes).length && !Object.keys(W.motion).length){ toast('Draw something first.'); return; }
     const dbl = doubleIds();
     const named = men().filter(m => m.kind !== 'ol').map(m => { const i = artInfo(m, dbl), mn = motionName(m); return (i || mn) ? `${m.tag}${mn ? ' ' + mn : ''}${i ? ' ' + i.name : ''}` : null; }).filter(Boolean);
-    const sugg = W.name || (W.concept ? `${W.setName} ${W.concept.name} ${W.concept.ps > 0 ? 'Right' : 'Left'}` : `${W.setName}: ${named.slice(0, 3).join(', ')}`);
+    const pr = W.concept ? null : passNow();   // 0.17.0: a pass play is named for what its routes read as
+    const sugg = W.name || (W.concept ? `${W.setName} ${W.concept.name} ${W.concept.ps > 0 ? 'Right' : 'Left'}` : pr && !pr.unsure ? `${W.setName} ${pr.text}` : `${W.setName}: ${named.slice(0, 3).join(', ')}`);
     showSheet(`<h3>Name this play</h3><p>${esc(named.join(' · '))} vs ${esc(W.defName)}</p>
       <input id="dzName" class="txt" value="${esc(sugg)}" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done">
       <div class="row"><button class="btn" data-act="closeSheet">Cancel</button><button class="btn pri" data-act="saveDesign">Save play</button></div>`);
@@ -8819,6 +9091,14 @@ const ACT = {
   qStart(){ const q = queueOpen()[0]; if (q) startQueued(q); },
   qOpen(d){ const q = SYNC.ipad.queue.find(o => o.key === d.key); if (q) startQueued(q); },
   syncSheet(){
+    if (HOST){   // 0.17.0: in Log mode chalk carries the sync — no token here
+      showSheet(`<h3>Sync</h3>
+        <p>${esc(syncWord())}${SYNC.err ? ' · ' + esc(SYNC.err) : ''}${SYNC.id ? '<br>Shared file: ' + esc(SYNC.id.slice(0, 8)) + '…' : ''}</p>
+        <p>In Log mode chalk carries the sync with its own GitHub token (chalk’s settings, ⚙). This copy keeps its book in tablet.json and reads the phone’s phone.json every few seconds; the phone reads this one the same way.</p>
+        <div class="row"><button class="btn" data-act="closeSheet">Close</button></div>
+        <button class="btn" data-act="importAsk">Import data</button>`);
+      return;
+    }
     showSheet(`<h3>Sync with the iPad</h3>
       <p>${esc(syncWord())}${SYNC.err ? ' · ' + esc(SYNC.err) : ''}${SYNC.id ? '<br>Shared file: ' + esc(SYNC.id.slice(0, 8)) + '…' : ''}</p>
       <p>Paste a GitHub token with one permission: Gists, read and write. It stays on this phone.</p>
@@ -8856,7 +9136,9 @@ const ACT = {
 /* ================= 0.9.0 actions: the inbox cards, the base book, the frames, chalk's frame ================= */
 const topCard = () => gameTop() || inboxSplit().top;   // 0.12.0: on the game page the card is the game's play
 Object.assign(ACT, {
-  cardTo(d){ PARK.delete(d.key); parkSave(); if (SYNC.hold && SYNC.hold.key !== d.key && SYNC.hold.key === CARDV.key) setHold(null); CARDV.key = d.key; CARDV.shot = 'snap'; CARDV.pickAt = Date.now(); renderHome(); $('#home').scrollTop = 0; },
+  cardTo(d){ PARK.delete(d.key); parkSave(); if (SYNC.hold && SYNC.hold.key !== d.key && SYNC.hold.key === CARDV.key) setHold(null); CARDV.key = d.key; CARDV.shot = 'snap'; CARDV.pickAt = Date.now();
+    if (HOST && d.key && !String(d.key).startsWith('clip:')) setHold(d.key, 'snap');   // 0.17.0 Log mode: the card you pick, the film goes to
+    renderHome(); $('#home').scrollTop = 0; },
   unparkAll(){ const n = PARK.size; PARK.clear(); parkSave(); CARDV.pickAt = Date.now(); diag('card.park', `${n} unparked`); renderHome(); },
   ipadGo(){ const q = topCard(); if (!q) return; setHold(q.key, 'snap'); diag('card.ipad', `send the iPad to ${q.key}`); renderHome(); },
   shot(d){ if (FILMV.open && !$('#sheet').hidden){ FILMV.shot = d.v; ACT.film(); } else { FILMV.open = false; CARDV.shot = d.v; renderHome(); } },
@@ -9595,6 +9877,11 @@ else {
   baseLoad();
   gamesLoad();
   clearPrompt();
+  if (HOST){   // 0.17.0: inside chalk the page is chalk's — no pinch or double-tap zoom of it from in here, and no zoom-in when a small field takes focus
+    ['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), {passive:false}));
+    const hs = document.createElement('style'); hs.textContent = 'html{touch-action:pan-x pan-y}.sel,.txt.mono,textarea{font-size:16px}'; document.head.appendChild(hs);
+    diag('host', `in chalk ${HOST.chalk || '?'}’s Log mode: GitHub through chalk, this copy writes ${MYFILE}`); hostSend({type:'pb-ready', v:VERSION, host:true});
+  }
 }
 })();
 </script>
